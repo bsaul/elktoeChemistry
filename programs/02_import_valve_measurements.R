@@ -5,11 +5,7 @@
 # Purpose: Load and save data objects for analysis
 #-----------------------------------------------------------------------------#
 
-library(readxl)
-library(dplyr)
-library(stringr)
-
-sourceDir   <- "inst/extdata/shells/Data/"
+sourceDir   <- "extdata/Data/"
 measureFile <- "Bivalve Transect Datums.xlsx"
 inFile      <- sprintf("%s%s", sourceDir, measureFile)
 sheets      <- excel_sheets(inFile)

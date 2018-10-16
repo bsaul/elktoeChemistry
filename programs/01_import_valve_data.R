@@ -5,12 +5,7 @@
 # Purpose: Load and save data objects for analysis
 #-----------------------------------------------------------------------------#
 
-library(readxl)
-library(dplyr)
-library(stringr)
-library(elktoe)
-
-sourceDir   <- "inst/extdata/shells/Data/Geochemical Time-Series"
+sourceDir   <- "extdata/Data/Geochemical Time-Series"
 shell_files <- list.files(path = sourceDir,
                           full.names = TRUE,
                           recursive = TRUE,

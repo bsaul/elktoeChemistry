@@ -5,8 +5,8 @@
 # Purpose:
 #-----------------------------------------------------------------------------#
 
-library(PeriodicTable)
-data("periodicTable")
+
+data("periodicTable", package = "PeriodicTable")
 
 element_info <- valve_analysis_long %>%
   distinct(element) %>%
