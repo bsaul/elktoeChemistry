@@ -1,0 +1,132 @@
+---
+title: "Randomization inference for serial data"
+output: pdf_document
+---
+
+Let $\mathbf{Y}_i$ be a vector of unit $i$'s data. The vector is ordered from $j= 1, \dots, N_i$, and let $d$ be the distance in $\mu$m from 0 to location $j$. Let $A$ be a binary (for now) exposure of interest. Let $\mathbf{Y}_i(a_i)$ be the potential vector when the unit is exposed to $a_i$. Assume SUTVA. $A$ is randomly assigned, so assume $Y(a) \perp A = a \forall a$.
+
+Assume the following causal model:
+\[
+\mathbf{Y}_i(a_i) = - \delta a (d - \mathcal{X}) (d - \mathcal{X}) \leq 0) + f_i(d; k) 
+\]
+
+where $f_i(d; k)$ is a unit-level cubic spline with $k$ knots based on distance.  $\delta$ represents a linear causal effect of the exposure between distances 0 and $\mathcal{X}$, where $\mathcal{X}$ is specified by the analyst.
+
+The plot below demonstrates the model. The black line is uniformity trial. The red line shows the shift from the $\mathcal{X}$ point due to $\delta = 0.5$.
+
+```{r, echo = FALSE}
+y <- arima.sim(n = 1000, rand.gen = rgamma, list(ar = c(0.8897, -0.4858), ma = c(3, 3)), shape = 2)
+y1 <- splinefun(y)
+xpoint <- 50
+mm <- function(delta, a, xpoint, f){
+   f - (delta * a * (1:1000 - xpoint) * ((1:1000  - xpoint) <= 0))
+}
+
+
+cc <- mm(.5, 1, xpoint, y1(1:1000))
+
+x <- 1:xpoint
+m0 <- lm(y[x] - y[xpoint] ~ -1 + I(x - xpoint))
+m1 <- lm(cc[x] -y[xpoint] ~ -1 + I(x - xpoint))
+
+
+
+plot(y, type = 'l', xlab = '')
+lines(cc[x], col = 'red')
+points(x = xpoint, y = y[xpoint])
+lines(x = x, y = y[xpoint] + cbind(x - xpoint) %*% coef(m0))
+lines(x = x, y = y[xpoint] + cbind(x - xpoint) %*% coef(m1), col = 'red')
+```
+
+Note that the difference in the slopes of best fit lines corresponds to $\delta$. 
+```{r}
+coef(m1) - coef(m0) #delta
+```
+
+Test $H_0: \delta = 0$.
+
+Proceed with inference in the following way:
+
+1. Fit cubic spline with $k$ knots to each unit's series. 
+2. For each unit, compute slope from $y - y[\mathcal{X}]$ for x values $1, \dots, \mathcal{X}$. Call this $B_i$
+3. Permute treatment assignment. Let $\Omega$ be the set of all possible treatment assignments.
+4. For each permutation (or sample), compute the difference in means (of slopes):
+
+\[
+T(\mathbf{a}) = \frac{1}{n_1}\sum_{i = 1}^n A_i B_i - \frac{1}{n_0}\sum_{i = 1}^n (1 - A_i) B_i 
+\]
+
+5. Compute the p-value:
+
+\[
+p = \frac{\sum_{\mathbf{a} \in \Omega} \ I(T(\mathbf{a}, \mathbf{B}) \geq T(\mathbf{A}, \mathbf{B}))}{|\Omega|}
+\]
+
+```{r example, echo=FALSE, message=FALSE, warning=FALSE}
+library(elktoe)
+library(mgcv)
+library(ggplot2)
+dt <- shells_long %>%
+  filter(element == 'Pb_ppm_m208', site %in% c('Tuck 1', 'LiTN 3'), species == 'A. raveneliana',
+         primary_analysis == 1)
+
+ids <- dt %>% ungroup() %>% distinct(site, id) 
+
+ids %>% group_by(site) %>% summarise(n())
+
+bam_fit <- bam(value_log10 ~ s(distance, by = id, bs = 'cr', k = 50) + s(id, bs = 're'),
+            family = gaussian(), data = dt)
+yhat <- bam_fit$fitted.values
+res <- bam_fit$residuals
+dt2 <- dt %>% ungroup() %>% mutate_(fit =~ yhat, res =~ res)
+
+##  cubic splines estimated from actual data.
+ggplot(dt2, aes(x = distance, y = fit, group = id, color = site)) +
+  geom_line(alpha = .5) + 
+  geom_vline(xintercept = 50, linetype = 'dotted')
+
+```
+
+An example based on the above plot.
+
+```{r, echo = FALSE}
+make_Omega <- function(n, m) {
+  ind <- combn(seq_len(n), m)
+  ind <- t(ind) + (seq_len(ncol(ind)) - 1) * n
+  res <- rep(0, nrow(ind) * n)
+  res[ind] <- 1
+  matrix(res, ncol = n, nrow = nrow(ind), byrow = TRUE)
+}
+
+O <- make_Omega(14, 5)
+# dt2 %>% filter(id == 'C503') %>% summarise(max(distance))
+B_maker <- function(data, X){
+  y <- data$fit[data$distance <= X]
+  yX <- y[length(y)]
+  d <- data$distance[data$distance <= X]
+  lm(y - yX ~ -1 + I(d - X))
+}
+
+
+vals <- dt2 %>% group_by(id) %>% 
+  tidyr::nest() %>%
+  mutate(
+    mod = purrr::map(data,  ~ B_maker(data = ., 50)),
+  B = lapply(mod, coef)) %>%
+  tidyr::unnest(B) %>%
+  left_join(ids, by = 'id') %>%
+  mutate(trt = ifelse(site == 'Tuck 1', 0, 1))
+
+B <- vals$B
+
+T_dist <- apply(O, 1, function(a) {
+  abs(diff(tapply(B, a, mean)))
+})
+
+T_obs <- abs(diff(tapply(vals$B, vals$trt, mean)))
+
+mean(T_dist >= T_obs) # p-value
+
+  
+
+```
