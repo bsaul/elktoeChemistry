@@ -6,7 +6,8 @@
 #-----------------------------------------------------------------------------#
 
 valve_analysis_long <- valve_analysis %>%
-  tidyr::gather(element, value, -id, -transect, -layer, -annuli, -distance) %>%
+  tidyr::gather(element, value, -id, -transect, -layer, -annuli,
+                -distance, -pdistance_layer, -pdistance_nacre_annuli) %>%
   mutate(
     value0        = as.numeric(pmax(0, value)),
     value0_log10  = log10(value0 + 1)

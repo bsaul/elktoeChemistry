@@ -16,7 +16,7 @@ n_annuli <-  valve_annual_layer_availability %>%
   
 
 
-mussel_info <- valve_analysis %>%
+mussel_info <- valve_analysis %>% ungroup() %>%
   distinct(id) %>%
   ## add river, site, info
   left_join(mussels_wide, by = 'id') %>%
@@ -33,9 +33,10 @@ mussel_info <- valve_analysis %>%
     moribund      = ifelse(is.na(moribund), 0, moribund),
     dead          = ifelse(river == 'Baseline', 0, dead),
     final_status  = ifelse(dead, 'Dead', ifelse(moribund, 'Moribund', 'Alive')),
-    final_status  = factor(final_status, ordered = TRUE, levels = c('Alive', 'Moribund', 'Dead'))
+    final_status  = factor(final_status, ordered = TRUE, levels = c('Alive', 'Moribund', 'Dead')),
+    site_num      = as.integer(if_else(site == "Baseline", "1", substr(site, 6, 6)))
   ) %>%
-  dplyr::select(id, site, river, species, dead, prop_weight_lost, moribund, final_status) %>%
+  dplyr::select(id, site, site_num, river, species, dead, prop_weight_lost, moribund, final_status) %>%
   left_join(n_annuli, by = "id")
 
 

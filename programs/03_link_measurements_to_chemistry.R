@@ -69,11 +69,11 @@ valve_measurements <- valve_measurements %>%
   mutate(
     distance = distance * 100, # put distance in same units as chemistry data
     layer = case_when(
-      to == "2" ~ "epoxy",
+      to == "2" ~ "inner_epoxy",
       to == "3" ~ "nacreous",
       to == "4" ~ "prismatic",
       to == "5" ~ "periostracum",
-      to == "6" ~ "epoxy"
+      to == "6" ~ "outer_epoxy"
     ),
     annuli    = str_extract(to, "[A-Z]"),
     is_layer  = (to %in% 1:6),
@@ -150,8 +150,9 @@ make_annuli_template <- function(.data){
   }
 }
 
+## Create analysis data set ####
 ## Link chemistry with measurements
-linked_data <- valve_data %>%
+valve_analysis <- valve_data %>%
   # filter(id == "A2", transect == "1") %>%
   mutate(
     layerFUN   = purrr::map(measures, ~ make_layer_template(.x)),
@@ -169,11 +170,24 @@ linked_data <- valve_data %>%
   tidyr::unnest() %>%
   mutate(
     # Clean up annuli
-    annuli = if_else(layer == "epoxy", NA_character_, annuli)
+    annuli = if_else(layer %in% c("inner_epoxy", "outer_epoxy"), NA_character_, annuli)
   )
 
-## Create analysis data set
-valve_analysis <- linked_data
-
+## Add scaled distance
+valve_analysis <- valve_analysis %>%
+  group_by(id, transect, layer) %>%
+  mutate(
+    pdistance_layer = (distance - min(distance))/(max(distance) - min(distance))
+  ) %>%
+  tidyr::unite("layer_annuli", c("layer", "annuli"), remove = FALSE) %>%
+  group_by(id, transect, layer_annuli) %>%
+  mutate(
+    pdistance_nacre_annuli = if_else(layer == "nacreous", 
+                                     (distance - min(distance))/(max(distance) - min(distance)),
+                                     NA_real_)
+  ) %>% 
+  group_by(id, transect) %>%
+  select(-layer_annuli)
+  
 saveRDS(valve_analysis, file = 'data/valve_analysis.rds')
 
