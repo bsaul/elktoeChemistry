@@ -1,0 +1,74 @@
+---
+title: "Nacre Displays"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+```
+
+```{r load_data}
+chem_dt      <- readRDS("data/valve_analysis.rds")
+chem_dt_long <- readRDS("data/valve_analysis_long.rds")
+annuli_avail <- readRDS("data/valve_annual_layer_availability.rds")
+outcomes     <- readRDS("data/valve_mussel_info.rds")
+```
+
+```{r identify_valves_with_AB}
+has_AB_ids <- annuli_avail %>%
+  mutate(has_A_and_B = A & B) %>%
+  group_by(id) %>%
+  mutate(transect = as.integer(transect)) %>%
+  filter(has_A_and_B) %>%
+  summarise(transect = as.character(min(transect))) %>%
+  tidyr::unite("idt", c("id", "transect")) %>% pull(idt)
+```
+
+```{r collect_nacre_data}
+nacre_data <- chem_dt_long %>%  
+  group_by(id, transect, element) %>%
+  # Filter to transects that have at least one nacreous layer observation
+  # Keep both nacreous and epoxy values
+  filter((sum(layer == "nacreous", na.rm = TRUE) > 1), layer %in% c("nacreous", "inner_epoxy")) %>%
+  mutate(
+    dist_from_iedge = distance - min(distance[layer == "nacreous"]),
+    idt             = paste(id, transect, sep = "_"),
+    use_AB_analysis = idt %in% has_AB_ids
+  )  %>%
+  inner_join(outcomes, by = "id") %>%
+  mutate(idt = paste(id, transect)) %>%
+  group_by(element) %>%
+  tidyr::nest()
+```
+
+```{r}
+
+plot_nacre <- function(.data, .distance_var, .distance_filter = NULL){
+  if(!is.null(.distance_filter)){
+    .data <- filter(.data, !! rlang::sym(.distance_var)  > .distance_filter[1], !! rlang::sym(.distance_var)  < .distance_filter[2] )
+  }
+  
+  ggplot(
+    .data,
+     aes(x = !! rlang::sym(.distance_var), y = value, group = idt, color = annuli)) + 
+  geom_hline(yintercept = 0, color = "grey90") + 
+  geom_vline(xintercept = 0, color = "grey90") + 
+  geom_line(alpha = .5) +
+  facet_grid( ~ species) + 
+  theme_classic() +
+  theme(
+    axis.line.x = element_blank(),
+    axis.line.y = element_line(color = "grey90"),
+    strip.background = element_blank()
+  )
+  
+}
+plot_nacre(nacre_data$data[[1]], "dist_from_iedge", c(-100, 200))
+
+
+  
+  
+```

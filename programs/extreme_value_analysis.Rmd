@@ -19,59 +19,10 @@ outcomes <- readRDS("data/valve_mussel_info.rds")
 
 ```{r}
 
-has_AB <- layer_available %>%
-  mutate(has_A_and_B = A & B) %>%
-  group_by(id) %>%
-  mutate(transect = as.integer(transect)) %>%
-  filter(has_A_and_B) %>%
-  summarise(
-    transect = as.character(min(transect))
-  )
+
 
 ```
 
-```{r}
-nacre_data <- valve_analysis_long %>%  
-  group_by(id, transect, element) %>%
-  filter((sum(layer == "nacreous", na.rm = TRUE) > 1), transect == 1,
-         (layer  == "nacreous" & !is.na(annuli)) | (layer == "epoxy" & distance < 150)) %>%
-  mutate(
-    dist_from_iedge = distance - min(distance[layer == "nacreous"])
-  )  %>%
-  inner_join(outcomes, by = "id") %>%
-  mutate(
-    site_num = if_else(site == "Baseline", 1L, as.integer(substr(site, 6, 6))),
-    idt      = paste(id, transect)
-  ) 
-
-nacre_data %>%
-  filter(is.na(annuli), dist_from_iedge > 0)
-
-nest_nacre <- nacre_data %>%
-  group_by(element) %>%
-  tidyr::nest()
-
-ggplot(
-  nest_nacre$data[[1]],
-  aes(x = dist_from_iedge, y = value, group = idt, color = annuli)
-) + 
-  geom_hline(yintercept = 0, color = "grey90") + 
-  geom_vline(xintercept = 0, color = "grey90") + 
-  geom_line(alpha = .5) +
-
-  scale_x_continuous(
-    limits = c(-100, 200)
-  ) + 
-  facet_grid( ~ species) + 
-  theme_classic() +
-  theme(
-    axis.line.x = element_blank(),
-    axis.line.y = element_line(color = "grey90"),
-    strip.background = element_blank()
-  )
-  
-  
-```
 
 ```{r find_max_values}
 ## Compute the max value for transect 1 in the nacreous layer
