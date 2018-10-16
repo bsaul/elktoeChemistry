@@ -100,4 +100,3 @@ hold %>%
 
 
 saveRDS(valve_chemistry_raw, file = 'data/valve_chemistry_raw.rds')
-rm(list = setdiff(ls(), "valve_chemistry_raw"))

@@ -10,27 +10,17 @@ editor_options:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-library(elktoe)
 library(ggplot2)
 valve_analysis <- readRDS("data/valve_analysis.rds")
 valve_analysis_long <- readRDS("data/valve_analysis_long.rds")
+layer_available <- readRDS("data/valve_annual_layer_availability.rds")
 outcomes <- readRDS("data/valve_mussel_info.rds")
 ```
 
 ```{r}
-valve_annual_layer_availability <- valve_analysis %>%
-  group_by(id, transect) %>%
-  filter(layer == "nacreous") %>%
-  group_by(annuli, add = TRUE) %>%
-  summarise(n = n() > 1) %>%
-  tidyr::spread(
-    key = annuli, value = n, fill = FALSE
-  ) %>%
-  mutate(
-    has_A_and_B = A & B
-  )
 
-has_AB <- valve_annual_layer_availability %>%
+has_AB <- layer_available %>%
+  mutate(has_A_and_B = A & B) %>%
   group_by(id) %>%
   mutate(transect = as.integer(transect)) %>%
   filter(has_A_and_B) %>%

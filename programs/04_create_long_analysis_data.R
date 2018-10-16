@@ -13,5 +13,4 @@ valve_analysis_long <- valve_analysis %>%
   )
 
 saveRDS(valve_analysis_long, file = 'data/valve_analysis_long.rds')
-# rm(list = setdiff(ls(), c("valve_analysis")))
 

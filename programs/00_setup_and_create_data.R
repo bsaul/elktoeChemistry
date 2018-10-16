@@ -9,9 +9,18 @@ library(readxl)
 library(dplyr)
 library(stringr)
 
+load("data/mussels_wide.rda")
+
 files <- list.files(path = "programs",
            full.names = TRUE,
            recursive = TRUE,
            include.dirs = FALSE)
 
-Rfiles <- files[grepl("R$", files)]
+create_data_Rfiles <- files[grepl("programs/0[1-9].*R$", files)]
+
+for(i in seq_along(create_data_Rfiles)){
+  source(file = create_data_Rfiles[i], echo = TRUE)
+}
+
+rm(list = ls())
+

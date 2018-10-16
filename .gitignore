@@ -11,6 +11,8 @@ packrat/lib*/
 *.tif
 *.tar.gz
 *.rds
+*.rda
+*.log
 extdata/images/*
 *.eml
 archive*

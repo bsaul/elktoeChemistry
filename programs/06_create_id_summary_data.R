@@ -5,6 +5,17 @@
 # Purpose:
 #-----------------------------------------------------------------------------#
 
+## Compute age estimate from measured annuli
+n_annuli <-  valve_annual_layer_availability %>%
+  group_by(id) %>%
+  summarise_at(.vars = vars(matches("^[A-Z]$")), .funs = funs( sum(.) > 0)) %>%
+  transmute(
+    id       = id,
+    n_annuli = rowSums(.[ , 2:ncol(.)])
+  )
+  
+
+
 mussel_info <- valve_analysis %>%
   distinct(id) %>%
   ## add river, site, info
@@ -24,10 +35,11 @@ mussel_info <- valve_analysis %>%
     final_status  = ifelse(dead, 'Dead', ifelse(moribund, 'Moribund', 'Alive')),
     final_status  = factor(final_status, ordered = TRUE, levels = c('Alive', 'Moribund', 'Dead'))
   ) %>%
-  dplyr::select(id, site, river, species, dead, prop_weight_lost, moribund, final_status)
+  dplyr::select(id, site, river, species, dead, prop_weight_lost, moribund, final_status) %>%
+  left_join(n_annuli, by = "id")
 
 
 
 saveRDS(mussel_info, file = 'data/valve_mussel_info.rds')
-# rm(list = setdiff(ls(), c("valve_analysis")))
+rm(n_annuli)
 

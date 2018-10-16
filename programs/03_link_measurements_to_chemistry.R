@@ -176,5 +176,4 @@ linked_data <- valve_data %>%
 valve_analysis <- linked_data
 
 saveRDS(valve_analysis, file = 'data/valve_analysis.rds')
-rm(list = setdiff(ls(), c("valve_analysis")))
 

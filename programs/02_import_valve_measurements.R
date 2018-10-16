@@ -34,4 +34,3 @@ read_measurements_sheet <- function(.inFile, .sheet){
 valve_measurements <- purrr::map_dfr(sheets[1:6], ~ read_measurements_sheet(inFile, .x))
 
 saveRDS(valve_measurements, file = 'data/valve_measurements.rds')
-rm(list = setdiff(ls(), c("valve_measurements", "valve_chemistry_raw")))
