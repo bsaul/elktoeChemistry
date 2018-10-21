@@ -1,0 +1,198 @@
+---
+editor_options: 
+  chunk_output_type: console
+output: html_document
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r collect_nacre_data}
+nacre_data <- chem_dt_long %>%  
+  group_by(id, transect, element) %>%
+  # Filter to transects that have at least one nacreous layer observation
+  # Keep both nacreous and epoxy values
+  filter((sum(layer == "nacreous", na.rm = TRUE) > 1), layer %in% c("nacreous", "inner_epoxy")) %>%
+  mutate(
+    dist_from_iedge  = distance - min(distance[layer == "nacreous"]),
+    pdist_from_iedge = if_else(layer == "inner_epoxy", 
+                               pdistance_layer - max(pdistance_layer[layer == "nacreous"]),
+                               pdistance_layer),
+    pdist_from_iedge = case_when(
+      pdist_from_iedge == 0 & layer == "inner_epoxy" ~ pdist_from_iedge - 0.001,
+      pdist_from_iedge == 0 & layer == "nacreous"    ~ pdist_from_iedge + 0.001,
+      TRUE ~ pdist_from_iedge
+    ),
+    idt              = paste(id, transect, sep = "_"),
+    use_AB_analysis  = idt %in% has_AB_ids
+  )  %>%
+  inner_join(outcomes, by = "id") %>%
+  mutate(idt = paste(id, transect)) %>%
+  group_by(element) %>%
+  tidyr::nest()
+```
+
+```{r}
+annotate_nacre <- function(.p, .data, .value_var){
+  # Annotation settings
+  nacre_anno <- expression(Nacre*symbol("\256"))
+  epoxy_anno <- expression(symbol("\254")*Epoxy)
+  yanno      <- diff(range(.data[[.value_var]]))*.025
+
+  .p + 
+  annotate(geom = "text", x = 0, y = -yanno, label = as.character(epoxy_anno),
+           hjust = 1, size = 3, color = "grey50", parse = TRUE) +
+  annotate(geom = "text", x = 0, y = -yanno, label = as.character(nacre_anno),
+            hjust = 0, size = 3, color = "grey50", parse = TRUE)
+}
+
+plot_nacre <- function(.data, .title, .include_title = FALSE, 
+                       .ylabel, .xlabel = expression(mu*m),
+                       .value_var = "value", 
+                       .distance_var, .distance_filter = NULL,
+                       .facet_formula = ~ species,
+                       .scales  = "fixed",
+                       .add_anno = TRUE){
+  if(!is.null(.distance_filter)){
+    .data <- filter(.data, !! rlang::sym(.distance_var)  > .distance_filter[1], !! rlang::sym(.distance_var)  < .distance_filter[2] )
+  }
+  
+
+
+  # organize plot
+  ggplot(
+    .data,
+     aes(x = !! rlang::sym(.distance_var), y = !! rlang::sym(.value_var), 
+         group = idt, color = annuli)) + 
+    geom_hline(yintercept = 0, color = "grey90") + 
+    geom_vline(xintercept = 0, color = "grey90") + 
+    geom_line(alpha = .5, size = .5) +
+    scale_color_discrete(guide = FALSE) + 
+    scale_y_continuous(
+      name = .ylabel
+    ) + 
+    scale_x_continuous(
+      name = .xlabel
+    ) + 
+    facet_grid(.facet_formula, scales = .scales) + 
+    theme_classic() +
+    theme(
+      axis.line.x = element_blank(),
+      axis.line.y = element_line(color = "grey90"),
+      axis.ticks  = element_line(color = "grey90"),
+      axis.text   = element_text(color = "grey75"),
+      strip.background = element_blank()
+    ) -> p
+  
+  if(.include_title){
+     p <- p + ggtitle(.title) 
+  }
+  
+  if(.add_anno){
+    p <- annotate_nacre(p, .data, .value_var)
+  }
+  
+  p
+}
+```
+
+
+```{r}
+show_plots <- function(.prelabel){
+  plots <- paste0(list.files("img", full.names = TRUE))
+  plots <- plots[grepl(.prelabel, plots)]
+  
+  replacements <- c("", "")
+  names(replacements) <- c("\\.png", sprintf("img/%s_", .prelabel)) 
+  names(plots) <- str_replace_all(plots, replacements)
+  
+  bsselect(plots, type = "img", selected = "As_ppm_m75", 
+           frame_height = "200",
+           live_search = TRUE, show_tick = TRUE)
+}
+```
+
+
+## All available valve-transects: epoxy/nacre edge
+
+Displaying the first 100$\mu$m of epoxy and 200$\mu$m of nacre for all valve-transects with some observations within the nacre. Each line = one valve-transect.
+
+```{r, echo = FALSE}
+invisible(purrr::map2(nacre_data$data, nacre_data$element, function(x, y){
+    p <- plot_nacre(
+      x, 
+     .ylabel = y, 
+     .title = "Elemental conc anchoring at Epoxy/Nacre edge",
+     .distance_var = "dist_from_iedge", 
+     .distance_filter = c(-100, 200)) 
+    ggsave(file = sprintf("img/epoxy_nacre_same_scale_%s.png", y), width = 7, height = 5, dpi = 300)
+}))
+```
+
+```{r}
+show_plots("epoxy_nacre_same_scale")
+```
+
+Showing the same data but allowing the scale to vary depending on species:
+
+```{r, echo = FALSE}
+invisible(purrr::map2(nacre_data$data, nacre_data$element, function(x, y){
+    p <- plot_nacre(
+      x, 
+     .ylabel = y, 
+     .title = "Elemental conc anchoring at Epoxy/Nacre edge",
+     .distance_var = "dist_from_iedge", 
+     .distance_filter = c(-100, 200),
+     .facet_formula = species ~ .,
+     .scales = "free_y",
+     .add_anno = FALSE) 
+    ggsave(file = sprintf("img/epoxy_nacre_free_scale_%s.png", y), width = 7, height = 5, dpi = 300)
+}))
+```
+
+```{r}
+show_plots("epoxy_nacre_free_scale")
+```
+
+Showing the same data but faceting by drawer rather than species:
+
+```{r, echo = FALSE}
+invisible(purrr::map2(nacre_data$data, nacre_data$element, function(x, y){
+    p <- plot_nacre(
+      x, 
+     .ylabel = y, 
+     .title = "Elemental conc anchoring at Epoxy/Nacre edge",
+     .distance_var = "dist_from_iedge", 
+     .distance_filter = c(-100, 200),
+     .facet_formula =  drawer ~ .,
+     .add_anno = FALSE) 
+    ggsave(file = sprintf("img/epoxy_nacre_drawer_%s.png", y), width = 7, height = 5, dpi = 300)
+}))
+```
+
+```{r}
+show_plots("epoxy_nacre_drawer")
+```
+
+Displaying the all epoxy and all nacre data where distance is proportion of the length of each layer within a valve-transect for all valve-transects with some observations within the nacre. Each line = one valve-transect.
+
+
+```{r, echo = FALSE, warning = FALSE}
+invisible(purrr::map2(nacre_data$data, nacre_data$element, function(x, y){
+    p <- plot_nacre(
+      x, 
+      .ylabel = y, 
+      .xlabel = "Proportion of layer",
+      .title = "Elemental conc anchoring at Epoxy/Nacre edge",
+      .distance_var = "pdist_from_iedge",
+      .add_anno = FALSE) 
+    ggsave(file = sprintf("img/epoxy_nacre_pdist_%s.png", y), width = 7, height = 5, dpi = 300)
+}))
+```
+
+```{r, warning = FALSE}
+show_plots("epoxy_nacre_pdist")
+```
+
+

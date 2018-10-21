@@ -1,0 +1,61 @@
+---
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(dplyr)
+library(ggplot2)
+library(shiny)
+library(stringr)
+library(bsselectR)
+```
+
+
+```{r load_data}
+chem_dt      <- readRDS("../data/valve_analysis.rds")
+chem_dt_long <- readRDS("../data/valve_analysis_long.rds")
+annuli_avail <- readRDS("../data/valve_annual_layer_availability.rds")
+outcomes     <- readRDS("../data/valve_mussel_info.rds")
+```
+
+# Example
+
+Measurements of elements were taken along transects that ran (roughly) perpendicular to the valve edges. Between one and four transects (mode = 1) were measured for each valve. Annuli were measured along each transect and labelled by letters (A = most recent, B = next annuli, etc). Annuli were followed between transects, so that annuli can be compared between transects (e.g. annuli C on transect 1 is still annuli C on the second transect even if C is the most recent annuli for the second transect).
+
+![](img/valve_example.png)
+
+```{r identify_valves_with_AB}
+AB_data <- annuli_avail %>%
+  mutate(has_A_and_B = A & B) %>%
+  group_by(id) %>%
+  mutate(transect = as.integer(transect)) %>%
+  filter(has_A_and_B) 
+
+has_AB_ids <- AB_data %>%
+  summarise(transect = as.character(min(transect))) %>%
+  tidyr::unite("idt", c("id", "transect")) %>% pull(idt)
+```
+
+```{r, child="_nacre_displays.Rmd"}
+```
+
+# Comparison of annual layer A to annual layer B
+
+To study differences in elemental composition that may be due to the exposure to different sites, we compare the most recent layer of most recent growth (annual layer A) between valves. To account for individual level baseline differences, we first analyze only those valves that have measurements in both layers A and B -- the idea being layer A was created *during* the experiment, while layer B was created *before* the experiment. 
+
+
+
+The number of valves that have at least one transect that crosses some portion of annual layers A and B per species per site:
+
+```{r, results = "asis"}
+AB_data %>% distinct(id) %>%
+  left_join(outcomes, by = "id") %>%
+  group_by(species, site) %>%
+  summarise(n = n()) %>%
+  tidyr::spread(key = species, value = n) %>%
+  knitr::kable()
+```
+
+
