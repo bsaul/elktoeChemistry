@@ -88,7 +88,7 @@ valve_data <- inner_join(
     group_by(id, transect) %>%
     tidyr::nest(.key = "chemistry"),
   valve_measurements %>%
-    dplyr::select(-drawer) %>%
+    # dplyr::select(-drawer) %>%
     group_by(id, transect) %>%
     tidyr::nest(.key = "measures"),
   by = c("id", "transect"))
@@ -187,7 +187,9 @@ valve_analysis <- valve_analysis %>%
                                      NA_real_)
   ) %>% 
   group_by(id, transect) %>%
-  select(-layer_annuli)
+  select(-layer_annuli) %>%
+  # Add drawer information back
+  left_join(distinct(valve_measurements, id, transect, drawer), by = c("id", "transect"))
   
 saveRDS(valve_analysis, file = 'data/valve_analysis.rds')
 
