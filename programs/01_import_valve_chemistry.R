@@ -49,8 +49,7 @@ colNames[index_nomatch]
 
 valve_chemistry <- bind_rows(raw_data, .id = "file_name") %>%
   dplyr::select(file_name, time = ElapsedTime_s, scan_distance =`Dist (µm)`,
-                note = Notes, everything())
-
+                note = Notes, everything()) 
 ## Consistency checks on the imported data ####
 
 # Are all the elapsed times the same within 0.01
@@ -107,11 +106,14 @@ valve_chemistry <- valve_chemistry %>%
     is_laser_off = if_else(is.na(is_laser_off), FALSE, is_laser_off),
     on_row       = which(is_laser_on),
     off_row      = which(is_laser_off),
+    last_val_row = min(which(is.na(Ca43_CPS)) - 1),
     rn           = row_number(),
     # scan_distance is NA before the on_row, add it back
     scan_distance  = if_else(is.na(scan_distance), -2.881 * (on_row - rn) , scan_distance)
   ) %>%
-  dplyr::select(-is_laser_on, -is_laser_off, -rn, -on_row, -off_row) %>%
+  # Remove rows at end of each file with no data
+  filter(rn <= last_val_row) %>%
+  dplyr::select(-is_laser_on, -is_laser_off, -rn, -on_row, -off_row, -last_val_row) %>%
   ungroup() %>%
   mutate(file_name = clean_ids(file_name)) %>%
   tidyr::separate(file_name, sep = "-", into = c("id", "transect")) %>%
