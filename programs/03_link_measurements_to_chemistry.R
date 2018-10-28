@@ -1,87 +1,37 @@
 #-----------------------------------------------------------------------------#
 #   Title: Link the chemistry data to the valve measurements
 #  Author: B Saul
-#    Date: 218-10-07
+#    Date: 2018-10-07
 # Purpose: 
 #-----------------------------------------------------------------------------#
 
 
-chem_ids <- unique(valve_chemistry_raw$file_name)
-meas_ids <- unique(valve_measurements$file_name)
+chem_ids <- unique(paste0(valve_chemistry$id, valve_chemistry$transect))
+meas_ids <- unique(paste0(valve_measurements$id, valve_measurements$transect))
 
-## Find the linkable ids
-## IDs founds in chemistry data but not in datum measurements
-link_ids <- chem_ids[!(chem_ids %in% setdiff(chem_ids, meas_ids))]
-
-## IDs founds in datum measurements but not in chemistry data
-# y <- meas_ids[!(meas_ids %in% setdiff(meas_ids, chem_ids))]
-
-# all.equal(sort(link_ids), sort(y))
-
-
-
-## Create ids ###
-
-## Someone better at regex could probably do this all at once
-# strip leading numbers
-clean_ids <- function(x){
-  str_remove(x, "^\\d{1,2}") %>%
-    str_remove("^-") %>%
-    str_replace("\\.", "-")
-}
-
-
-## Prepare chemistry data ####
-valve_chemistry <- valve_chemistry_raw %>%
-  filter(file_name %in% link_ids) %>%
-  group_by(file_name) %>%
-  # Identify laser on/off points
-  mutate(
-    is_laser_on  = str_detect(note, "[Oo]n$"),
-    is_laser_off = str_detect(note, "[Oo]ff$"),
-    is_laser_on  = if_else(is.na(is_laser_on), FALSE, is_laser_on),
-    is_laser_off = if_else(is.na(is_laser_off), FALSE, is_laser_off),
-    on_row       = which(is_laser_on),
-    off_row      = which(is_laser_off),
-    rn           = row_number()
-  ) %>%
-  # # Keep only observations between on to off
-  # filter(rn >= on_row, rn <= off_row) %>%
-  dplyr::select(-is_laser_on, -is_laser_off, -rn, -on_row, -off_row) %>%
-  ungroup() %>%
-  mutate(file_name = clean_ids(file_name)) %>%
-  tidyr::separate(file_name, sep = "-", into = c("id", "transect")) %>%
-  dplyr::select(id, transect, distance = scan_distance, everything(), -time, -note)
-
-
-## Find IDs in mussels_wide but not in valve_chemistry
+## IDs founds in measurement data but not in chemistry
+setdiff(chem_ids, meas_ids)
+## IDs founds in chemistry data but not in measurement
+setdiff(meas_ids, chem_ids)
+##  IDs in mussels_wide but not in valve_chemistry
 setdiff(mussels_wide$id, unique(valve_chemistry$id))
-
-## Find IDs in valve_chemsitry but not in mussels_wide
+##  IDs in valve_chemistry but not in mussels_wide
 setdiff(unique(valve_chemistry$id), mussels_wide$id)
 
+re_reference_measurements <- function(measurements, reference = 1){
+  
+}
 
-## Prepare measurement data ####
-valve_measurements <- valve_measurements %>%
-  filter(file_name %in% link_ids, !is.na(distance)) %>%
-  mutate(file_name = clean_ids(file_name)) %>%
-  tidyr::separate(file_name, sep = "-", into = c("id", "transect")) %>%
-  mutate(
-    distance = distance * 100, # put distance in same units as chemistry data
-    layer = case_when(
-      to == "2" ~ "inner_epoxy",
-      to == "3" ~ "nacreous",
-      to == "4" ~ "prismatic",
-      to == "5" ~ "periostracum",
-      to == "6" ~ "outer_epoxy"
-    ),
-    annuli    = str_extract(to, "[A-Z]"),
-    is_layer  = (to %in% 1:6),
-    is_annuli = str_detect(to, "[A-Z]")
-  )
+valve_measurements %>%
+  group_by(drawer, id, transect) %>%
+  filter(is_layer) %>%
+  filter(sum(to == "2") == 0) %>% View
+%>%
+  mutate(distance = distance - distance[to == "2"]) %>% View()
+  
 
 
-## Link chemistry & datum measurements
+## Link chemistry & datum measurements ####
 
 valve_data <- inner_join(
   valve_chemistry %>%
@@ -93,70 +43,65 @@ valve_data <- inner_join(
     tidyr::nest(.key = "measures"),
   by = c("id", "transect"))
 
-# valve sections
-
-make_layer_template <- function(data){
-  data <- data[data$is_layer, ]
-  dist <- data$distance
-  labs <- data$layer
+## function to map measurements onto chemistry ####
+# valve sections (layers)
+create_layer_idFUN <- function(.data, .reference_transition = "ipx_"){
+  dt   <- .data[.data$is_layer, ]
+  dist <- dt$distance - dt$distance[grepl(.reference_transition, dt$layer_transition)]
+  labs <- c(str_extract(dt$layer_transition, "^[a-z]+"), "off") # always ends in off
   function(x){
-    as.character(cut(x, breaks = c(-Inf, dist), labels = labs))
+    as.character(cut(x, breaks = c(-Inf, dist, Inf), labels = labs))
   }
 }
 
-repfun <- function(what) { function(x) rep(what, length(x)) }
 # annuli templates
-make_annuli_template <- function(.data){
-
-  # if(sum(.data$is_annuli) < 1){
-  #   return(repfun(NA_character_))
-  # }
-
-  annuli_data <- .data[.data$is_annuli, ]
-  annuli_data <- arrange(annuli_data, distance)
-  dist <- annuli_data$distance
-  labs <- annuli_data$annuli
-
-
-  # add the annual layer OLDER than the last layer up to the prismatic layer
-  prism_layer_dist <- filter(.data = .data, layer == "nacreous") %>%
-    pull(distance)
-
-  #TODO double check this assumption:
-  # if no annuli measurements AND prism_layer_dist exists then all nacreous layer
-  # measurements are annual layer "A"
-  if(length(dist) == 0 && length(prism_layer_dist) > 0){
-    return(function(x) {
-      out <- rep(NA_character_, length(x))
-      y <- (x < prism_layer_dist)
-      out[y] <- "A"
-      out
-    })
-  }
-
-  if(length(dist) == 0 && length(prism_layer_dist) == 0){
+create_annuli_idFUN <- function(.data, .reference_transition = "ipx_"){
+  repfun <- function(what) { function(x) rep(what, length(x)) }
+  # This creates a function that determines annuli layers:
+  # * only for transects that cross the nacre
+  # * only up to the ncr_psm transition
+  # * in the case that no annuli measurements exist the annual layer is labeled "U"
+  #   for unknown
+  lyr_dt  <- .data[.data$is_layer, ]
+  ncr_psm_dist <- lyr_dt$distance[lyr_dt$layer_transition == "ncr_psm"]
+  
+  # Don't ID any annual layers if nacre/prismatic transition not measuring
+  if(length(ncr_psm_dist) == 0){
     return(repfun(NA_character_))
   }
-
-
-  # prism_layer_dist <- pull(prism_layer_dist, distance)
-  if(length(prism_layer_dist) > 0 && !is.na(prism_layer_dist) && max(dist) < prism_layer_dist){
-    dist <- c(dist, prism_layer_dist)
-    labs <- c(labs, LETTERS[max(which(LETTERS %in% labs)) + 1])
+  
+  # Update distance based on reference point
+  # all annuli measures from the estimated "laser on" so this distance from there to the 
+  # reference transition needs to be subtracted
+  ref_dist <- (lyr_dt$distance[grepl(.reference_transition, lyr_dt$layer_transition)] - lyr_dt$distance)[1]
+  ncr_psm_dist <- ncr_psm_dist - ref_dist
+  
+  # Make sure annuli measurements are sorted
+  annuli_data <- .data[.data$is_annuli, ] %>% arrange(distance)
+  
+  if(nrow(annuli_data) == 0){
+    labs <- c(NA_character_, "U")
+    dist <- c(0, ncr_psm_dist)
+  } else {
+    # identify annuli up to nacre/prismatic transition
+    dist <- c(0, pmin(annuli_data$distance - ref_dist, ncr_psm_dist), ncr_psm_dist + 0.0001)
+    labs <- annuli_data$annuli_transition
+    labs <- c(NA_character_, labs, LETTERS[max(which(LETTERS %in% labs)) + 1])
   }
-
+  
   function(x){
     as.character(cut(x, breaks = c(-Inf, dist), labels = labs))
   }
 }
+
 
 ## Create analysis data set ####
 ## Link chemistry with measurements
 valve_analysis <- valve_data %>%
   # filter(id == "A2", transect == "1") %>%
   mutate(
-    layerFUN   = purrr::map(measures, ~ make_layer_template(.x)),
-    annuliFUN  = purrr::map(measures, ~ make_annuli_template(.x)),
+    layerFUN   = purrr::map(measures, ~ create_layer_idFUN(.x)),
+    annuliFUN  = purrr::map(measures, ~ create_annuli_idFUN(.x)),
     chemistry  = purrr::map2(chemistry, layerFUN, function(data, f){
       data$layer <- f(data$distance)
       data
@@ -171,6 +116,9 @@ valve_analysis <- valve_data %>%
   mutate(
     # Clean up annuli
     annuli = if_else(layer %in% c("inner_epoxy", "outer_epoxy"), NA_character_, annuli)
+  ) %>%
+  dplyr::select(
+    id, transect, distance, layer, annuli, everything()
   )
 
 ## Add scaled distance
@@ -190,6 +138,7 @@ valve_analysis <- valve_analysis %>%
   select(-layer_annuli) %>%
   # Add drawer information back
   left_join(distinct(valve_measurements, id, transect, drawer), by = c("id", "transect"))
-  
+
+saveRDS(valve_measurements, file = 'data/valve_measurements.rds')
 saveRDS(valve_analysis, file = 'data/valve_analysis.rds')
 
