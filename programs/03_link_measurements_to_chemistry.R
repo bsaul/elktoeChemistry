@@ -18,16 +18,7 @@ setdiff(mussels_wide$id, unique(valve_chemistry$id))
 ##  IDs in valve_chemistry but not in mussels_wide
 setdiff(unique(valve_chemistry$id), mussels_wide$id)
 
-re_reference_measurements <- function(measurements, reference = 1){
-  
-}
 
-valve_measurements %>%
-  group_by(drawer, id, transect) %>%
-  filter(is_layer) %>%
-  filter(sum(to == "2") == 0) %>% View
-%>%
-  mutate(distance = distance - distance[to == "2"]) %>% View()
   
 
 
@@ -43,19 +34,36 @@ valve_data <- inner_join(
     tidyr::nest(.key = "measures"),
   by = c("id", "transect"))
 
-## function to map measurements onto chemistry ####
+## function to change reference ####
+shift_distance <- function(.chem_data, .zero_function = identity, .zf_args){
+  args <- append(list(x = .chem_data), .zf_args)
+  do.call(.zero_function, args = args)
+}
+
+ca_changepoint <- function(x, .use_up_to_row, .method = "AMOC"){
+  x %>%
+    mutate(
+      ## ID changepoint
+      cpt = changepoint::cpt.meanvar(cumsum(Ca43_CPS)[row_number() < .use_up_to_row], method = .method)@cpts[1],
+      # Update distance
+      distance = distance - distance[cpt]) %>%
+    select(-cpt)
+}
+
+
+## functions to map measurements onto chemistry ####
 # valve sections (layers)
-create_layer_idFUN <- function(.data, .reference_transition = "ipx_"){
+create_layer_idFUN <- function(.data, .reference_transition = "on_"){
   dt   <- .data[.data$is_layer, ]
   dist <- dt$distance - dt$distance[grepl(.reference_transition, dt$layer_transition)]
   labs <- c(str_extract(dt$layer_transition, "^[a-z]+"), "off") # always ends in off
   function(x){
-    as.character(cut(x, breaks = c(-Inf, dist, Inf), labels = labs))
+    as.character(cut(x, breaks = c(-Inf, dist, Inf), right = FALSE, labels = labs))
   }
 }
 
 # annuli templates
-create_annuli_idFUN <- function(.data, .reference_transition = "ipx_"){
+create_annuli_idFUN <- function(.data, .reference_transition = "on_"){
   repfun <- function(what) { function(x) rep(what, length(x)) }
   # This creates a function that determines annuli layers:
   # * only for transects that cross the nacre
@@ -84,60 +92,83 @@ create_annuli_idFUN <- function(.data, .reference_transition = "ipx_"){
     dist <- c(0, ncr_psm_dist)
   } else {
     # identify annuli up to nacre/prismatic transition
-    dist <- c(0, pmin(annuli_data$distance - ref_dist, ncr_psm_dist), ncr_psm_dist + 0.0001)
-    labs <- annuli_data$annuli_transition
-    labs <- c(NA_character_, labs, LETTERS[max(which(LETTERS %in% labs)) + 1])
+    pdist <- annuli_data$distance - ref_dist
+    dist  <- pmin(pdist, ncr_psm_dist)
+    plabs <- annuli_data$annuli_transition
+    
+    # Handle case where first annuli measure > nacre/prismatic layer
+    # In this case it seems reasonable to assume that the annual layer within
+    # the nacre corresponds to the first annuli measurement 
+    if(ncr_psm_dist < min(pdist)){
+      labs <- c(NA_character_, plabs[1])
+    } else {
+      labs <- c(NA_character_, plabs[dist < ncr_psm_dist])
+      # Add a label for the annual layer up to the nacre/prismatic
+      labs <- c(labs, LETTERS[max(which(LETTERS %in% labs)) + 1])
+    }
+    dist  <- c(0, dist[dist < ncr_psm_dist], ncr_psm_dist)
   }
   
   function(x){
-    as.character(cut(x, breaks = c(-Inf, dist), labels = labs))
+    as.character(cut(x, breaks = c(-Inf, dist), right = FALSE, labels = labs))
   }
 }
 
 
 ## Create analysis data set ####
-## Link chemistry with measurements
-valve_analysis <- valve_data %>%
-  # filter(id == "A2", transect == "1") %>%
-  mutate(
-    layerFUN   = purrr::map(measures, ~ create_layer_idFUN(.x)),
-    annuliFUN  = purrr::map(measures, ~ create_annuli_idFUN(.x)),
-    chemistry  = purrr::map2(chemistry, layerFUN, function(data, f){
-      data$layer <- f(data$distance)
-      data
-    }),
-    chemistry  = purrr::map2(chemistry, annuliFUN, function(data, f){
-      data$annuli <- f(data$distance)
-      data
-    })
-  ) %>%
-  dplyr::select(-measures, -layerFUN, -annuliFUN) %>%
-  tidyr::unnest() %>%
-  mutate(
-    # Clean up annuli
-    annuli = if_else(layer %in% c("inner_epoxy", "outer_epoxy"), NA_character_, annuli)
-  ) %>%
-  dplyr::select(
-    id, transect, distance, layer, annuli, everything()
-  )
 
-## Add scaled distance
-valve_analysis <- valve_analysis %>%
-  group_by(id, transect, layer) %>%
-  mutate(
-    pdistance_layer = (distance - min(distance))/(max(distance) - min(distance))
-  ) %>%
-  tidyr::unite("layer_annuli", c("layer", "annuli"), remove = FALSE) %>%
-  group_by(id, transect, layer_annuli) %>%
-  mutate(
-    pdistance_nacre_annuli = if_else(layer == "nacreous", 
-                                     (distance - min(distance))/(max(distance) - min(distance)),
-                                     NA_real_)
-  ) %>% 
-  group_by(id, transect) %>%
-  select(-layer_annuli) %>%
-  # Add drawer information back
-  left_join(distinct(valve_measurements, id, transect, drawer), by = c("id", "transect"))
+create_valve_analysis <- function(.valve_data, .reference_transition, .zero_function, .zf_args = list()){
+  .valve_data %>%
+    mutate(
+      # Shift the distance in chemistry by the .zero_function
+      chemistry  = purrr::map(chemistry, ~ shift_distance(.chem_data = .x, .zero_function = .zero_function, .zf_args)),
+      
+      # Create the layer and annuli ID functions
+      layerFUN   = purrr::map(measures,  ~ create_layer_idFUN(.x, .reference_transition)),
+      annuliFUN  = purrr::map(measures,  ~ create_annuli_idFUN(.x, .reference_transition)),
+      
+      # Add layer and annuli labels to chemistry
+      chemistry = purrr::pmap(
+        .l = list(chemistry, layerFUN, annuliFUN),
+        .f = function(data, lf, af){
+          data$layer  <- lf(data$distance)
+          data$annuli <- af(data$distance)
+          data
+        })
+    ) %>%
+    dplyr::select(-measures, -layerFUN, -annuliFUN) %>%
+    tidyr::unnest() %>%
+    mutate(
+      # Clean up annuli
+      annuli = if_else(layer %in% c("ipx", "opx"), NA_character_, annuli)
+    ) %>%
+    dplyr::select(
+      id, transect, distance, layer, annuli, everything()
+    )
+}
+
+test2 <- create_valve_analysis(valve_data, 
+                              .reference_transition = "on_", 
+                              .zero_function = identity)
+
+test1 <- create_valve_analysis(valve_data, 
+                      .reference_transition = "ipx_", 
+                      .zero_function = ca_changepoint, 
+                      .zf_args = list(.use_up_to_row = 150, .method = "AMOC"))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 saveRDS(valve_measurements, file = 'data/valve_measurements.rds')
 saveRDS(valve_analysis, file = 'data/valve_analysis.rds')
