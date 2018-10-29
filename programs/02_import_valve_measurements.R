@@ -11,27 +11,6 @@ inFile        <- sprintf("%s%s", sourceDir, measureFile)
 sheets        <- excel_sheets(inFile)
 import_sheets <- 1:6  ## Note excluding Drawer 7
 
-read_measurements_sheet <- function(.inFile, .sheet){
-  read_excel(path = .inFile, sheet = .sheet) %>%
-    dplyr::select(file_name = SampleID, drawer = `Drawer #`, matches("Length")) %>%
-    tidyr::gather(key = key, value = value, -file_name, -drawer, na.rm = TRUE) %>%
-    filter(key != "line length (mm)") %>%
-    tidyr::separate(
-      key, sep = " ", into = c("A", "B", "from", "C", "to", "D"), fill = "right"
-    ) %>%
-    # There are character values in some of the columns that shouldn't be there
-    filter(
-      str_detect(value, "^[0-9]*\\.[0-9]*$")
-    ) %>%
-    mutate(
-      # Clean up the ids
-      file_name = str_remove(file_name, "\\s.*"),
-      # There are character values in some of the columns that shouldn't be there
-      distance = as.numeric(value)) %>%
-    dplyr::select(drawer, file_name, from, to, distance)
-}
-
-
 valve_measurements <- purrr::map_dfr(sheets[import_sheets], ~ read_measurements_sheet(inFile, .x)) %>%
   filter(!is.na(distance)) %>%
   mutate(file_name = clean_ids(file_name)) %>%

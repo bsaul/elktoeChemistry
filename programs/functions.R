@@ -1,0 +1,219 @@
+
+## Data import functions ####
+#' Clean up IDs contained in the raw data
+#' 
+#' @param x a character vector
+
+clean_ids <- function(x){
+  stringr::str_remove(x, "^\\d{1,2}") %>%
+    stringr::str_remove("^-") %>%
+    stringr::str_replace("\\.", "-")
+}
+
+#' Import data in "Bivalve Transect Datums
+#' 
+#' @param .inFile path to .xlsx file
+#' @param .sheet which sheet to import
+#' 
+
+read_measurements_sheet <- function(.inFile, .sheet){
+  readxl::read_excel(path = .inFile, sheet = .sheet) %>%
+    dplyr::select(file_name = SampleID, drawer = `Drawer #`, matches("Length")) %>%
+    tidyr::gather(key = key, value = value, -file_name, -drawer, na.rm = TRUE) %>%
+    dplyr::filter(key != "line length (mm)") %>%
+    tidyr::separate(
+      key, sep = " ", into = c("A", "B", "from", "C", "to", "D"), fill = "right"
+    ) %>%
+    # There are character values in some of the columns that shouldn't be there
+    dplyr::filter(
+      stringr::str_detect(value, "^[0-9]*\\.[0-9]*$")
+    ) %>%
+    dplyr::mutate(
+      # Clean up the ids
+      file_name = stringr::str_remove(file_name, "\\s.*"),
+      # There are character values in some of the columns that shouldn't be there
+      distance = as.numeric(value)) %>%
+    dplyr::select(drawer, file_name, from, to, distance)
+}
+
+## Data preprocessing functions ####
+
+#' Shifts the distance variable in a chemistry dataset to a new 0 point based 
+#' on .zero_function
+#' 
+#' @name shift_distance
+#' @param .chem_data chemistry dataset for a single id_transect
+#' @param .zero_function a function that shifts the distance function. Defaults to
+#' \code{identity}. \code{x} must be first argument, where \code{x} is \code{.chem_data}
+#' @param .zf_args arguments passed to \code{.zero_function}
+
+shift_distance <- function(.chem_data, .zero_function = identity, .zf_args){
+  args <- append(list(x = .chem_data), .zf_args)
+  do.call(.zero_function, args = args)
+}
+
+#' @rdname shift_distance
+#' Uses \code{\link[changepoint]{cpt.meanvar}} to find the changepoint \code{Ca43_CPS}
+#' at the epoxy/valve transition
+#' 
+#' @param x a chemistry dataset
+#' @param .use_up_to_row how many rows of data to used in the changepoint detection
+#' @param .method passed to \code{\link[changepoint]{cpt.meanvar}}
+#' @importFrom changepoint cpt.meanvar
+
+ca_changepoint <- function(x, .use_up_to_row, .method = "AMOC"){
+  x %>%
+    mutate(
+      ## ID changepoint
+      cpt = changepoint::cpt.meanvar(cumsum(Ca43_CPS)[row_number() < .use_up_to_row], method = .method)@cpts[1],
+      # Update distance
+      distance = distance - distance[cpt]) %>%
+    select(-cpt)
+}
+
+
+# Functions to map measurements onto chemistry ####
+
+#' Create a function that identifies layers based on distance
+#' 
+#' @param .data a measurement dataset (for a single id_transect)
+#' @param .reference_transition the transition between layer to use as the reference.
+#' Defaults to \code{"on_"} (the transition from "laser on" to the next layer). 
+#' \code{"ipx_"} is the transition from inner epoxy to the next layer (either nacre
+#' or prismatic layer depending on the location of the transect)
+#' @return a function of \code{x} that \code{cut}s \code{x} based on the distances
+#' measured between transitions.
+
+create_layer_idFUN <- function(.data, .reference_transition = "on_"){
+  dt   <- .data[.data$is_layer, ]
+  dist <- dt$distance - dt$distance[grepl(.reference_transition, dt$layer_transition)]
+  labs <- c(str_extract(dt$layer_transition, "^[a-z]+"), "off") # always ends in off
+  function(x){
+    as.character(cut(x, breaks = c(-Inf, dist, Inf), right = FALSE, labels = labs))
+  }
+}
+
+#' Create a function that identifies annual layers based on distance
+#' 
+#' This creates a function that determines annuli layers:
+#' \itemize{
+#'  \item only for transects that cross the nacre
+#'  \item only up to the ncr_psm transition
+#'  \item in the case that no annuli measurements exist the annual layer is labeled "U" for unknown
+#' }
+#' @inheritParams create_layer_idFUN
+#' @return a function of \code{x} that \code{cut}s \code{x} based on the distances
+#' measured between annuli
+
+create_annuli_idFUN <- function(.data, .reference_transition = "on_"){
+  repfun <- function(what) { function(x) rep(what, length(x)) }
+
+  lyr_dt  <- .data[.data$is_layer, ]
+  ncr_psm_dist <- lyr_dt$distance[lyr_dt$layer_transition == "ncr_psm"]
+  
+  # Don't ID any annual layers if nacre/prismatic transition not measuring
+  if(length(ncr_psm_dist) == 0){
+    return(repfun(NA_character_))
+  }
+  
+  # Update distance based on reference point
+  # all annuli measures from the estimated "laser on" so this distance from there to the 
+  # reference transition needs to be subtracted
+  ref_dist <- (lyr_dt$distance[grepl(.reference_transition, lyr_dt$layer_transition)] - lyr_dt$distance)[1]
+  ncr_psm_dist <- ncr_psm_dist - ref_dist
+  
+  # Make sure annuli measurements are sorted
+  annuli_data <- .data[.data$is_annuli, ] %>% arrange(distance)
+  
+  if(nrow(annuli_data) == 0){
+    labs <- c(NA_character_, "U")
+    dist <- c(0, ncr_psm_dist)
+  } else {
+    # identify annuli up to nacre/prismatic transition
+    pdist <- annuli_data$distance - ref_dist
+    dist  <- pmin(pdist, ncr_psm_dist)
+    plabs <- annuli_data$annuli_transition
+    
+    # Handle case where first annuli measure > nacre/prismatic layer
+    # In this case it seems reasonable to assume that the annual layer within
+    # the nacre corresponds to the first annuli measurement 
+    if(ncr_psm_dist < min(pdist)){
+      labs <- c(NA_character_, plabs[1])
+    } else {
+      labs <- c(NA_character_, plabs[dist < ncr_psm_dist])
+      # Add a label for the annual layer up to the nacre/prismatic
+      labs <- c(labs, LETTERS[max(which(LETTERS %in% labs)) + 1])
+    }
+    dist  <- c(0, dist[dist < ncr_psm_dist], ncr_psm_dist)
+  }
+  
+  function(x){
+    as.character(cut(x, breaks = c(-Inf, dist), right = FALSE, labels = labs))
+  }
+}
+
+## Functions for creating analytic data sets ####
+
+#' Creates a "wide" analytic dataset
+#' 
+#' @param .valve_data a \code{\link[tidyr]{nest}}ed dataset (one row per id_transect) with columns
+#' \code{chemistry} (the chemistry data) and \code{measures} (the distance measurements)
+#' @param .reference_transition passed to \code{\link{create_layer_idFUN}} and 
+#' \code{\link{create_annuli_idFUN}}
+#' @param .zero_function passed to \code{\link{shift_distance}}
+#' @param .zf_args passed to \code{\link{shift_distance}}
+#' 
+#' @importFrom tidyr unnest
+#' @importFrom purrr map pmap
+#' 
+#' @return an \code{\link[tidyr]{unnest}}ed \code{data.frame} containing:
+#' \itemize{
+#'  \item id
+#'  \item transect 
+#'  \item distance (shifted by \code{\link{shift_distance}})
+#'  \item layer: a label for the valve layer from which the observation is measured
+#'  \item annuli: a label for the annual layer from which the observation is measured
+#'  \item + one column for each element
+#' } the \code{layer} and
+#' \code{annuli} variables added
+
+create_wide_analysis_data <- function(.valve_data, .reference_transition, .zero_function, .zf_args = list()){
+  .valve_data %>%
+    dplyr::mutate(
+      # Shift the distance in chemistry by the .zero_function
+      chemistry  = purrr::map(chemistry, ~ shift_distance(.chem_data = .x, .zero_function = .zero_function, .zf_args)),
+      
+      # Create the layer and annuli ID functions
+      layerFUN   = purrr::map(measures,  ~ create_layer_idFUN(.x, .reference_transition)),
+      annuliFUN  = purrr::map(measures,  ~ create_annuli_idFUN(.x, .reference_transition)),
+      
+      # Add layer and annuli labels to chemistry
+      chemistry = purrr::pmap(
+        .l = list(chemistry, layerFUN, annuliFUN),
+        .f = function(data, lf, af){
+          data$layer  <- lf(data$distance)
+          data$annuli <- af(data$distance)
+          data
+        })
+    ) %>%
+    dplyr::select(-measures, -layerFUN, -annuliFUN) %>%
+    tidyr::unnest() %>%
+    dplyr::mutate(
+      # Clean up annuli
+      annuli = if_else(layer %in% c("ipx", "opx"), NA_character_, annuli)
+    ) %>%
+    dplyr::select(
+      id, transect, distance, layer, annuli, everything()
+    )
+}
+
+#' Creates long form analytic dataset from the wide version
+#' 
+#' @param .wide_data a result of \code{\link{create_wide_analysis_data}}
+#' @importFrom tidyr gather
+
+create_long_analysis_data <- function(.wide_data){
+  .wide_data %>%
+    tidyr::gather(element, value, -id, -transect, -drawer, -layer, -annuli, -distance)
+}
+

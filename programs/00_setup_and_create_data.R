@@ -9,16 +9,9 @@ library(readxl)
 library(dplyr)
 library(stringr)
 
+source("programs/functions.R")
 load("data/mussels_wide.rda")
 
-## necessary functions ##
-## Someone better at regex could probably do this all at once
-# strip leading numbers
-clean_ids <- function(x){
-  str_remove(x, "^\\d{1,2}") %>%
-    str_remove("^-") %>%
-    str_replace("\\.", "-")
-}
 
 ###
 
