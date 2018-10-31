@@ -52,7 +52,7 @@ shift_distance <- function(.chem_data, .zero_function = identity, .zf_args){
   do.call(.zero_function, args = args)
 }
 
-#' @rdname shift_distance
+#' @name changepoint
 #' Uses \code{\link[changepoint]{cpt.meanvar}} to find the changepoint \code{Ca43_CPS}
 #' at the epoxy/valve transition
 #' 
@@ -71,6 +71,34 @@ ca_changepoint <- function(x, .use_up_to_row, .method = "AMOC"){
     select(-cpt)
 }
 
+#' @describeIn changepoint
+pbca_changepoint <- function(x, .use_up_to_row, .method = "AMOC"){
+  
+  x %>%
+    mutate(
+      PbCa_ratio = Pb208_CPS/Ca43_CPS,
+      ## ID changepoint
+      # cpt = .use_up_to_row - changepoint::cpt.mean(cummin(rev(PbCa_ratio[row_number() < .use_up_to_row])), method = .method)@cpts[1],
+      # cpt2 = .use_up_to_row + 100 - cpt,
+      cpt = which(diff(PbCa_ratio[row_number() < .use_up_to_row]) == min(diff(PbCa_ratio[row_number() < .use_up_to_row]))),
+      # Update distance,
+      distance = distance - distance[cpt]) 
+  # %>%
+    # select(-PbCa_ratio)
+}
+  
+#' @describeIn changepoint
+pbca_maxpoint <- function(x, .use_up_to_row, .threshold = 1){
+  x %>%
+    mutate(
+      ratio = (Pb208_CPS/Ca43_CPS),
+      ## ID changepoint
+      # cpt = which(ratio == max(ratio[row_number() < .use_up_to_row])),
+      cpt = max(findpeaks(ratio[row_number() < .use_up_to_row], threshold = .threshold)[ , 2]),
+      # Update distance
+      distance = distance - distance[cpt]) %>%
+    select(-ratio, -cpt)
+}
 
 # Functions to map measurements onto chemistry ####
 
