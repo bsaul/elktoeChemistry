@@ -45,16 +45,16 @@ valve_measurements <- purrr::map_dfr(
   mutate(
     # Added 2018-11-10:
     # The units of 1 to 5 measurement for 2A6.1 are off by 10^3
-    distance = if_else(file_name == "2A6.1" & to == 5, distance/1000, distance),
+    distance = if_else(file_name == "2A6.1" & to == 5, distance/1000, distance)
     
     # Added 2018-11-10:
     # if the distance from 1 to 2 is 0 then there is no gap from laser on to
     # inner epoxy, but this leads to non-unique breaks in the create_layer_idFUN
     # function ==> adding small gap
-    distance = case_when(
-      to == "2" & distance == 0 ~ -0.02881 ,
-      TRUE ~ distance
-    )
+    # distance = case_when(
+    #   to == "2" & distance == 0 ~ -0.02881 ,
+    #   TRUE ~ distance
+    # )
     
   ) %>%
   
@@ -68,6 +68,10 @@ valve_measurements <- purrr::map_dfr(
   group_by(drawer, id, transect) %>%
   mutate(distance = distance * 100) %>% # put distance in same units as chemistry data
   arrange(id, transect, from, to) %>% 
+  # 2018-11-11: remove cases where to == "2" and distance == 0
+  # These indicate records without a nacre measurement and interfere with the 
+  # processes below
+  filter(!(to == "2" & distance == 0)) %>%
   mutate(
     # NOTE: this works because all(from == "1") == TRUE; this could be generalized to a 
     # data format where from varies
@@ -114,6 +118,8 @@ valve_measurements %>%
     has_valid_pattern = str_detect(meas_pattern, valid_patterns)
   ) %>%
   filter(!has_valid_pattern)
+
+
 
 
 ## End Checks ##
