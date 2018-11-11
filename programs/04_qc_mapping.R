@@ -58,9 +58,19 @@ test_methods <- list(
   J = list(
     rt = "ipx_",
     zf = maxpoint,
-    zfa = list(.var = "Pb208_CPS", .use_up_to_row = 150, .threshold = 1000, .outer = FALSE)
+    zfa = list(.var = "ratio", .use_up_to_row = 150, .threshold = function(x) quantile(x, .95), .outer = FALSE)
   ),
   K = list(
+    rt = "_opx",
+    zf = maxpoint,
+    zfa = list(.var = "ratio", .use_up_to_row = 150, .threshold = function(x) quantile(x, .95), .outer = TRUE)
+  ),
+  L = list(
+    rt = "ipx_",
+    zf = maxpoint,
+    zfa = list(.var = "Pb208_CPS", .use_up_to_row = 150, .threshold = 1000, .outer = FALSE)
+  ),
+  M = list(
     rt = "_opx",
     zf = maxpoint,
     zfa = list(.var = "Pb208_CPS", .use_up_to_row = 150, .threshold = 1000,  .outer = TRUE)
@@ -76,13 +86,13 @@ apply_method <- function(.l, .n){
    mutate(idref_method = .n)
 }
 
-## Apply all the methods
+## Apply all the methods ####
 method_tests <- purrr::map2_dfr(
   test_methods, names(test_methods), 
   ~ apply_method(.x, .y)) %>%
   mutate(idref_method = factor(idref_method))
 
-### Plot Methods ####
+## Plot Methods ####
 create_qc_plot <- function(.idt){
   hold <- method_tests %>%
     group_by(idref_method) %>%
@@ -109,12 +119,12 @@ create_qc_plot <- function(.idt){
     theme_classic() +
     theme(
       strip.background = element_blank(),
-      strip.text.y = element_text(angle = 0),
-      axis.title.x= element_blank(),
-      axis.text.x = element_blank(),
-      axis.line = element_blank(),
-      axis.ticks = element_blank(),
-      axis.text.y = element_blank()
+      strip.text.y     = element_text(angle = 0),
+      axis.title.x     = element_blank(),
+      axis.text.x      = element_blank(),
+      axis.text.y      = element_blank(),
+      axis.line        = element_blank(),
+      axis.ticks       = element_blank()
     )
 }
 
@@ -140,7 +150,7 @@ valve_lengths <- valve_measurements %>%
 
 # For each method, detect the outer valve edge
 
-tm <- test_methods[2:length(test_methods)]
+tm     <- test_methods[2:length(test_methods)]
 tm_lgl <- purrr::map_lgl(tm, ~ .x$zfa$.outer)
 
 chem_valve_lengths <- method_tests %>% 
@@ -158,7 +168,8 @@ chem_valve_lengths <- method_tests %>%
       idref_method %in% c("D", "E") ~ "D-E",
       idref_method %in% c("F", "G") ~ "F-G",
       idref_method %in% c("H", "I") ~ "H-I",
-      idref_method %in% c("J", "K") ~ "J-K"
+      idref_method %in% c("J", "K") ~ "J-K",
+      idref_method %in% c("L", "M") ~ "L-M"
     )
   ) %>%
   group_by(groupings, id, transect) %>%
@@ -172,37 +183,119 @@ chem_valve_lengths <- method_tests %>%
   ) %>%
   select(groupings, id, transect, auto_detect_valve_length)
 
-
 ## Compare valve lengths ####
 valve_length_compare <- chem_valve_lengths %>%
   left_join(valve_lengths, by = c("id", "transect")) %>%
   mutate(
-    difference = auto_detect_valve_length - valve_length
+    difference = auto_detect_valve_length - valve_length,
+    rel_diff   = difference/valve_length
   )
 
 
 ggplot(
-  valve_length_compare %>% filter(difference > -500),
-  aes(x = difference, y = groupings)
+  valve_length_compare,
+  aes(x = rel_diff)
+) + 
+  # geom_vline(xintercept = 0) +
+  geom_dotplot(binwidth = .01) +
+  facet_grid(groupings ~ .)
+
+ggplot(
+  valve_length_compare %>% filter(groupings == "H-I", difference > -500),
+  aes(x = difference)
 ) + 
   geom_vline(xintercept = 0) +
-  geom_jitter() 
+  geom_dotplot(binwidth = 5) 
 
+
+### bombing range ####
+
+valve_length_compare %>%
+  filter(groupings == "H-I")%>%
+  mutate(rel_diff = difference/valve_length) %>%
+  filter(abs(rel_diff) > .02) %>% View
+
+valve_length_compare %>%
+  group_by(id, transect) %>%
+  filter(!is.infinite(difference)) %>%
+  mutate(
+    adiff = abs(difference)
+  ) %>%
+  summarise(
+    best_one = min(which(adiff == min(adiff))),
+    difference = difference[best_one],
+    groupings = groupings[best_one]) %>%
+  filter(difference > -200)  %>%
+  ungroup %>%
+  summarise(mean(difference))
+  
+  
+ggplot(
+    .,
+    aes(x = difference)
+  ) + 
+  geom_vline(xintercept = 0) +
+  geom_dotplot(binwidth = 5) 
+
+
+x <- valve_length_compare %>%
+  filter(groupings == "H-I")
+
+mean(x$difference)
+
+x %>% filter(abs(difference) > 50) 
+View
+
+
+x %>% filter(abs(difference) < 50) %>% ungroup() %>% summarise(mean(difference))
+  View
+
+valve_measurements %>%
+  filter(id == "C526", transect == "1")
+
+valve_length_compare %>%
+  filter(groupings == "H-I") %>% 
+  inner_join(zero_2, by = c("id", "transect")) %>%
+  View
+  
+  
+  View
 
 valve_data %>%
   filter(id == "C") %>%
   pull(measures)
-create_qc_plot("C485_1") 
+create_qc_plot("C526_1") 
 create_qc_plot("C502_2") 
-create_qc_plot("A1_1") 
+create_qc_plot("A1_3") 
+
+create_qc_plot("C479_1") 
 
 
-### bombing range ####
-x <- valve_data %>%
-  filter(id == "A1", transect == "1") %>%
+
+
+create_qc_plot("P091_1") 
+
+yy <- valve_data %>%
+  filter(id == "C526", transect == "1") %>%
+  pull(measures)
+
+xx <- valve_data %>%
+  filter(id == "C526", transect == "1") %>%
   pull(chemistry)
 
-x <- x[[1]]
-pracma::findpeaks(x$Pb208_CPS[1:150], threshold = 10000)
+xx <- xx[[1]]
+xx$ratio <- xx$Pb208_CPS/xx$Ca43_CPS
 
+
+maxpoint(xx, .var = "ratio", .use_up_to_row = 150, .threshold = function(x) quantile(x, .975), .outer = FALSE) %>%
+  select(distance, cpt, ratio, Ca43_CPS, Pb208_CPS) %>% View()
+quantile(xx$ratio[ind], .975)
+ind <- (nrow(xx) - 150):nrow(xx)
+ind <- 1:150
+nrow(xx) - (150 - 88)
+pracma::findpeaks(xx$ratio[ind], threshold = 1)
+444 - 88
+plot(1:nrow(xx), xx$ratio, type = "l")
+plot(xx$Pb208_CPS, type = "l")
+plot(xx$Ca43_CPS, type = "l")
 
