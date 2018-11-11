@@ -18,7 +18,16 @@ clean_ids <- function(x){
 
 read_measurements_sheet <- function(.inFile, .sheet){
   readxl::read_excel(path = .inFile, sheet = .sheet) %>%
-    dplyr::select(file_name = SampleID, drawer = `Drawer #`, matches("Length")) %>%
+    dplyr::select(file_name = SampleID, drawer = `Drawer #`, matches("Length"))
+}
+
+#' Create the data in "Bivalve Transect Datums
+#' 
+#' @param .data the resulf of \code{\link{read_measurements_sheet}}
+#' 
+
+munge_measurements <- function(.data){
+  .data %>%
     tidyr::gather(key = key, value = value, -file_name, -drawer, na.rm = TRUE) %>%
     dplyr::filter(key != "line length (mm)") %>%
     tidyr::separate(
@@ -26,13 +35,14 @@ read_measurements_sheet <- function(.inFile, .sheet){
     ) %>%
     # There are character values in some of the columns that shouldn't be there
     dplyr::filter(
-      stringr::str_detect(value, "^[0-9]*\\.[0-9]*$")
+      stringr::str_detect(value, "^([0-9]*\\.[0-9]*)|([0-9]+)$")  # want to capture both integer and real numbers
     ) %>%
     dplyr::mutate(
       # Clean up the ids
       file_name = stringr::str_remove(file_name, "\\s.*"),
       # There are character values in some of the columns that shouldn't be there
-      distance = as.numeric(value)) %>%
+      distance = as.numeric(value)
+      ) %>%
     dplyr::select(drawer, file_name, from, to, distance)
 }
 
@@ -61,40 +71,50 @@ shift_distance <- function(.chem_data, .zero_function = identity, .zf_args){
 #' @param .method passed to \code{\link[changepoint]{cpt.meanvar}}
 #' @importFrom changepoint cpt.meanvar
 
-ca_changepoint <- function(x, .use_up_to_row, .method = "AMOC"){
+id_changepoint <- function(x, .var, .use_up_to_row, .method = "AMOC", .outer = FALSE){
+  var <- rlang::sym(.var)
   x %>%
     mutate(
+      rn = row_number(),
+      nn = if_else(rep(.outer, n()), n() - rn, rn),
       ## ID changepoint
-      cpt = changepoint::cpt.meanvar(cumsum(Ca43_CPS)[row_number() < .use_up_to_row], method = .method)@cpts[1],
+      cpt = changepoint::cpt.meanvar(cumsum(!! var)[nn < .use_up_to_row], method = .method)@cpts[1],
+      cpt = ifelse(.outer, n() - cpt, cpt),
       # Update distance
       distance = distance - distance[cpt]) %>%
     select(-cpt)
 }
 
 #' @describeIn changepoint
-pbca_changepoint <- function(x, .use_up_to_row, .method = "AMOC"){
+pbca_minpoint <- function(x, .use_up_to_row, .outer = FALSE){
+  
+  dir <- ifelse(.outer, rev, identity)
   
   x %>%
     mutate(
-      PbCa_ratio = Pb208_CPS/Ca43_CPS,
+      rn = row_number(),
+      nn = if_else(rep(.outer, n()), n() - rn, rn),
+      ratio = Pb208_CPS/Ca43_CPS,
       ## ID changepoint
-      # cpt = .use_up_to_row - changepoint::cpt.mean(cummin(rev(PbCa_ratio[row_number() < .use_up_to_row])), method = .method)@cpts[1],
-      # cpt2 = .use_up_to_row + 100 - cpt,
-      cpt = which(diff(PbCa_ratio[row_number() < .use_up_to_row]) == min(diff(PbCa_ratio[row_number() < .use_up_to_row]))),
+      cpt = which(diff(dir(ratio[nn < .use_up_to_row])) == min(diff(dir(ratio[nn < .use_up_to_row])))),
+      cpt = ifelse(.outer, n() - cpt, cpt),
       # Update distance,
-      distance = distance - distance[cpt]) 
-  # %>%
-    # select(-PbCa_ratio)
+      distance = distance - distance[cpt]) %>%
+    select(-ratio, -cpt)
 }
   
 #' @describeIn changepoint
-pbca_maxpoint <- function(x, .use_up_to_row, .threshold = 1){
+maxpoint <- function(x, .var, .use_up_to_row, .threshold = 1, .outer = FALSE){
+  var <- rlang::sym(.var)
+  dir <- ifelse(.outer, rev, identity)
   x %>%
     mutate(
+      rn = row_number(),
+      nn = if_else(rep(.outer, n()), n() - rn, rn),
       ratio = (Pb208_CPS/Ca43_CPS),
       ## ID changepoint
-      # cpt = which(ratio == max(ratio[row_number() < .use_up_to_row])),
-      cpt = max(findpeaks(ratio[row_number() < .use_up_to_row], threshold = .threshold)[ , 2]),
+      cpt = max(pracma::findpeaks(dir((!! var)[nn < .use_up_to_row]), threshold = .threshold)[ , 2]),
+      cpt = ifelse(.outer, n() - cpt, cpt),
       # Update distance
       distance = distance - distance[cpt]) %>%
     select(-ratio, -cpt)
