@@ -105,19 +105,33 @@ pbca_minpoint <- function(x, .use_up_to_row, .outer = FALSE){
   
 #' @describeIn changepoint
 maxpoint <- function(x, .var, .use_up_to_row, .threshold = 1, .outer = FALSE){
+  
+  x <- x %>% mutate(ratio  = Pb208_CPS/Ca43_CPS)
+  
+  if(.outer){
+    ind <- (nrow(x) - .use_up_to_row):nrow(x)
+  } else {
+    ind <- 1:.use_up_to_row
+  }
+  
+  if(is.function(.threshold)){
+    .threshold <- .threshold( x[[.var]][ind] )
+  }
+  
   var <- rlang::sym(.var)
   dir <- ifelse(.outer, rev, identity)
+  
   x %>%
     mutate(
       rn = row_number(),
       nn = if_else(rep(.outer, n()), n() - rn, rn),
-      ratio = (Pb208_CPS/Ca43_CPS),
       ## ID changepoint
       cpt = max(pracma::findpeaks(dir((!! var)[nn < .use_up_to_row]), threshold = .threshold)[ , 2]),
       cpt = ifelse(.outer, n() - cpt, cpt),
       # Update distance
-      distance = distance - distance[cpt]) %>%
-    select(-ratio, -cpt)
+      distance = distance - distance[cpt]) 
+  # %>%
+    # select(-ratio, -cpt)
 }
 
 # Functions to map measurements onto chemistry ####
