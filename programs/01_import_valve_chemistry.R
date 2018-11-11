@@ -11,8 +11,7 @@ valve_files <- list.files(path = sourceDir,
                           recursive = TRUE,
                           include.dirs = FALSE)
 
-# Files to exclude from analyses
-exclude_files <- c("README", "2-A4-4", "11-C482-1", "11-C483-1")
+
 
 
 valve_files <- valve_files[!str_detect(valve_files, glue::glue_collapse(exclude_files, sep = "|"))]
