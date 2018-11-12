@@ -106,7 +106,7 @@ pbca_minpoint <- function(x, .use_up_to_row, .outer = FALSE){
 #' @describeIn changepoint
 maxpoint <- function(x, .var, .use_up_to_row, .threshold = 1, .outer = FALSE){
   
-  x <- x %>% mutate(ratio  = Pb208_CPS/Ca43_CPS)
+  x <- x %>% mutate(ratio  = Pb208_CPS/pmax(0.0001, Ca43_CPS))
   
   if(.outer){
     ind <- (nrow(x) - .use_up_to_row):nrow(x)
@@ -277,5 +277,18 @@ create_wide_analysis_data <- function(.valve_data, .reference_transition, .zero_
 create_long_analysis_data <- function(.wide_data){
   .wide_data %>%
     tidyr::gather(element, value, -id, -transect, -drawer, -layer, -annuli, -distance)
+}
+
+
+#' @param .l a list containing \code{rt}, \code{zf}, and \code{zfa}
+#' @param .n a string naming the method
+
+apply_ref_method <- function(.l, .n){
+  create_wide_analysis_data(
+    valve_data, 
+    .reference_transition = .l$rt, 
+    .zero_function        = .l$zf,
+    .zf_args              = .l$zfa) %>%
+  mutate(idref_method = .n)
 }
 

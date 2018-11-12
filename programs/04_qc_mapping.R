@@ -77,24 +77,15 @@ test_methods <- list(
   )
 )
 
-apply_method <- function(.l, .n){
-  create_wide_analysis_data(
-    valve_data, 
-    .reference_transition = .l$rt, 
-    .zero_function        = .l$zf,
-    .zf_args              = .l$zfa) %>%
-   mutate(idref_method = .n)
-}
-
 ## Apply all the methods ####
 method_tests <- purrr::map2_dfr(
   test_methods, names(test_methods), 
-  ~ apply_method(.x, .y)) %>%
+  ~ apply_ref_method(.x, .y)) %>%
   mutate(idref_method = factor(idref_method))
 
 ## Plot Methods ####
-create_qc_plot <- function(.idt){
-  hold <- method_tests %>%
+create_qc_plot <- function(.data, .idt){
+  hold <- .data %>%
     group_by(idref_method) %>%
     mutate(
       PbCa_ratio = log10(abs(Pb208_CPS)/abs(Ca43_CPS)), 
@@ -191,21 +182,44 @@ valve_length_compare <- chem_valve_lengths %>%
     rel_diff   = difference/valve_length
   )
 
+# plot differences
 
 ggplot(
-  valve_length_compare,
-  aes(x = rel_diff)
-) + 
-  # geom_vline(xintercept = 0) +
-  geom_dotplot(binwidth = .01) +
-  facet_grid(groupings ~ .)
-
+    data = valve_length_compare,
+    aes(x = rel_diff)
+  ) + 
+    geom_dotplot(binwidth = .01) +
+    facet_grid(groupings ~ .)
+  
 ggplot(
-  valve_length_compare %>% filter(groupings == "H-I", difference > -500),
-  aes(x = difference)
-) + 
-  geom_vline(xintercept = 0) +
-  geom_dotplot(binwidth = 5) 
+    data = valve_length_compare,
+    aes(x = difference)
+  ) + 
+    geom_dotplot(binwidth = 10, dotsize = .25) +
+    facet_grid(groupings ~ .)
+
+## Find grouping with smallest MSE
+
+best_grouping <- valve_length_compare %>%
+  group_by(groupings) %>%
+  summarise(
+    MB  = mean(difference, na.rm = TRUE),
+    MSE = mean(difference^2, na.rm = TRUE),
+    MAD = mean(abs(difference), na.rm = TRUE),
+  ) %>%
+  filter(MSE == min(MSE)) %>% pull(groupings)
+
+##
+rel_diff_threshold <- 0.02
+valve_length_compare %>%
+  filter(groupings == best_grouping, abs(rel_diff) > rel_diff_threshold) %>%
+  arrange(desc(abs(rel_diff)))
+
+
+
+
+
+
 
 
 ### bombing range ####
@@ -284,8 +298,8 @@ xx <- valve_data %>%
   pull(chemistry)
 
 xx <- xx[[1]]
+xx$ratio <- xx$Pb208_CPS/max(0.0001, xx$Ca43_CPS)
 xx$ratio <- xx$Pb208_CPS/xx$Ca43_CPS
-
 
 maxpoint(xx, .var = "ratio", .use_up_to_row = 150, .threshold = function(x) quantile(x, .975), .outer = FALSE) %>%
   select(distance, cpt, ratio, Ca43_CPS, Pb208_CPS) %>% View()
