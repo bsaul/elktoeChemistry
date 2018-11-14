@@ -11,9 +11,6 @@ valve_files <- list.files(path = sourceDir,
                           recursive = TRUE,
                           include.dirs = FALSE)
 
-
-
-
 valve_files <- valve_files[!str_detect(valve_files, glue::glue_collapse(exclude_files, sep = "|"))]
 raw_data   <- purrr::map(valve_files, read_excel)
 sheets     <- purrr::map_chr(valve_files, excel_sheets)
