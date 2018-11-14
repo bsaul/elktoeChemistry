@@ -292,3 +292,73 @@ apply_ref_method <- function(.l, .n){
   mutate(idref_method = .n)
 }
 
+
+
+## Plot Methods ####
+
+
+create_qc_plot <- function(.idt_data, .edge_data, .ruler_length, .best_method){
+  .idt <- .idt_data$idt[1]
+
+  vlines <- .edge_data %>%
+    group_by(idref_grouping) %>%
+    summarise(
+      auto_inner = inner_edge_rn,
+      ruler_dist = inner_edge_rn + .ruler_length/2.881,
+      auto_outer = outer_edge_rn
+    ) %>%
+    mutate(
+      auto_outer = if_else(idref_grouping == "A", NA_real_, auto_outer)
+    )
+  
+  methods <- .edge_data %>%
+    distinct(idref_grouping) %>%
+    mutate(
+      is_best = idref_grouping == .best_method
+    ) 
+  
+  methods <- methods %>%
+    left_join(
+      data_frame(
+        idref_grouping = rep(unique(methods$idref_grouping), each = max(.idt_data$rn)),
+        x = rep(1:max(.idt_data$rn), times = length(unique(methods$idref_grouping)))
+      ),
+      by = "idref_grouping"
+    ) %>%
+    mutate(
+      color = case_when(
+        idref_grouping == "A" ~ "a",
+        is_best      == TRUE ~ "b",
+        TRUE ~ "c"
+      )
+    )
+  
+  # print(methods)
+  
+  ggplot(.idt_data, aes(x = rn, y = ratio, group = id)) + 
+    geom_ribbon(data = methods, aes(x = x, ymin = 0, ymax  = 1, fill = color),
+                alpha = 0.2, inherit.aes = FALSE) +
+    geom_vline(data = vlines, aes(xintercept = auto_inner), color = "blue") +
+    geom_vline(data = vlines, aes(xintercept = ruler_dist), color = "black") +
+    geom_vline(data = vlines, aes(xintercept = auto_outer), color = "red", na.rm = TRUE) +
+    geom_line(alpha = .5) +
+    scale_fill_manual(
+      values = c(NA, "red", "gray"),
+      guide = FALSE
+    ) + 
+    scale_y_continuous(
+      "Pb/Ca ratio"
+    ) + 
+    facet_grid(idref_grouping ~ .) + 
+    ggtitle(.idt) + 
+    theme_classic() +
+    theme(
+      strip.background = element_blank(),
+      strip.text.y     = element_text(angle = 0),
+      axis.title.x     = element_blank(),
+      axis.text.x      = element_blank(),
+      axis.text.y      = element_blank(),
+      axis.line        = element_blank(),
+      axis.ticks       = element_blank()
+    )
+}
