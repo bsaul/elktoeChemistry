@@ -249,7 +249,7 @@ ggplot(
   aes(x = distance, y = Ca43_CPS, group = idt)
 ) + geom_line(alpha = .2) +
   facet_grid(idref_method ~ .)
-  
+
 
 ggplot(
   data = plotdt ,
@@ -301,10 +301,6 @@ invisible(lapply(ids, function(.id){
 
 ## Update valve_data distance with "best" choice ####
 
-method_tests %>%
-  group_by(id, transect, )
-
-
 distances <- method_tests %>%
   mutate(idt = paste(id, transect, sep = "_")) %>%
   filter(idref_method  %in% c("A", "B", "D", "F", "H", "J", "L")) %>%
@@ -316,7 +312,10 @@ distances <- method_tests %>%
   group_by(id, transect) %>%
   tidyr::nest()
 
-valve_data$distance <- distances$data
+valve_data <- valve_data %>%
+  select(-distance) %>%
+  left_join(distances, by = c("id", "transect")) %>%
+  select(everything(), distance = data)
 
 
 saveRDS(valve_data, file = 'data/valve_data.rds')
