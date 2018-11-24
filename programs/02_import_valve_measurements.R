@@ -30,17 +30,17 @@ valve_measurements <- purrr::map_dfr(
   ) %>%
   
   ## HARD CODES #####
-  add_row(
-    # Added 2018-11-10:
-    # 12-C485-2 is missing the measurement from 1 to 4 (the prismatic/periostracum transition).
-    # The bivalve datum spreadsheet notes: This shell is broken and does not have a point 4 before the break.
-    # Setting this distance to 10 samples before the transition to point 5
-    file_name = "12-C485-2",
-    drawer    = 2,
-    from      = 1,
-    to        = 4,
-    distance  = 18.275 - (10 * .02881)
-  )  %>%
+add_row(
+  # Added 2018-11-10:
+  # 12-C485-2 is missing the measurement from 1 to 4 (the prismatic/periostracum transition).
+  # The bivalve datum spreadsheet notes: This shell is broken and does not have a point 4 before the break.
+  # Setting this distance to 10 samples before the transition to point 5
+  file_name = "12-C485-2",
+  drawer    = 2,
+  from      = 1,
+  to        = 4,
+  distance  = 18.275 - (10 * .02881)
+)  %>%
   
   mutate(
     # Added 2018-11-10:
@@ -90,18 +90,18 @@ valve_measurements <- purrr::map_dfr(
   ) %>%
   tidyr::nest() %>%
   mutate(data = purrr::map(data, ~ .x %>%
-    add_row(
-      from     = "1",
-      to       = "1",
-      distance = 0,
-      layer_transition = "on_ipx",
-      annuli_transition = NA_character_,
-      is_layer   = TRUE,
-      is_annuli  = FALSE,
-      .before   = 1 )
-    )
+                             add_row(
+                               from     = "1",
+                               to       = "1",
+                               distance = 0,
+                               layer_transition = "on_ipx",
+                               annuli_transition = NA_character_,
+                               is_layer   = TRUE,
+                               is_annuli  = FALSE,
+                               .before   = 1 )
+  )
   ) %>%
-    tidyr::unnest()
+  tidyr::unnest()
 
 
 ## Consistency Checks ####
