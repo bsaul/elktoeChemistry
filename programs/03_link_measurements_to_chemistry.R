@@ -26,7 +26,16 @@ setdiff(unique(valve_chemistry$id), mussels_wide$id)
 valve_data <- inner_join(
   valve_chemistry %>%
     group_by(id, transect) %>%
+    mutate(obs = 1:n()) %>%
+    select(-distance, -Pb208_CPS, -Ca43_CPS) %>%
     tidyr::nest(.key = "chemistry"),
+  valve_chemistry %>%
+    group_by(id, transect) %>%
+    mutate(obs = 1:n()) %>%
+    select(-contains("ppm")) %>%
+    tidyr::nest(.key = "distance"),
+  by = c("id", "transect")) %>%
+  inner_join(
   valve_measurements %>%
     # dplyr::select(-drawer) %>%
     group_by(id, transect) %>%
