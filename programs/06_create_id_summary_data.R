@@ -16,7 +16,7 @@ n_annuli <-  valve_annual_layer_availability %>%
   
 
 
-mussel_info <- valve_analysis %>% ungroup() %>%
+mussel_info <- valve_data %>% ungroup() %>%
   distinct(id) %>%
   ## add river, site, info
   left_join(mussels_wide, by = 'id') %>%
