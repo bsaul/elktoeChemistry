@@ -82,7 +82,7 @@ id_changepoint <- function(x, .var, .use_up_to_row, .method = "AMOC", .outer = F
       cpt = ifelse(.outer, n() - cpt, cpt),
       # Update distance
       distance = distance - distance[cpt]) %>%
-    select(-cpt)
+    select(-cpt, -rn, -nn)
 }
 
 #' @describeIn changepoint
@@ -100,7 +100,7 @@ pbca_minpoint <- function(x, .use_up_to_row, .outer = FALSE){
       cpt = ifelse(.outer, n() - cpt, cpt),
       # Update distance,
       distance = distance - distance[cpt]) %>%
-    select(-ratio, -cpt)
+    select(-ratio, -cpt, -rn, -nn)
 }
   
 #' @describeIn changepoint
@@ -129,9 +129,8 @@ maxpoint <- function(x, .var, .use_up_to_row, .threshold = 1, .outer = FALSE){
       cpt = max(pracma::findpeaks(dir((!! var)[nn < .use_up_to_row]), threshold = .threshold)[ , 2]),
       cpt = ifelse(.outer, n() - cpt, cpt),
       # Update distance
-      distance = distance - distance[cpt]) 
-  # %>%
-    # select(-ratio, -cpt)
+      distance = distance - distance[cpt]) %>%
+    select(-ratio, -cpt, -rn, -nn)
 }
 
 # Functions to map measurements onto chemistry ####
@@ -239,19 +238,22 @@ create_annuli_idFUN <- function(.data, .reference_transition = "on_"){
 #' } the \code{layer} and
 #' \code{annuli} variables added
 
-create_wide_analysis_data <- function(.valve_data, .reference_transition, .zero_function, .zf_args = list()){
+create_wide_analysis_data <- function(.valve_data, .reference_transition, .zero_function, .zf_args = list(),
+                                      .include_ppm = FALSE){
+  
+  if(!.include_ppm) .valve_data <- dplyr::select(.valve_data, -chemistry) 
   .valve_data %>%
-    dplyr::mutate(
+  dplyr::mutate(
       # Shift the distance in chemistry by the .zero_function
-      chemistry  = purrr::map(chemistry, ~ shift_distance(.chem_data = .x, .zero_function = .zero_function, .zf_args)),
+      distance  = purrr::map(distance, ~ shift_distance(.chem_data = .x, .zero_function = .zero_function, .zf_args)),
       
       # Create the layer and annuli ID functions
       layerFUN   = purrr::map(measures,  ~ create_layer_idFUN(.x, .reference_transition)),
       annuliFUN  = purrr::map(measures,  ~ create_annuli_idFUN(.x, .reference_transition)),
       
       # Add layer and annuli labels to chemistry
-      chemistry = purrr::pmap(
-        .l = list(chemistry, layerFUN, annuliFUN),
+      distance = purrr::pmap(
+        .l = list(distance, layerFUN, annuliFUN),
         .f = function(data, lf, af){
           data$layer  <- lf(data$distance)
           data$annuli <- af(data$distance)
@@ -283,9 +285,9 @@ create_long_analysis_data <- function(.wide_data){
 #' @param .l a list containing \code{rt}, \code{zf}, and \code{zfa}
 #' @param .n a string naming the method
 
-apply_ref_method <- function(.l, .n){
+apply_ref_method <- function(.valve_data, .l, .n){
   create_wide_analysis_data(
-    valve_data, 
+    .valve_data, 
     .reference_transition = .l$rt, 
     .zero_function        = .l$zf,
     .zf_args              = .l$zfa) %>%
