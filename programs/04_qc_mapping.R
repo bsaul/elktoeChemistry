@@ -80,7 +80,7 @@ test_methods <- list(
 ## Apply all the methods ####
 method_tests <- purrr::map2_dfr(
   test_methods, names(test_methods), 
-  ~ apply_ref_method(.x, .y)) %>%
+  ~ apply_ref_method(valve_data, .x, .y)) %>%
   mutate(idref_method = factor(idref_method))
 
 
@@ -227,6 +227,35 @@ valve_length_compare %>%
   arrange(desc(abs(rel_diff)))
 
 
+## Plot inner edge Ca43_CPS for each id_t
+inner_edge <- method_tests %>% mutate(idt = paste(id, transect, sep = "_")) %>% 
+  filter(distance < 250, idref_method %in% c("A", "B", "D", "F", "H", "J", "L")) 
+
+inner_edge_best <- inner_edge %>%
+  left_join(
+    valve_length_compare %>% filter(idref_grouping == "best") %>% dplyr::select(idt, best_method),
+    by = "idt"
+  ) %>%
+  filter(str_detect(best_method, as.character(idref_method))) %>%
+  mutate(
+    idref_method = "best"
+  )
+
+plotdt <- bind_rows(inner_edge, inner_edge_best)
+
+
+ggplot(
+  data = plotdt ,
+  aes(x = distance, y = Ca43_CPS, group = idt)
+) + geom_line(alpha = .2) +
+  facet_grid(idref_method ~ .)
+  
+
+ggplot(
+  data = plotdt ,
+  aes(x = distance, y = Pb208_CPS, group = idt)
+) + geom_line(alpha = .2) +
+  facet_grid(idref_method ~ ., scales = "free_y")
 
 ##  Individual QC Plots ####
 
@@ -270,9 +299,24 @@ invisible(lapply(ids, function(.id){
   ggsave(sprintf("programs/QC/%s.png", .id), p, width = 5, height =  3, dpi = 150, units = "in")
 }))
 
+## Update valve_data distance with "best" choice ####
+
+method_tests %>%
+  group_by(id, transect, )
 
 
+distances <- method_tests %>%
+  mutate(idt = paste(id, transect, sep = "_")) %>%
+  filter(idref_method  %in% c("A", "B", "D", "F", "H", "J", "L")) %>%
+  left_join(
+    valve_length_compare %>% filter(idref_grouping == "best") %>% dplyr::select(idt, best_method),
+    by = "idt"
+  ) %>%
+  filter(str_detect(best_method, as.character(idref_method))) %>%
+  group_by(id, transect) %>%
+  tidyr::nest()
+
+valve_data$distance <- distances$data
 
 
-
-
+saveRDS(valve_data, file = 'data/valve_data.rds')
