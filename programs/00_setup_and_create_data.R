@@ -10,7 +10,7 @@ library(dplyr)
 library(stringr)
 library(ggplot2)
 
-source("programs/functions.R")
+source("programs/00a_functions.R")
 load("data/mussels_wide.rda")
 
 # Files to exclude from analyses
