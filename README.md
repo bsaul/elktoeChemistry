@@ -1,5 +1,13 @@
 # Elktoe valve chemistry
 
+## About this project
+
+TODO
+
+## Team members
+
+TODO
+
 ## File Organization
 
 * /archive: various files no longer needed or git tracked
@@ -13,7 +21,7 @@ measurement data
 * /packrat: the [packrat directory](https://rstudio.github.io/packrat/)
 * /programs: the data processing and analysis scripts for this study. 
     * Files beginning with 0# are related to data processing.
-    * 1# are analysis scripts
-    * /10_study_site: produces the study website
+    * 1# are analysis scripts and/or directories; e.g.:
+        * /10_study_site: produces the study website
 
    
