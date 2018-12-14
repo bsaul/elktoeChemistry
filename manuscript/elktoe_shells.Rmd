@@ -3,9 +3,9 @@ title: TBD
 author:
 - Bradley C. Saul
 - Nathan R. Miller
+- Heather Gunn
+- Michael Walter
 - Jay F. Levine
-# preamble: >
-#   \usepackage{amsmath, setspace}
 bibliography: elktoe.bib
 output: 
   pdf_document:
@@ -22,38 +22,37 @@ keywords: LA-ICP-MS, Alasmidonta, add more
 
 # Introduction 
 
-Bivalve shells are validated chronicles for some aspects of freshwater chemistry [CITATIONS]. Many of these studies are based on haphazardly sampled shells and few independent replicates. Our study is different in that we have shells acquired at shells and shells collected after 6 months to one year of exposure to one of two NC rivers. The rivers, the Tuckasegee and the Little Tennessee, are similar in XXX (the Tuckasegee flows in the Little Tennessee), but precipitous declines in the numbers of the critically endangered Appalachian Elktoe (*Alasmidonta raveneliana*) in the Little Tennessee have been observed in recent years.
+The population of the critically endangered Appalachian Elktoe mussel (*Alasmidonta raveneliana*) has precipitous declined in North Carolina's Little Tennessee River in recent years. Causes for the decline are unknown and may be multi-faceted. In order to assess possible reasons for the decline, the Aquatic Epidemiology and Conservation Lab at North Carolina State University conducted a experiment in 2013 wherein *A. raveneliana* were collected from the Tuckaseegee River where the population is stable. The *A. raveneliana* plus an equal number of non-endangered *Lampsilis fasciola* were randomly assigned to six sites (three each in the Tuckaseegee and Little Tennessee) and followed for approximately six months.
 
-Laser ablation inductively coupled plasma mass spectrometry (LA-ICP-MS) is (in 2 - 3 sentences).
+Unionoids record certain aspects of their environment in the elemental profiles of their valves [CITATIONS]. ...More context here... Chemical measurements obtained by laser ablation inductively coupled plasma mass spectrometry (LA-ICP-MS). @jackson2003laser experimentally fed contaminated fish to banded water snakes and showed LA-ICP-MS on tail tissue and showed LA-ICP-MS was able to differentiate between treatments.
 
-@jackson2003laser experimentally fed contaminated fish to banded water snakes and showed LA-ICP-MS on tail tissue and showed LA-ICP-MS was able to differentiate between treatments.
+In this paper, we compare chemistries of the study specimen valves to address two sets of questions. First, are any elements associated with the experimental assignments; i.e., river and/or sites? And to what degree? Second, are any elements associated with the observerd morbidity and mortality in *A. raveneliana*?  Our answers represent important contributions to scientific understanding of unionid physiology, ecological experiments, and … . They also lead us to propose hypotheses as to the decline of *A. raveneliana*.
 
-In this paper, we use LA-ICP-MS data from a randomized, controlled study to show that certain elements were (1) associated with the exposure to two NC rivers and (2) associated with morbidity and mortality in the critically endangered Appalachian Elktoe (*Alasmidonta raveneliana*). Eighty-two specimens were drawn from the Tuckasegee river. Ten were killed for baseline comparisons, and the remaining 72 were randomly assigned to 6 experimental sites (3 on each river). Seventy-two *Lampsilis faciola* specimens were taken from the XXX hatchery and were placed in a separate cage alongside the *A. raveneliana* as control specimens. The specimens were deposited at each site in April XXXX. The *A. rav* were pulled six months later. Some of the *L. fas* were pulled at the same time, while the remaining were extracted the following spring. At least one LA-XXX-MS transect was run on XXX shells measuring the profiles of XX elements. The transect was positioned to include the region of the most recent growth on the shell.
+...TODO... brief summary of results ...
 
-We address two sets of  questions. First, which elements are associated with species, river, and/or sites? To what degree? Secondly, which elements are associated with morbidity/mortality in the Alasmidonta? The study design does not admit straightforward causal interpretations of the element’s effects. Taken together, however, our answers represent important contributions to scientific understanding of unionid physiology, ecological experiments, and … . They also lead us to propose hypotheses as to the decline of *A. raveneliana*.
-
-The paper is organized as follows.
+The paper is organized as follows. Section \ref{materials-and-methods} outlines the experimental design, data collection and QC processes, and the statistical methods. More details for each of these topics is provided in the supplement. Section \ref{results} provides results. In Section \ref{discussion}, we discuss the implications of our results, hypothesize on causes of the *A. raveneliana*, and suggest future research. We also provide the data and code to reproduce our results at the study website (ADD LINK) 
 
 
 # Materials and methods
 
+## Experimental Design 
+
 For complete details, see Salger et al. (2017). Briefly, ...
 
-inner = towards nacre and inside of valve
-outer = towards periostracum and outside of valve
+Eighty-two specimens were drawn from the Tuckasegee river. Ten were killed for baseline comparisons, and the remaining 72 were randomly assigned to 6 experimental sites (3 on each river). Seventy-two *Lampsilis faciola* specimens were taken from the XXX hatchery and were placed in a separate cage alongside the *A. raveneliana* as control specimens. The specimens were deposited at each site in April XXXX. The *A. rav* were pulled six months later. Some of the *L. fas* were pulled at the same time, while the remaining were extracted the following spring. At least one LA-XXX-MS transect was run on XXX shells measuring the profiles of XX elements. The transect was positioned to include the region of the most recent growth on the shell.
 
 \begin{table}
 \centering
 \label{table1}
 \caption{A table with basic descriptive stats per site}
 \begin{tabular}{c}
-DATA
+TODO
 \end{tabular}
 \end{table}
 
 
 
-## LS-ICP-MS
+## LA-ICP-MS
 
 Analyses were conducted at the University of Texas at Austin using an ESI New Wave Research NWR193 excimer laser coupled to an Agilent 7500ce ICP-MS. The laser system has a large format laser cell that enabled up to nine slides (30 valves) to be loaded with standards in a single drawer. Each slide was scanned at high resolution (4800 dpi) and optimal transects determined prior to loading each sample drawer. Once loaded the coordinates of each traverse were established in the laser experiment according to the digital scan maps. For analysis we surveyed a broad range of industrial metals, as well as bio-metals; specifically: Mg, Ca, Cr, Mn, Fe, Co, Ni, Cu, Zn, As, Se, Kr (for Se interference correction if detected), Sr, Mo, Cd, Sn, Ba, Hg, Pb and U (n = 20). 
 
