@@ -296,7 +296,8 @@ invisible(lapply(ids, function(.id){
   dt4 <- best_method_by_idt %>% filter(idt == .id) %>% pull(best_method)
   
   p <- create_qc_plot(dt1, dt2, dt3, dt4)
-  ggsave(sprintf("programs/QC/%s.png", .id), p, width = 5, height =  3, dpi = 150, units = "in")
+  ggsave(sprintf("img/QC_images/%s_%s.png", .id, format(Sys.Date(), "%Y%m%d")), 
+         p, width = 5, height =  3, dpi = 150, units = "in")
 }))
 
 ## Update valve_data distance with "best" choice ####
