@@ -4,5 +4,5 @@
 #    Date: 20161021
 #-----------------------------------------------------------------------------#
 
-rmarkdown::render_site("site")
+rmarkdown::render_site("programs/10_study_site")
 

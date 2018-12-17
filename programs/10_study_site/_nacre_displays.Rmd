@@ -9,21 +9,28 @@ knitr::opts_chunk$set(echo = FALSE)
 ```
 
 ```{r collect_nacre_data}
+chem_dt_long <- valve_dt %>%
+  group_by(id, transect) %>%
+  mutate(
+    dt = purrr::map2(distance, chemistry, 
+                     ~ left_join(.x, .y, by = "obs") %>% 
+                       select(-idref_method, -idt, -obs, -best_method) %>%
+                       tidyr::gather(key = "element", value = "value", 
+                                     -distance, -layer, -annuli)
+                     ),
+    drawer = purrr::map_dbl(measures, ~ .x$drawer[1])
+      
+  ) %>%
+  select(drawer, id, transect, dt) %>%
+  tidyr::unnest()
+
+
 nacre_data <- chem_dt_long %>%  
-  group_by(id, transect, element) %>%
+  group_by(drawer, id, transect, element) %>%
   # Filter to transects that have at least one nacreous layer observation
   # Keep both nacreous and epoxy values
-  filter((sum(layer == "nacreous", na.rm = TRUE) > 1), layer %in% c("nacreous", "inner_epoxy")) %>%
+  filter((sum(layer == "ncr", na.rm = TRUE) > 1), layer %in% c("ncr", "ipx")) %>%
   mutate(
-    dist_from_iedge  = distance - min(distance[layer == "nacreous"]),
-    pdist_from_iedge = if_else(layer == "inner_epoxy", 
-                               pdistance_layer - max(pdistance_layer[layer == "nacreous"]),
-                               pdistance_layer),
-    pdist_from_iedge = case_when(
-      pdist_from_iedge == 0 & layer == "inner_epoxy" ~ pdist_from_iedge - 0.001,
-      pdist_from_iedge == 0 & layer == "nacreous"    ~ pdist_from_iedge + 0.001,
-      TRUE ~ pdist_from_iedge
-    ),
     idt              = paste(id, transect, sep = "_"),
     use_AB_analysis  = idt %in% has_AB_ids
   )  %>%
@@ -55,7 +62,9 @@ plot_nacre <- function(.data, .title, .include_title = FALSE,
                        .scales  = "fixed",
                        .add_anno = TRUE){
   if(!is.null(.distance_filter)){
-    .data <- filter(.data, !! rlang::sym(.distance_var)  > .distance_filter[1], !! rlang::sym(.distance_var)  < .distance_filter[2] )
+    .data <- filter(.data, 
+                    !! rlang::sym(.distance_var)  > .distance_filter[1], 
+                    !! rlang::sym(.distance_var)  < .distance_filter[2] )
   }
   
 
@@ -114,27 +123,20 @@ show_plots <- function(.prelabel){
 ```
 
 
+```{r, eval = FALSE}
+plot_nacre(
+      nacre_data$data[[1]], 
+     .ylabel = nacre_data$element[[1]], 
+     .title = "Elemental conc anchoring at Epoxy/Nacre edge",
+     .distance_var = "distance", 
+     .distance_filter = c(-100, 200)) 
+```
+
 ## All available valve-transects: epoxy/nacre edge
 
 Displaying the first 100$\mu$m of epoxy and 200$\mu$m of nacre for all valve-transects with some observations within the nacre. Each line = one valve-transect.
 
-```{r, echo = FALSE}
-invisible(purrr::map2(nacre_data$data, nacre_data$element, function(x, y){
-    p <- plot_nacre(
-      x, 
-     .ylabel = y, 
-     .title = "Elemental conc anchoring at Epoxy/Nacre edge",
-     .distance_var = "dist_from_iedge", 
-     .distance_filter = c(-100, 200)) 
-    ggsave(file = sprintf("img/epoxy_nacre_same_scale_%s.png", y), width = 7, height = 5, dpi = 300)
-}))
-```
 
-```{r}
-show_plots("epoxy_nacre_same_scale")
-```
-
-Showing the same data but allowing the scale to vary depending on species:
 
 ```{r, echo = FALSE}
 invisible(purrr::map2(nacre_data$data, nacre_data$element, function(x, y){
@@ -142,7 +144,7 @@ invisible(purrr::map2(nacre_data$data, nacre_data$element, function(x, y){
       x, 
      .ylabel = y, 
      .title = "Elemental conc anchoring at Epoxy/Nacre edge",
-     .distance_var = "dist_from_iedge", 
+     .distance_var = "distance", 
      .distance_filter = c(-100, 200),
      .facet_formula = species ~ .,
      .scales = "free_y",
@@ -163,7 +165,7 @@ invisible(purrr::map2(nacre_data$data, nacre_data$element, function(x, y){
       x, 
      .ylabel = y, 
      .title = "Elemental conc anchoring at Epoxy/Nacre edge",
-     .distance_var = "dist_from_iedge", 
+     .distance_var = "distance", 
      .distance_filter = c(-100, 200),
      .facet_formula =  drawer ~ .,
      .add_anno = FALSE) 
@@ -175,24 +177,32 @@ invisible(purrr::map2(nacre_data$data, nacre_data$element, function(x, y){
 show_plots("epoxy_nacre_drawer")
 ```
 
-Displaying the all epoxy and all nacre data where distance is proportion of the length of each layer within a valve-transect for all valve-transects with some observations within the nacre. Each line = one valve-transect.
+After applying hampel filter to data by drawer:
 
 
-```{r, echo = FALSE, warning = FALSE}
-invisible(purrr::map2(nacre_data$data, nacre_data$element, function(x, y){
+```{r, clean_drawer5}
+nacre_data2 <- nacre_data %>%
+  mutate(
+    data = purrr::map(data, ~ .x %>% group_by(drawer, id, transect) %>%
+                        mutate(value = pracma::hampel(x = value, k = 8)$y))
+  )
+```
+
+```{r, echo = FALSE}
+invisible(purrr::map2(nacre_data2$data, nacre_data2$element, function(x, y){
     p <- plot_nacre(
       x, 
-      .ylabel = y, 
-      .xlabel = "Proportion of layer",
-      .title = "Elemental conc anchoring at Epoxy/Nacre edge",
-      .distance_var = "pdist_from_iedge",
-      .add_anno = FALSE) 
-    ggsave(file = sprintf("img/epoxy_nacre_pdist_%s.png", y), width = 7, height = 5, dpi = 300)
+     .ylabel = y, 
+     .title = "Elemental conc anchoring at Epoxy/Nacre edge",
+     .distance_var = "distance", 
+     .distance_filter = c(-100, 200),
+     .facet_formula =  drawer ~ .,
+     .add_anno = FALSE) 
+    ggsave(file = sprintf("img/epoxy_nacre2_drawer_%s.png", y), width = 7, height = 5, dpi = 300)
 }))
 ```
 
-```{r, warning = FALSE}
-show_plots("epoxy_nacre_pdist")
+```{r}
+show_plots("epoxy_nacre2_drawer")
 ```
-
 
