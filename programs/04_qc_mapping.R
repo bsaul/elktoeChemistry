@@ -75,6 +75,16 @@ test_methods <- list(
     zf = maxpoint,
     zfa = list(.var = "Pb208_CPS", .use_up_to_row = 150, .threshold = 1000,  .outer = TRUE)
   )
+  # N = list(
+  #   rt = "ipx_",
+  #   zf = id_changepoint,
+  #   zfa = list(.var = "U_ppm_m238", .use_up_to_row = 150, .outer = FALSE)
+  # ),
+  # O = list(
+  #   rt = "_opx",
+  #   zf = id_changepoint,
+  #   zfa = list(.var = "U_ppm_m238", .use_up_to_row = 150, .outer = TRUE)
+  # )
 )
 
 ## Apply all the methods ####
@@ -118,7 +128,8 @@ chem_valve_lengths <- method_tests %>%
       idref_method %in% c("F", "G") ~ "F-G",
       idref_method %in% c("H", "I") ~ "H-I",
       idref_method %in% c("J", "K") ~ "J-K",
-      idref_method %in% c("L", "M") ~ "L-M"
+      idref_method %in% c("L", "M") ~ "L-M",
+      idref_method %in% c("N", "O") ~ "N-O"
     )
   ) %>%
   group_by(idref_grouping, id, transect) %>%
@@ -288,17 +299,17 @@ ids <- distinct(ungroup(plot_dt), idt) %>% pull(idt)
 # create_qc_plot(dt1, dt2, dt3, dt4)
 
 
-invisible(lapply(ids, function(.id){
-  
-  dt1 <- plot_dt %>% filter(idt == .id)
-  dt2 <- chem_valve_lengths %>% filter(idt == .id)
-  dt3 <- valve_lengths %>% filter(idt == .id) %>% pull(valve_length)
-  dt4 <- best_method_by_idt %>% filter(idt == .id) %>% pull(best_method)
-  
-  p <- create_qc_plot(dt1, dt2, dt3, dt4)
-  ggsave(sprintf("img/QC_images/%s_%s.png", .id, format(Sys.Date(), "%Y%m%d")), 
-         p, width = 5, height =  3, dpi = 150, units = "in")
-}))
+# invisible(lapply(ids, function(.id){
+#   
+#   dt1 <- plot_dt %>% filter(idt == .id)
+#   dt2 <- chem_valve_lengths %>% filter(idt == .id)
+#   dt3 <- valve_lengths %>% filter(idt == .id) %>% pull(valve_length)
+#   dt4 <- best_method_by_idt %>% filter(idt == .id) %>% pull(best_method)
+#   
+#   p <- create_qc_plot(dt1, dt2, dt3, dt4)
+#   ggsave(sprintf("img/QC_images/%s_%s.png", .id, format(Sys.Date(), "%Y%m%d")), 
+#          p, width = 5, height =  3, dpi = 150, units = "in")
+# }))
 
 ## Update valve_data distance with "best" choice ####
 
