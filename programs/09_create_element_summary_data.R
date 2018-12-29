@@ -8,7 +8,9 @@
 
 data("periodicTable", package = "PeriodicTable")
 
-element_info <- valve_analysis_long %>%
+element_info <- left_join(valve_data$chemistry[[1]], valve_data$distance[[1]], by = "obs") %>%
+  select(-idt, -idref_method, -best_method) %>%
+  create_long_analysis_data() %>%
   distinct(element) %>%
     mutate(
       symb = stringr::str_extract(substr(element, 1, 2), '[A-Za-z]+'),
@@ -19,6 +21,6 @@ element_info <- valve_analysis_long %>%
               by = 'symb')
 
 
-saveRDS(element_info, file = 'data/valve_element_info.rds')
-rm(periodicTable)
+saveRDS(element_info, file = 'data/element_info.rds')
+rm(list = ls())
 
