@@ -27,12 +27,12 @@ valve_data <- inner_join(
   valve_chemistry %>%
     group_by(id, transect) %>%
     mutate(obs = 1:n()) %>%
-    select(-distance, -Pb208_CPS, -Ca43_CPS) %>%
+    select(-distance, -contains("CPS")) %>%
     tidyr::nest(.key = "chemistry"),
   valve_chemistry %>%
     group_by(id, transect) %>%
     mutate(obs = 1:n()) %>%
-    select(-contains("ppm")) %>%
+    select(distance, obs, contains("CPS")) %>%
     tidyr::nest(.key = "distance"),
   by = c("id", "transect")) %>%
   inner_join(
