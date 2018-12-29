@@ -6,7 +6,7 @@
 #-----------------------------------------------------------------------------#
 
 ## Compute age estimate from measured annuli
-n_annuli <-  valve_annual_layer_availability %>%
+n_annuli <-  valve_data %>%
   group_by(id) %>%
   summarise_at(.vars = vars(matches("^[A-Z]$")), .funs = funs( sum(.) > 0)) %>%
   transmute(
@@ -40,7 +40,9 @@ mussel_info <- valve_data %>% ungroup() %>%
   left_join(n_annuli, by = "id")
 
 
+valve_data <- valve_data %>%
+  left_join(mussel_info, by = "id")
 
-saveRDS(mussel_info, file = 'data/valve_mussel_info.rds')
+saveRDS(valve_data, file = 'data/valve_data.rds')
 rm(n_annuli)
 
