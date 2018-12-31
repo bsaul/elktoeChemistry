@@ -34,9 +34,6 @@ convert_to_long <- function(dt){
 }
 
 
-summarise_transect_chemistry <- function(x, f, by, ...){
-  f(x, ...)
-}
 
 
 
@@ -44,15 +41,3 @@ summarise_transect_chemistry <- function(x, f, by, ...){
 
 
 
-
-dt <- filter_valves(.site_num = 1, .has_annuli = c("A", "B")) %>%
-  mutate(analysis_dt = purrr::map(valve_filterFUN, ~ .x(.layer = "ncr", .annuli = c("A", "B"), .inner_buffer = 10, .outer_buffer = 10))) 
-
-dt$analysis_dt[[1]] %>% convert_to_long() %>%
-  group_by(element, annuli) %>%
-  summarise_all(.funs = funs(max(.)))
-
-
-# %>%
-  select(id, transect, site, site_num, river, species, dead, final_status, n_annuli, analysis_dt) %>%
-  tidyr::unnest()

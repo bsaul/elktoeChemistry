@@ -1,0 +1,95 @@
+---
+title: "Untitled"
+author: "Bradley Saul"
+date: "10/14/2018"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+library(VGAM)
+knitr::opts_chunk$set(echo = TRUE)
+source("10a_analysis_functions.R")
+```
+
+```{r prepare_data}
+dt <- filter_valves(.species = "A. raveneliana", .has_annuli = c("A", "B"),
+                    .river = c("Tuckasegee", "Little Tennessee")) %>%
+  mutate(analysis_dt = purrr::map(valve_filterFUN, 
+                                  ~ .x(.layer = "ncr",  .annuli = c("A", "B"),
+                                       .inner_buffer = 15, .outer_buffer = 10))) %>%
+  select(id, transect, site, site_num, river, species, dead, final_status, n_annuli, analysis_dt) %>%
+  mutate(analysis_dt = purrr::map(analysis_dt,  ~.x %>% convert_to_long())) %>%  
+  tidyr::unnest() %>%
+  filter(grepl("ppm", element)) %>%
+  group_by(id, transect, site, site_num, river, species, dead, final_status, n_annuli,  annuli, element)
+
+dt <- dt %>%
+  group_by(id, transect, annuli, element) %>%
+  mutate(obs_num = paste0("o", 1:n()))
+
+# %>%
+  # summarise(value = max(value))
+```
+
+```{r, plotting_functions}
+make_dotplot <- function(.data){
+  ggplot(data = .data, 
+         aes(x = site_num, y = value)) + 
+    geom_point() + 
+    facet_grid( ~ river)
+}
+
+```
+
+
+```{r make_plots}
+elements <- unique(dt$element)
+
+for(i in seq_along(elements)){
+  temp <- dt %>% filter(element == elements[i]) %>%
+    group_by(id) %>%
+    filter(value == min(value))
+  p <- temp %>% make_dotplot() + ggtitle(elements[i]) 
+  print(p)
+}
+
+```
+
+
+```{r}
+temp <- dt %>% filter(element == elements[1]) %>%
+ select(id, transect, site, river, annuli, element, value, obs_num) %>%
+  group_by(id, transect, site, river, element, annuli)
+
+temp1 <- temp %>%
+  tidyr::nest() %>%
+  mutate(data = purrr::map(data, ~ .x %>%  filter(obs_num %in% paste0("o", 1:9))
+                           %>% tidyr::spread(key = obs_num, value = value))) %>%
+  tidyr::unnest() %>%
+  filter(annuli == "A")
+  # mutate(value = pmax(0, value)) %>%
+  # tidyr::spread(key = obs_num, value = value)
+
+temp2 <- temp %>% filter(annuli == "B") %>%
+  group_by(id, transect) %>%
+  summarise(maxB = max(value)) %>%
+  left_join(temp1, by = c("id", "transect"))
+# %>%
+#   filter(! (is.na(A) | is.na(B))) %>%
+#   filter(!(id %in% c("C495", "C469", "C496")))
+           
+fit1 <- vglm(cbind(o1, o2, o3, o4, o5, o6, o7, o8, o9) ~ site + s(maxB, df = 10),
+             family = gumbel(),
+             data = temp2, trace = TRUE, maxit = 10000, imethod = 2)
+
+
+
+coef(fit1, matrix = TRUE)
+coef(fit1)/sqrt(diag(vcov(fit1)))
+head(fitted(fit1))
+y <- predictvglm(fit1, newdata = temp2, type = "response")
+y
+qqplot(temp2$o9[-2], y[, 1])
+```
