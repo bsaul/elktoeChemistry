@@ -16,10 +16,10 @@ make_valve_filter <- function(valve_data){
            .site_num = 1:3,
            .has_annuli   = NULL){
     out <- valve_data %>%
-      filter(species %in% .species, river %in% .river, site_num %in% .site_num)
+      dplyr::filter(species %in% .species, river %in% .river, site_num %in% .site_num)
     
     if(!is.null(.has_annuli)){
-      out <- out %>% filter(!!! rlang::syms(.has_annuli))
+      out <- out %>% dplyr::filter(!!! rlang::syms(.has_annuli))
     }
     out
   }
@@ -51,10 +51,10 @@ elktoe_FUN <- function(layer){
       mutate(analysis_dt = purrr::map(analysis_dt,  ~.x %>% convert_to_long())) %>%  
       tidyr::unnest() %>%
       mutate(idt = paste(id, transect, sep = "-")) %>%
-      filter(grepl("ppm", element))
+      dplyr::filter(grepl("ppm", element))
     
     if(!is.null(.f)){
-      hold <- hold %>% group_by(idt, element) %>% filter(!!! .f)
+      hold <- hold %>% group_by(idt, element) %>% dplyr::filter(!!! .f)
     }
     
     hold %>%
@@ -137,5 +137,39 @@ plot_a <- function(data, title, include_guide){
   p
   
 }
+
+
+# Plot of the ecdf by transect
+cdf_plot <- function(dt) {
+  ggplot(
+    data = dt,
+    aes(x = xvals, y = yy, group =idt, color = river)
+  ) + 
+    geom_hline(yintercept = 0, color = "grey75") + 
+    geom_vline(xintercept = 0, color = "grey75") + 
+    geom_line(alpha = 0.5) + 
+    scale_y_continuous(
+      name = expression(Pr(X < x)),
+      expand = c(.05, 0),
+      limits = c(0, 1)
+    ) +
+    scale_x_continuous(
+      name = "",
+      expand = c(.05, 0)
+    ) + 
+    theme_classic() +
+    theme(
+      legend.position = c(.8, .25),
+      legend.title    = element_blank(),
+      legend.background = element_blank(),
+      legend.text     = element_text(size = 8),
+      axis.line.y     = element_line(color = "grey75"),
+      axis.line.x     = element_blank(),
+      axis.ticks      = element_line(color = "grey75")
+    )
+}
+
+
+
 
 

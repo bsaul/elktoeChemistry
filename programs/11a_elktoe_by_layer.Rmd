@@ -18,32 +18,34 @@ source("10a_analysis_functions.R")
 # Nacre
 
 ```{r}
+vtransFUN <- function(x) { ifelse(x < 0, -log(-x + 1) , log(x + 1)) }
+# vtransFUN <- function(x) {log(pmax(0, x) + 1)}
 ncr_a <- elktoe_ncr(
   .a      =  c("A"),
   .f      = quos(n() > 10),
   .dtrans = function(x) {max(x) - x},
-  .vtrans = function(x) {log10(pmax(0, x) + 1)}
+  .vtrans = vtransFUN
 ) %>%
   mutate(plot = "ncrA")
 
 ncr <- elktoe_ncr(
   .f      = quos(n() > 10),
   .dtrans = function(x) {max(x) - x},
-  .vtrans = function(x) {log10(pmax(0, x) + 1)}
+  .vtrans = vtransFUN
 ) %>%
   mutate(plot = "ncrall")
 
 psm <- elktoe_psm(
   .f      = quos(n() > 10),
   .dtrans = function(x) {max(x) - x},
-  .vtrans = function(x) {log10(pmax(0, x) + 1)}
+  .vtrans = vtransFUN
 ) %>%
   mutate(plot = "psm")
 
 pio <- elktoe_pio(
   .f      = quos(n() > 10),
   .dtrans = function(x) {max(x) - x},
-  .vtrans = function(x) {log10(pmax(0, x) + 1)}
+    .vtrans = vtransFUN
 ) %>%
   mutate(plot = "pio")
 
