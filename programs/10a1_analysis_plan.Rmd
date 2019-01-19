@@ -1,0 +1,57 @@
+---
+title: "Analysis Plan"
+author: "Bradley Saul"
+date: "1/17/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Notation
+
+Let $i$ index valves, $j$ index transects within valves, and $k = 1, \dots, m_{ij}$ index samples within transects, where $k = 1$ is the first (laser on) sample on the transect and $k = m_{ij}$ is the last (laser off) sample. Let $Z^{e}_{ijk}$ be the $k$th observed datum for element $e$ on valve $i$'s transect $j$ and $Z^{e}_{ij}$ be the vector of all observations of element $e$ on valve $i$'s transect $j$.
+
+# Preprocessing
+
+To account for possible residual from one sample to the next, a lagged regression is fit within each transect for each element:
+
+\[
+Y^{e}_{ijk} = Z^{e}_{ijk} - \hat{\phi} Z^{e}_{ij, k - 1} 
+\]
+
+where $\hat{\phi}$ is estimated by least squares. The analyses described below are performed on these transformed observations: $Y^{e}_{ijk}$.
+
+# Research Hypotheses
+
+| Comparisons | Layers | Elements | 
+|-------------|--------| -------- |
+|             |  Nacre (annuli A)      |          |
+   
+Let $l$ index the four layers of interest: $l = \mathtt{NA}$ denotes the Nacre (annuli A); $\mathtt{NC}$ is the full Nacre; $\mathtt{PM}$ the prismatic layer; and $\mathtt{PE}$ the periostracum.   
+   
+# Statistical methods
+
+Let $L_o(Y^{e}_{ijl})$ be the $o$-th sample $L$-moment ratio @CITE. The first four $L$-moments will be estimated for each valve-transect-layer corresponding to estimates of the mean, variance, skewness, and kurtosis of the distribution of the element's concentrations within a layer.
+
+\[
+\mathsf{E}\begin{pmatrix}
+L_1 \\
+L_2 \\
+L_3 \\
+L_4 \\
+\end{pmatrix} = 
+\begin{pmatrix}
+\beta_{11} + A \beta_{12} + X \tau_{1} \\
+\beta_{21} + A \beta_{22} + X \tau_{2} \\
+\beta_{31} + A \beta_{32} + X \tau_{3} \\
+\beta_{41} + A \beta_{42} + X \tau_{4}
+\end{pmatrix}
+\]
+
+
+# Sensitivity Analyses
+
+
+
