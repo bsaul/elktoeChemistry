@@ -23,11 +23,21 @@ Y^{e}_{ijk} = Z^{e}_{ijk} - \hat{\phi} Z^{e}_{ij, k - 1}
 
 where $\hat{\phi}$ is estimated by least squares. The analyses described below are performed on these transformed observations: $Y^{e}_{ijk}$.
 
-# Research Hypotheses
+# Research Questions
 
-| Comparisons | Layers | Elements | 
-|-------------|--------| -------- |
-|             |  Nacre (annuli A)      |          |
+* Questions
+   * Are baseline specimens different from the specimen exposed to the experiment?
+   * Does the pattern 
+
+* Layers 
+   * Nacre (annuli A only)
+   * Nacre
+   * Prismatic layer
+   * Periostracum
+   
+* Elements
+   * 
+
    
 Let $l$ index the four layers of interest: $l = \mathtt{NA}$ denotes the Nacre (annuli A); $\mathtt{NC}$ is the full Nacre; $\mathtt{PM}$ the prismatic layer; and $\mathtt{PE}$ the periostracum.   
    
