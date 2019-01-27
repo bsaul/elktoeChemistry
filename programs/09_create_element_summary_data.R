@@ -17,7 +17,7 @@ element_info <- left_join(valve_data$chemistry[[1]], valve_data$distance[[1]], b
       element_label = stringr::str_replace(element, '_ppm', '')
     ) %>%
     left_join(periodicTable %>%
-                dplyr::select(symb, group, period, type),
+                dplyr::select(symb, name, group, period, type, mass, color),
               by = 'symb')
 
 
