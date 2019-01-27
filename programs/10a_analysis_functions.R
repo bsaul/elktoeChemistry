@@ -6,7 +6,8 @@
 #-----------------------------------------------------------------------------#
 library(ggplot2)
 library(dplyr)
-valve_data <- readRDS("data/valve_data.rds")
+valve_data   <- readRDS("data/valve_data.rds")
+element_info <- readRDS(file = 'data/element_info.rds')
 
 residFUN <- function(x) {
   residuals(lm(x ~ c(0, x[-length(x)])))
@@ -39,8 +40,8 @@ filter_valves <- make_valve_filter(valve_data)
 ## Univariate analysis functions ####
 
 convert_to_long <- function(dt){
-  dt %>%
-    tidyr::gather(key = "element", value = "value", -obs, -distance, -layer, -annuli)
+  tidyr::gather(dt, key = "element", value = "value", 
+                -obs, -distance, -layer, -annuli)
 }
 
 ## 
@@ -77,6 +78,17 @@ elktoe_FUN <- function(layer){
 elktoe_ncr <- elktoe_FUN("ncr")
 elktoe_psm <- elktoe_FUN("psm")
 elktoe_pio <- elktoe_FUN("pio")
+
+## Tranformation functions
+
+ppm_to_mmol <- function(ppm, gmol){
+  (ppm / 1000) / gmol
+}
+
+ppm_to_mmol_camol <- function(ppm, gmol, ca_ppm = 400432){
+  ca_mol <- ppm_to_mmol(ca_ppm, 40.078)/1000
+  ppm_to_mmol(ppm = ppm, gmol = gmol)/ca_mol
+}
 
 ## Plotting functions
 
@@ -149,14 +161,19 @@ plot_a <- function(data, title, include_guide){
 
 
 # Plot of the ecdf by transect
-cdf_plot <- function(dt) {
+cdf_plot <- function(dt, dt_summary) {
   ggplot(
     data = dt,
     aes(x = x, y = Fx, group =idt, color = river)
   ) + 
     geom_hline(yintercept = 0, color = "grey75") + 
     geom_vline(xintercept = 0, color = "grey75") + 
-    geom_line(alpha = 0.3) + 
+    geom_line(alpha = 0.3, size = 0.25) + 
+    geom_line(
+      data = dt_summary,
+      aes(x = x, y = Fx, group = site, color = river),
+      size = 0.75
+    ) + 
     scale_y_continuous(
       name = expression(Pr(X <= x)),
       expand = c(.05, 0),

@@ -8,9 +8,8 @@
 library(grid)
 library(gridExtra)
 library(ggbeeswarm)
-knitr::opts_chunk$set(echo = TRUE)
 
-vers <- "V001"
+vers <- "V003"
 source("programs/10a_analysis_functions.R")
 
 ## Collect Data ####
@@ -50,6 +49,22 @@ pio <- elktoe_pio(
 dt <- bind_rows(ncr_a, ncr, psm, pio) 
 rm(ncr_a, ncr, psm, pio, valve_data)
 
+## Convert values to mmmol per Ca mol ####
+
+dt <- dt %>%
+  group_by(layer, element) %>%
+  tidyr::nest() %>%
+  left_join(select(element_info, element, mass), by = "element") %>%
+  mutate(
+    data = purrr::map2(data, mass, function(x, y){
+      x %>% mutate(
+        value = ppm_to_mmol_camol(value, y)
+      )
+    })
+  ) %>%
+  tidyr::unnest()
+
+head(dt$value)
 ## Compute Statistics on distribution moments ####
 
 dt_moments <- dt %>%
@@ -134,16 +149,30 @@ cdf_vals <- dt %>%
           select(-data) %>%
           tidyr::unnest()
       }
+    ),
+    cdf_stat = purrr::map(
+      .x = cdf_data,
+      .f = function(dt, f = mean){
+        dt %>%
+          group_by(river, site, site_num, x) %>%
+          summarise(Fx = f(Fx))
+      }
     )
   ) %>%
   select(-data, -xvals) %>%
   mutate(
-    cdf_plot = purrr::map(
+    cdf_plot = purrr::map2(
       .x = cdf_data,
-      .f = ~ .x %>%
-        mutate(idt = paste0(id, transect)) %>%
-        filter(x > quantile(x, 0.025), x < quantile(x, 0.975)) %>%
-        cdf_plot()
+      .y = cdf_stat,
+      .f = function(x, y){
+        dt1 <- x %>%
+          mutate(idt = paste0(id, transect)) %>%
+          filter(x > 0, x < quantile(x, 0.975)) 
+        dt2 <- y %>%
+          filter(x > min(dt1$x), x < max(dt1$x))
+        
+        cdf_plot(dt1, dt2)
+      }
     )
   )
 
