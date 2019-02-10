@@ -9,6 +9,7 @@
 data("periodicTable", package = "PeriodicTable")
 
 element_info <- left_join(valve_data$chemistry[[1]], valve_data$distance[[1]], by = "obs") %>%
+  select(-ends_with("value_raw"), -ends_with("censor")) %>%
   select(-idt, -idref_method, -best_method) %>%
   create_long_analysis_data() %>%
   distinct(element) %>%
