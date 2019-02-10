@@ -24,7 +24,7 @@ recoveries <- readxl::read_excel("extdata/Std recoveries comp D1-7 reproc.xlsx",
     -drawer, -output, -source_file, -standard, -standard_run,
      na.rm = TRUE) %>%
   mutate(
-    drawer       = stringr::str_remove(drawer, "D"),
+    drawer       = as.numeric(stringr::str_remove(drawer, "D")),
     measure      = stringr::str_replace(stringr::str_extract(key, "_(Int2SE|LOD)$"), "_", ""),
     measure      = if_else(is.na(measure), "raw", measure),
     element      = stringr::str_replace(key, "_(Int2SE|LOD)$", "")
@@ -39,7 +39,7 @@ lod <- recoveries %>%
   ) %>%
   group_by(element, drawer) %>%
   summarise(
-    lod_mean = mean(lod_mean)
+    lod = mean(lod_mean)
   )
 
 saveRDS(lod, file = 'data/lower_detection_limits.rds')
