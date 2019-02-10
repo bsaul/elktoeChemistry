@@ -90,7 +90,7 @@ test_methods <- list(
 ## Apply all the methods ####
 method_tests <- purrr::map2_dfr(
   test_methods, names(test_methods), 
-  ~ apply_ref_method(valve_data, .x, .y)) %>%
+  ~ apply_ref_method(valve_data %>% select(-lod), .x, .y)) %>%
   mutate(idref_method = factor(idref_method))
 
 
