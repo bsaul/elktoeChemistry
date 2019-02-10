@@ -135,6 +135,7 @@ maxpoint <- function(x, .var, .use_up_to_row, .threshold = 1, .outer = FALSE){
 
 # Functions to map measurements onto chemistry ####
 
+
 #' Create a function that identifies layers based on distance
 #' 
 #' @param .data a measurement dataset (for a single id_transect)
@@ -298,39 +299,6 @@ apply_ref_method <- function(.valve_data, .l, .n){
 }
 
 
-#' Create a function for each ID/transect that filters each transect
-#' 
-#' @param ch a chemistry dataset
-#' @param di a distance dataset
-#' @return a function that filters the transect's data to particular \code{.layer}s (required),
-#' \code{.annuli} (optional). Also includes the ability to add an \code{.inner_buffer} and/or
-#' \code{.outer_uffer} (in microns), which trims off the buffered ammount from the inner
-#' (towards nacre) or outer (towards periostracum) edges, respectively.
-
-make_transect_filter <- function(ch, di){
-  dt <- left_join(ch, di, by = "obs")
-  
-  function(.layer,
-           .annuli       = NULL,
-           .inner_buffer = 0,
-           .outer_buffer = 0,
-           .alignment_method = NULL){
-    
-    out <- dt %>%
-      filter(layer %in% .layer)
-    
-    if(!is.null(.annuli)){
-      out <- out %>% dplyr::filter(annuli %in% .annuli)
-    }
-    
-    out <- out %>% 
-      filter(distance >= (min(distance) + .inner_buffer), 
-             distance <= (max(distance) - .outer_buffer)) %>%
-      select(obs, distance, layer, annuli, contains("ppm"), contains("CPS"))
-    
-    out
-  }
-}
 
 ## Plot Methods ####
 
