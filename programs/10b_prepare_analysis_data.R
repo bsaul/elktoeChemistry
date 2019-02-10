@@ -8,7 +8,7 @@ library(ggplot2)
 library(dplyr)
 valve_data   <- readRDS("data/valve_data.rds")
 element_info <- readRDS(file = 'data/element_info.rds')
-
+lod          <- readRDS(file = 'data/lower_detection_limits.rds')
 
 
 valve_data <- valve_data %>%
