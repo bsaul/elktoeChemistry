@@ -42,7 +42,6 @@ lod <- recoveries %>%
     lod_mean = mean(lod_mean)
   )
 
+saveRDS(lod, file = 'data/lower_detection_limits.rds')
 
 
-
-valve_chemistry
