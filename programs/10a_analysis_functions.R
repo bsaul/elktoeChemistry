@@ -4,20 +4,39 @@
 #    Date: 2018-12-28
 # Purpose: Functions for analyzing valve data
 #-----------------------------------------------------------------------------#
-library(ggplot2)
-library(dplyr)
-valve_data   <- readRDS("data/valve_data.rds")
-element_info <- readRDS(file = 'data/element_info.rds')
 
 residFUN <- function(x) {
   residuals(lm(x ~ c(0, x[-length(x)])))
 }
 
-valve_data <- valve_data %>%
-  mutate(
-    chemistry = purrr::map(chemistry, ~  mutate_all(.x, .funs = funs(residFUN)))
-  )
+#' Apply Lower Detection limit to chemistry data
+#' 
+#' @param chem_dt chemistry dataset
+#' @param lod_dt lod dataset
 
+apply_lod <- function(chem_dt, lod_dt){
+  chem_dt %>%
+    tidyr::gather(key = "element", value = "value", -obs) %>%
+    left_join(
+      lod_dt,
+      by = "element"
+    ) %>%
+    dplyr::mutate(
+      censor = value < lod,
+      value  = if_else(censor, lod, value)
+    ) %>%
+    dplyr::select(-lod) %>%
+    tidyr::gather(key = "var", value = "value", -obs, -element) %>%
+    tidyr::unite(temp, element, var) %>%
+    tidyr::spread(temp, value) %>%
+    dplyr::rename_at(
+      .var  = vars(ends_with("_value")),
+      .funs = funs(stringr::str_remove(., "_value"))
+    )
+}
+
+#'
+#'
 
 make_valve_filter <- function(valve_data){
   
@@ -25,6 +44,7 @@ make_valve_filter <- function(valve_data){
            .river    = c("Baseline", "Little Tennessee", "Tuckasegee"),
            .site_num = 1:3,
            .has_annuli   = NULL){
+    
     out <- valve_data %>%
       dplyr::filter(species %in% .species, river %in% .river, site_num %in% .site_num)
     
@@ -35,7 +55,7 @@ make_valve_filter <- function(valve_data){
   }
 }
 
-filter_valves <- make_valve_filter(valve_data)
+
 
 ## Univariate analysis functions ####
 
@@ -49,6 +69,7 @@ elktoe_FUN <- function(layer){
   function(.a = NULL, .i = 5, .o = 5, .r = c("b", "t", "l"), 
            .dtrans = identity, .dsort = identity, .vtrans = identity,
            .f = NULL){
+    
     rivers <- c("b" = "Baseline", "t" = "Tuckasegee", "l" = "Little Tennessee")
     rivers <- rivers[names(rivers) %in% .r]
     
@@ -56,7 +77,7 @@ elktoe_FUN <- function(layer){
       mutate(analysis_dt = purrr::map(
         valve_filterFUN, 
         ~ .x(.layer = layer,  .annuli = .a, .inner_buffer = .i, .outer = .o))) %>%
-      select(id, transect, site, site_num, river, species, dead,
+      select(drawer, id, transect, site, site_num, river, species, dead,
              final_status, n_annuli, analysis_dt) %>%
       mutate(analysis_dt = purrr::map(analysis_dt,  ~.x %>% convert_to_long())) %>%  
       tidyr::unnest() %>%
@@ -75,9 +96,40 @@ elktoe_FUN <- function(layer){
   }
 }
 
-elktoe_ncr <- elktoe_FUN("ncr")
-elktoe_psm <- elktoe_FUN("psm")
-elktoe_pio <- elktoe_FUN("pio")
+
+#' Create a function for each ID/transect that filters each transect
+#' 
+#' @param ch a chemistry dataset
+#' @param di a distance dataset
+#' @return a function that filters the transect's data to particular \code{.layer}s (required),
+#' \code{.annuli} (optional). Also includes the ability to add an \code{.inner_buffer} and/or
+#' \code{.outer_uffer} (in microns), which trims off the buffered ammount from the inner
+#' (towards nacre) or outer (towards periostracum) edges, respectively.
+
+make_transect_filter <- function(ch, di){
+  dt <- left_join(ch, di, by = "obs")
+  
+  function(.layer,
+           .annuli       = NULL,
+           .inner_buffer = 0,
+           .outer_buffer = 0,
+           .alignment_method = NULL){
+    
+    out <- dt %>%
+      filter(layer %in% .layer)
+    
+    if(!is.null(.annuli)){
+      out <- out %>% dplyr::filter(annuli %in% .annuli)
+    }
+    
+    out <- out %>% 
+      filter(distance >= (min(distance) + .inner_buffer), 
+             distance <= (max(distance) - .outer_buffer)) %>%
+      select(obs, distance, layer, annuli, contains("ppm"), contains("CPS"))
+    
+    out
+  }
+}
 
 ## Tranformation functions
 

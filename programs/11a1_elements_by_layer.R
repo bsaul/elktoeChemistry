@@ -9,7 +9,7 @@ library(grid)
 library(gridExtra)
 library(ggbeeswarm)
 
-vers <- "V003"
+vers <- "V004"
 source("programs/10a_analysis_functions.R")
 
 ## Collect Data ####
@@ -64,7 +64,7 @@ dt <- dt %>%
   ) %>%
   tidyr::unnest()
 
-head(dt$value)
+
 ## Compute Statistics on distribution moments ####
 
 dt_moments <- dt %>%
@@ -112,16 +112,30 @@ dt_moments <- dt %>%
                                 xval =  xval +  (site_num - 1)/3
                               )))) %>%
   mutate(
-    p = purrr::map2(data, summaries, ~plot_moments(.x, .y)),
+    p = purrr::map2(data, summaries, ~plot_moments(.x, .y))
+    # ,
+    # pvals = purrr::map(
+    #   .x = data,
+    #   .f = ~ .x %>%
+    #     group_by(moment) %>%
+    #     summarise(
+    #       p = kruskal.test(value, factor(site))$p.value
+    #     ))
+  ) 
+
+
+dt_moments[3, ]$data
+
+%>%
+  mutate(
     pvals = purrr::map(
-      .x = data, 
+      .x = data,
       .f = ~ .x %>%
         group_by(moment) %>%
         summarise(
           p = kruskal.test(value, factor(site))$p.value
         ))
-  ) 
-
+  )
 ## Compute empirical CDFs ####
 
 cdf_vals <- dt %>%
