@@ -11,7 +11,7 @@ library(ggbeeswarm)
 
 vers <- "V004"
 source("programs/10a_analysis_functions.R")
-
+source("programs/10b_prepare_analysis_data.R")
 ## Collect Data ####
 
 vtransFUN <- function(x) x
@@ -52,7 +52,7 @@ rm(ncr_a, ncr, psm, pio, valve_data)
 ## Convert values to mmmol per Ca mol ####
 
 dt <- dt %>%
-  group_by(layer, element) %>%
+  group_by(drawer, layer, element) %>%
   tidyr::nest() %>%
   left_join(select(element_info, element, mass), by = "element") %>%
   mutate(
@@ -66,18 +66,40 @@ dt <- dt %>%
 
 
 ## Compute Statistics on distribution moments ####
-
 dt_moments <- dt %>%
-  group_by(layer, river, site, site_num, id, transect, element) %>% 
+  group_by(drawer, layer, river, site, site_num, id, transect, element) %>% 
   tidyr::nest() %>%
+  left_join(lod, by = c("drawer", "element")) %>%
+  left_join(select(element_info, element, mass), by = "element") %>%
   mutate(
-    lmom = purrr::map(data, function(x) {
-      hold <- lmom::samlmu(x$value)
-      out  <- as_tibble(hold)
-      out$moment <- names(hold)
-      out
-    })
-  ) %>%
+    llim  = ppm_to_mmol_camol(lod, mass),
+    lmoms_res = purrr::map2(
+      .x = data,
+      .y = llim,
+      .f = ~ lmomco::pwmLC(x = .x$value, threshold = .y, nmom=4, sort=TRUE)),
+    nbelow =  purrr::map_dbl(lmoms_res, ~.x$numbelowthreshold),
+    nobs   = purrr::map_dbl(lmoms_res, ~.x$samplesize),
+    lmom  = purrr::map(
+      lmoms_res,
+      function(x) {
+        hold <-  as_tibble(x$Bprimebetas)
+        hold$moment <- 1:length(x$Bprimebetas)
+        hold
+      }
+    )) 
+
+# dt_moments <- dt %>%
+#   group_by(layer, river, site, site_num, id, transect, element) %>% 
+#   tidyr::nest() %>%
+#   mutate(
+#     lmom = purrr::map(data, function(x) {
+#       hold <- lmom::samlmu(x$value)
+#       out  <- as_tibble(hold)
+#       out$moment <- names(hold)
+#       out
+#     })
+#   ) %>%
+dt_moments <- dt_moments %>%
   select(layer, river, site, site_num, id, transect, element, lmom) %>% 
   tidyr::unnest() %>%
   group_by(layer, element) %>%
@@ -88,8 +110,8 @@ dt_moments <- dt %>%
       ~ .x %>% 
         group_by(river, site, site_num, moment) %>%
         summarise(
-          mean   = mean(value),
-          median = median(value)
+          mean   = mean(value, na.rm = TRUE),
+          median = median(value, na.rm = TRUE)
         ))
   ) %>%
   mutate(
@@ -102,32 +124,18 @@ dt_moments <- dt %>%
   ) %>%
   mutate_at(
     .vars = c("data", "summaries"),
-    .funs = funs(purrr::map(., ~ .x %>% 
-                              mutate(
-                                xval = case_when(
-                                  river == "Baseline" ~ 0,
-                                  river == "Tuckasegee" ~ .66,
-                                  TRUE ~ 2
-                                ),
-                                xval =  xval +  (site_num - 1)/3
-                              )))) %>%
+    .funs = funs(
+      purrr::map(., ~ .x %>% 
+                        mutate(
+                          xval = case_when(
+                            river == "Baseline" ~ 0,
+                            river == "Tuckasegee" ~ .66,
+                            TRUE ~ 2
+                          ),
+                          xval =  xval +  (site_num - 1)/3
+                        )))) %>%
   mutate(
-    p = purrr::map2(data, summaries, ~plot_moments(.x, .y))
-    # ,
-    # pvals = purrr::map(
-    #   .x = data,
-    #   .f = ~ .x %>%
-    #     group_by(moment) %>%
-    #     summarise(
-    #       p = kruskal.test(value, factor(site))$p.value
-    #     ))
-  ) 
-
-
-dt_moments[3, ]$data
-
-%>%
-  mutate(
+    p = purrr::map2(data, summaries, ~plot_moments(.x, .y)),
     pvals = purrr::map(
       .x = data,
       .f = ~ .x %>%
@@ -135,7 +143,9 @@ dt_moments[3, ]$data
         summarise(
           p = kruskal.test(value, factor(site))$p.value
         ))
-  )
+  ) 
+
+
 ## Compute empirical CDFs ####
 
 cdf_vals <- dt %>%
