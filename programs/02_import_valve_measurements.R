@@ -24,7 +24,7 @@ valve_measurements <- purrr::map_dfr(
       filter(!is.na(`Length from 1 to 2 (mm)`)) %>%
       mutate(
         file_name = stringr::str_remove(file_name, "^PAT:"),
-        drawer = NA) %>%
+        drawer    = 7) %>%
       munge_measurements()
     
   ) %>%
