@@ -55,21 +55,24 @@ make_valve_filter <- function(valve_data){
 
 ## Univariate analysis functions ####
 
-convert_to_long <- function(dt){
-  tidyr::gather(dt, key = "element", value = "value", 
+convert_to_long <- function(layer_dt){
+  tidyr::gather(layer_dt, key = "element", value = "value", 
                 -obs, -distance, -layer, -annuli)
 }
 
 ## 
-elktoe_FUN <- function(layer){
-  function(.a = NULL, .i = 5, .o = 5, .r = c("b", "t", "l"), 
+layer_filter_FUN <- function(valve_data, layer){
+  
+  filter_vales <- make_valve_filter(valve_data)
+  
+  function(.s, .a = NULL, .i = 5, .o = 5, .r = c("b", "t", "l"), 
            .dtrans = identity, .dsort = identity, .vtrans = identity,
            .f = NULL){
     
     rivers <- c("b" = "Baseline", "t" = "Tuckasegee", "l" = "Little Tennessee")
     rivers <- rivers[names(rivers) %in% .r]
     
-    hold <- filter_valves(.species = "A. raveneliana", .has_annuli = .a, .river = rivers) %>%
+    hold <- filter_valves(.species = .s,  .has_annuli = .a, .river = rivers) %>%
       mutate(analysis_dt = purrr::map(
         valve_filterFUN, 
         ~ .x(.layer = layer,  .annuli = .a, .inner_buffer = .i, .outer = .o))) %>%
@@ -265,7 +268,7 @@ plot_moments <- function(dd, ss){
       data = ss,
       aes(x = xval, y = median),
       color = "red",
-      shape = "triangle",
+      shape = "triangle"
     ) + 
     geom_point(shape = 1, size = 0.5, color = "grey10") +
     scale_x_continuous(
