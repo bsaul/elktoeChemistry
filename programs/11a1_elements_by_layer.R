@@ -9,7 +9,7 @@ library(grid)
 library(gridExtra)
 library(ggbeeswarm)
 
-vers <- "V004"
+vers <- "V010"
 source("programs/10a_analysis_functions.R")
 source("programs/10b_prepare_analysis_data.R")
 ## Collect Data ####
@@ -77,14 +77,21 @@ dt_moments <- dt %>%
       .x = data,
       .y = llim,
       .f = ~ lmomco::pwmLC(x = .x$value, threshold = .y, nmom=4, sort=TRUE)),
-    nbelow =  purrr::map_dbl(lmoms_res, ~.x$numbelowthreshold),
+    nbelow = purrr::map_dbl(lmoms_res, ~.x$numbelowthreshold),
     nobs   = purrr::map_dbl(lmoms_res, ~.x$samplesize),
-    lmom  = purrr::map(
-      lmoms_res,
-      function(x) {
-        hold <-  as_tibble(x$Bprimebetas)
-        hold$moment <- 1:length(x$Bprimebetas)
+    prop_censored = nbelow/nobs,
+    lmom  = purrr::map2(
+      .x = lmoms_res,
+      .y = prop_censored,
+      .f = function(x, y) {
+        hold <- data_frame(moment = 0, value = y)
+        if(length(x$Aprimebetas) > 0){
+          hold2        <- as_tibble(x$Aprimebetas)
+          hold2$moment <- 1:length(x$Aprimebetas)
+          hold <- bind_rows(hold, hold2)
+        }
         hold
+
       }
     )) 
 
@@ -101,7 +108,8 @@ dt_moments <- dt %>%
 #   ) %>%
 dt_moments <- dt_moments %>%
   select(layer, river, site, site_num, id, transect, element, lmom) %>% 
-  tidyr::unnest() %>%
+  tidyr::unnest() %>% 
+  filter(moment != 4) %>%
   group_by(layer, element) %>%
   tidyr::nest() %>%
   mutate(
@@ -145,7 +153,7 @@ dt_moments <- dt_moments %>%
         ))
   ) 
 
-
+# dt_moments2$p[[1]]
 ## Compute empirical CDFs ####
 
 cdf_vals <- dt %>%
@@ -244,6 +252,8 @@ results <- results %>%
       })
   )
 
+
+
 lapply(seq_along(results$element), function(i){
   ggsave(filename = sprintf('figures/11a1_elements_by_layer/11a1_%s_%s.pdf' , results$element[i], vers),
          plot = results$gplot[[i]],
@@ -251,6 +261,8 @@ lapply(seq_along(results$element), function(i){
 })
 
 ## Summary plot ####
+
+
 
 summary_dt <- results %>%
   select(element, pvals) %>%

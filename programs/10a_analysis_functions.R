@@ -23,6 +23,7 @@ apply_lod <- function(chem_dt, lod_dt){
     ) %>%
     dplyr::mutate(
       censor = value < lod,
+      # censor = value < 0,
       value  = if_else(censor, lod, value)
     ) %>%
     dplyr::select(-lod) %>%
@@ -262,7 +263,7 @@ plot_moments <- function(dd, ss){
     ) + 
     geom_line(
       data = ss,
-      aes(x = xval, y = mean, group = river),
+      aes(x = xval, y = median, group = river),
       color = "grey10"
     ) + 
     geom_point(
