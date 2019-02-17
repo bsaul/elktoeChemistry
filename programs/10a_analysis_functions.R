@@ -5,10 +5,6 @@
 # Purpose: Functions for analyzing valve data
 #-----------------------------------------------------------------------------#
 
-residFUN <- function(x) {
-  residuals(lm(x ~ c(0, x[-length(x)])))
-}
-
 #' Apply Lower Detection limit to chemistry data
 #' 
 #' @param chem_dt chemistry dataset
@@ -23,7 +19,6 @@ apply_lod <- function(chem_dt, lod_dt){
     ) %>%
     dplyr::mutate(
       censor = value < lod,
-      # censor = value < 0,
       value  = if_else(censor, lod, value)
     ) %>%
     dplyr::select(-lod) %>%
@@ -257,7 +252,7 @@ plot_moments <- function(dd, ss){
          aes(x = xval, y = value)) +
     geom_hline(
       data = ss %>% filter(river == "Baseline"),
-      aes(yintercept = mean),
+      aes(yintercept = median),
       linetype = "dotted",
       color = "grey50"
     ) + 
@@ -268,7 +263,7 @@ plot_moments <- function(dd, ss){
     ) + 
     geom_point(
       data = ss,
-      aes(x = xval, y = mean),
+      aes(x = xval, y = median),
       color = "red",
       shape = "triangle",
     ) + 

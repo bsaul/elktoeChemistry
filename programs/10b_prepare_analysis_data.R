@@ -12,13 +12,6 @@ lod          <- readRDS(file = 'data/lower_detection_limits.rds')
 
 
 valve_data <- valve_data %>%
-  # mutate(
-  #   # Apply residual function 
-  #   chemistry = purrr::map(
-  #     .x = chemistry, 
-  #     .f = ~ mutate_at(.x, .vars = vars(matches("[0-9]$")),
-  #                      .funs     = funs(residFUN)))
-  # ) %>%
   dplyr::mutate(
     chemistry       = purrr::map2(chemistry, lod, ~ apply_lod(.x, .y)),
     # Drop censoring variables for now

@@ -15,13 +15,7 @@ Let $i$ index valves, $j$ index transects within valves, and $k = 1, \dots, m_{i
 
 # Preprocessing
 
-To account for possible residual from one sample to the next, a lagged regression is fit within each transect for each element:
 
-\[
-Y^{e}_{ijk} = Z^{e}_{ijk} - \hat{\phi} Z^{e}_{ij, k - 1} 
-\]
-
-where $\hat{\phi}$ is estimated by least squares. The analyses described below are performed on these transformed observations: $Y^{e}_{ijk}$.
 
 # Research Questions
 
