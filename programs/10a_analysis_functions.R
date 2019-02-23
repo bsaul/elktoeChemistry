@@ -276,7 +276,7 @@ plot_moments <- function(dd, ss){
       breaks = c(0, .66, 1, 1.33, 2, 2.33, 2.66),
       labels = c("Baseline", "1", "2\nTuckasegee", "3", "1", "2\nLittle TN", "3") 
     )  +
-    facet_wrap( ~ moment, ncol = 2, scales = "free_y") +
+    facet_wrap( ~ statistic, ncol = 2, scales = "free_y") +
     theme_classic() +
     theme(
       axis.line    = element_blank(),

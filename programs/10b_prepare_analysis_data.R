@@ -71,6 +71,7 @@ valve_data %>%
   group_by(drawer, layer, element) %>%
   tidyr::nest() %>%
   left_join(select(element_info, element, mass), by = "element") %>%
+  ## Convert values to mmmol per Ca mol ####
   mutate(
     data = purrr::map2(
       .x = data, 
