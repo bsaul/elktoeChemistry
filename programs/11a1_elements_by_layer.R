@@ -14,140 +14,58 @@ source("programs/10a_analysis_functions.R")
 source("programs/10b_prepare_analysis_data.R")
 ## Collect Data ####
 
-vtransFUN <- function(x) x
-# vtransFUN <- function(x) { ifelse(x < 0, -log(-x + 1) , log(x + 1)) }
-# vtransFUN <- function(x) {log(pmax(0, x) + 1)}
-ncr_a <- elktoe_ncr(
-  .a      =  c("A"),
-  .f      = quos(n() > 10),
-  .dtrans = function(x) {max(x) - x},
-  .vtrans = vtransFUN
-) %>%
-  mutate(layer = "ncrA")
-
-ncr <- elktoe_ncr(
-  .f      = quos(n() > 10),
-  .dtrans = function(x) {max(x) - x},
-  .vtrans = vtransFUN
-) %>%
-  mutate(layer = "ncrall")
-
-psm <- elktoe_psm(
-  .f      = quos(n() > 10),
-  .dtrans = function(x) {max(x) - x},
-  .vtrans = vtransFUN
-) %>%
-  mutate(layer = "psm")
-
-pio <- elktoe_pio(
-  .f      = quos(n() > 10),
-  .dtrans = function(x) {max(x) - x},
-  .vtrans = vtransFUN
-) %>%
-  mutate(layer = "pio")
-
-dt <- bind_rows(ncr_a, ncr, psm, pio) 
-rm(ncr_a, ncr, psm, pio, valve_data)
-
-## Convert values to mmmol per Ca mol ####
-
-dt <- dt %>%
-  group_by(drawer, layer, element) %>%
-  tidyr::nest() %>%
-  left_join(select(element_info, element, mass), by = "element") %>%
+moments_dt %>%
+  select(layer_data, species, river, site, site_num, id, transect, element, statsA_ratios) %>%
+  # TODO: for now keep the first transect per valve
+  group_by(id) %>%
+  filter(transect == min(transect)) %>%
+  tidyr::unnest() %>%
+  # TODO: setting NA and NaN values of statistics to 0: think on implications/justifications further
   mutate(
-    data = purrr::map2(data, mass, function(x, y){
-      x %>% mutate(
-        value = ppm_to_mmol_camol(value, y)
-      )
-    })
+    value = if_else(is.na(value) | is.nan(value), 0, value)
   ) %>%
-  tidyr::unnest()
-
-
-## Compute Statistics on distribution moments ####
-dt_moments <- dt %>%
-  group_by(drawer, layer, river, site, site_num, id, transect, element) %>% 
-  tidyr::nest() %>%
-  left_join(lod, by = c("drawer", "element")) %>%
-  left_join(select(element_info, element, mass), by = "element") %>%
-  mutate(
-    llim  = ppm_to_mmol_camol(lod, mass),
-    lmoms_res = purrr::map2(
-      .x = data,
-      .y = llim,
-      .f = ~ lmomco::pwmLC(x = .x$value, threshold = .y, nmom=4, sort=TRUE)),
-    nbelow = purrr::map_dbl(lmoms_res, ~.x$numbelowthreshold),
-    nobs   = purrr::map_dbl(lmoms_res, ~.x$samplesize),
-    prop_censored = nbelow/nobs,
-    lmom  = purrr::map2(
-      .x = lmoms_res,
-      .y = prop_censored,
-      .f = function(x, y) {
-        hold <- data_frame(moment = 0, value = y)
-        if(length(x$Aprimebetas) > 0){
-          hold2        <- as_tibble(x$Aprimebetas)
-          hold2$moment <- 1:length(x$Aprimebetas)
-          hold <- bind_rows(hold, hold2)
-        }
-        hold
-
-      }
-    )) 
-
-# dt_moments <- dt %>%
-#   group_by(layer, river, site, site_num, id, transect, element) %>% 
-#   tidyr::nest() %>%
-#   mutate(
-#     lmom = purrr::map(data, function(x) {
-#       hold <- lmom::samlmu(x$value)
-#       out  <- as_tibble(hold)
-#       out$moment <- names(hold)
-#       out
-#     })
-#   ) %>%
-dt_moments <- dt_moments %>%
-  select(layer, river, site, site_num, id, transect, element, lmom) %>% 
-  tidyr::unnest() %>% 
-  filter(moment != 4) %>%
-  group_by(layer, element) %>%
+  group_by(layer_data, species, element) %>%
   tidyr::nest() %>%
   mutate(
     summaries = purrr::map(
-      data, 
-      ~ .x %>% 
-        group_by(river, site, site_num, moment) %>%
+      .x = data, 
+      .f =  ~ .x %>% 
+        group_by(river, site, site_num, statistic) %>%
         summarise(
           mean   = mean(value, na.rm = TRUE),
           median = median(value, na.rm = TRUE)
         ))
-  ) %>%
+  )  %>%
   mutate(
     layer_title = case_when(
-      layer == "ncrA" ~ "Nacre (annuli A)",
-      layer == "ncrall" ~ "Nacre",
-      layer == "psm"    ~ "Prismatic layer",
-      layer == "pio"    ~ "Periostracum"
+      stringr::str_detect(layer_data, "_ncrA_") ~ "Nacre (annuli A)",
+      stringr::str_detect(layer_data, "_ncr_")  ~ "Nacre",
+      stringr::str_detect(layer_data, "_psm_")  ~ "Prismatic layer",
+      stringr::str_detect(layer_data, "_pio_")  ~ "Periostracum"
     )
   ) %>%
   mutate_at(
     .vars = c("data", "summaries"),
     .funs = funs(
-      purrr::map(., ~ .x %>% 
-                        mutate(
-                          xval = case_when(
-                            river == "Baseline" ~ 0,
-                            river == "Tuckasegee" ~ .66,
-                            TRUE ~ 2
-                          ),
-                          xval =  xval +  (site_num - 1)/3
-                        )))) %>%
+      purrr::map(
+        .x = ., 
+        .f = ~ .x %>% 
+          mutate(
+            xval = case_when(
+              river == "Baseline" ~ 0,
+              river == "Tuckasegee" ~ .66,
+              TRUE ~ 2
+            ),
+            xval = xval +  (site_num - 1)/3)
+        )))  -> z
+
+zz <- z %>%
   mutate(
     p = purrr::map2(data, summaries, ~plot_moments(.x, .y)),
     pvals = purrr::map(
       .x = data,
       .f = ~ .x %>%
-        group_by(moment) %>%
+        group_by(statistic) %>%
         summarise(
           p = kruskal.test(value, factor(site))$p.value
         ))
