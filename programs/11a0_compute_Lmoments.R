@@ -15,7 +15,8 @@ lod_camol <- select(element_info, element, mass) %>%
 
 
 moments_dt <- analysis_dt %>%
-  group_by(drawer, layer_data, layer, annuli, species, river, site, site_num, 
+  select(-layer, -annuli) %>%
+  group_by(drawer, layer_data, species, river, site, site_num, 
            id, transect, element) %>% 
   tidyr::nest() %>%
   left_join(lod_camol, by = c("drawer", "element")) %>%
@@ -32,4 +33,16 @@ moments_dt <- analysis_dt %>%
       .f = ~ lmomco::pwm2lmom(.x$Aprimebetas)),
     lmomB = purrr::map(
       .x = pwm,
-      .f = ~ lmomco::pwm2lmom(.x$Bprimebetas)))
+      .f = ~ lmomco::pwm2lmom(.x$Bprimebetas)),
+    statsA_ratios = purrr::map2(
+      .x = lmomA,
+      .y = prop_censored,
+      function(x, y){
+        tibble::tibble(
+          statistic = 1L:4L,
+          value     = c(y, x$ratios[2:4])
+        )
+      }
+    ))
+
+
