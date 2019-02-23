@@ -34,12 +34,22 @@ moments_dt <- analysis_dt %>%
     lmomB = purrr::map(
       .x = pwm,
       .f = ~ lmomco::pwm2lmom(.x$Bprimebetas)),
+    statsA = purrr::map2(
+      .x = lmomA,
+      .y = prop_censored,
+      function(x, y){
+        tibble::tibble(
+          statistic = c("p_censored", paste0("L-moment ", 1:3)),
+          value     = c(y, x$lambdas[1:3])
+        )
+      }
+    ),
     statsA_ratios = purrr::map2(
       .x = lmomA,
       .y = prop_censored,
       function(x, y){
         tibble::tibble(
-          statistic = 1L:4L,
+          statistic = c("p_censored", paste0("L-ratio ", 1:3)),
           value     = c(y, x$ratios[2:4])
         )
       }

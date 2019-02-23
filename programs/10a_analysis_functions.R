@@ -304,7 +304,9 @@ plot_pvals <- function(dt){
     geom_point(size = 0.5) +
     scale_x_continuous(
       limits = c(0, 7)
-    ) + theme_classic() +
+    ) + 
+    facet_grid(~ species) + 
+    theme_classic() +
     theme(
       axis.line.x = element_line(color = "grey50", size = .5),
       axis.line.y = element_blank(),

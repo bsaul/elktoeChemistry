@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------#
-#    Title: Summarise elemental concentrations by layer in Elktoe
+#    Title: Summarise elemental concentrations by layer 
 #   Author: B Saul
 #     Date: 20180119
 #  Purpose:
@@ -9,9 +9,10 @@ library(grid)
 library(gridExtra)
 library(ggbeeswarm)
 
-vers <- "V011"
+vers <- "V012"
 source("programs/10a_analysis_functions.R")
 source("programs/10b_prepare_analysis_data.R")
+source("programs/11a0_compute_Lmoments.R")
 ## Collect Data ####
 
 moments_dt %>%
@@ -21,9 +22,9 @@ moments_dt %>%
   filter(transect == min(transect)) %>%
   tidyr::unnest() %>%
   # TODO: setting NA and NaN values of statistics to 0: think on implications/justifications further
-  mutate(
-    value = if_else(is.na(value) | is.nan(value), 0, value)
-  ) %>%
+  # mutate(
+  #   value = if_else(is.na(value) | is.nan(value), 0, value)
+  # ) %>%
   group_by(layer_data, species, element) %>%
   tidyr::nest() %>%
   mutate(
@@ -57,9 +58,7 @@ moments_dt %>%
               TRUE ~ 2
             ),
             xval = xval +  (site_num - 1)/3)
-        )))  -> z
-
-zz <- z %>%
+        ))) %>%
   mutate(
     p = purrr::map2(data, summaries, ~plot_moments(.x, .y)),
     pvals = purrr::map(
@@ -69,92 +68,46 @@ zz <- z %>%
         summarise(
           p = kruskal.test(value, factor(site))$p.value
         ))
-  ) 
+  ) -> results
 
-# dt_moments2$p[[1]]
-## Compute empirical CDFs ####
-
-cdf_vals <- dt %>%
-  group_by(layer, element) %>%
-  tidyr::nest() %>%
-  mutate(
-    xvals = purrr::map(data, ~ sort(unique(round(unique(.x$value), 3))))
-  ) %>%
-  mutate(
-    cdf_data = purrr::map2(
-      .x = data,
-      .y = xvals,
-      .f = function(dt, vals){
-        dt %>%
-          group_by(river, site, site_num, id, transect) %>%
-          tidyr::nest() %>%
-          mutate(
-            Fx = purrr::map(
-              data, 
-              ~ data_frame(
-                x  = vals,
-                Fx = ecdf(.x$value)(vals))
-            )
-          ) %>%
-          select(-data) %>%
-          tidyr::unnest()
-      }
-    ),
-    cdf_stat = purrr::map(
-      .x = cdf_data,
-      .f = function(dt, f = mean){
-        dt %>%
-          group_by(river, site, site_num, x) %>%
-          summarise(Fx = f(Fx))
-      }
-    )
-  ) %>%
-  select(-data, -xvals) %>%
-  mutate(
-    cdf_plot = purrr::map2(
-      .x = cdf_data,
-      .y = cdf_stat,
-      .f = function(x, y){
-        dt1 <- x %>%
-          mutate(idt = paste0(id, transect)) %>%
-          filter(x > 0, x < quantile(x, 0.975)) 
-        dt2 <- y %>%
-          filter(x > min(dt1$x), x < max(dt1$x))
-        
-        cdf_plot(dt1, dt2)
-      }
-    )
-  )
-
-## Combine results #### 
-results <- dt_moments %>%
-  left_join(
-    cdf_vals, by = c("element", "layer")
-  ) %>% select(-data, -cdf_data)
-
-rm(dt, cdf_vals, dt_moments)
 
 ## Produce output #### 
 
 results <- results %>%
   mutate(
-    layerGrob = purrr::pmap(
-      .l = list(layer_title, p, cdf_plot),
-      .f = function(l, p, cdf){
-        txt <- textGrob(label = l, x = unit(.5, "npc"), hjust = 1, just = "left")
-        arrangeGrob(txt, cdf, p, nrow = 3, heights = c(.25, 3, 3))
+    speciesGrob = purrr::pmap(
+      .l = list(species, p),
+      .f = function(s, p){
+        # txt <- textGrob(label = s, x = unit(.5, "npc"), hjust = 1, just = "left")
+        arrangeGrob(p, nrow = 1, heights = c(3))
+      }
+    )
+  )  %>%
+  group_by(element, layer_title) %>%
+  tidyr::nest() %>%
+  mutate(
+    layerGrob = purrr::map2(
+      .x = data,
+      .y = layer_title,
+      .f = function(x, y){
+        lab <- textGrob(label = y, x = unit(.5, "npc"), hjust = 1, just = "left")
+        g <- x$speciesGrob
+        arrangeGrob(lab, g[[1]], g[[2]], nrow = 3, heights = c(.25, 3, 3))
       }
     )
   ) %>%
   group_by(element) %>%
-  tidyr::nest()  %>%
+  tidyr::nest() %>%
   mutate(
     pvals  = purrr::map(
       .x = data,
       .f = ~ purrr::map2(
-        .x$layer_title, .x$pvals, 
+        .x$layer_title, .x$data, 
         function(l, y) {
-          mutate(y, layer = l)
+          y %>%
+            select(species, pvals) %>%
+            tidyr::unnest() %>%
+            mutate(layer = l)
         }
       )),
     pvals = purrr::map(pvals, ~ do.call("rbind", args = .x)),
@@ -163,15 +116,21 @@ results <- results %>%
       .l = list(data, element, pval_plot),
       .f = function(x, y, z){
         ti <- textGrob(label = y)
-        tr <- arrangeGrob(grobs = x$layerGrob, ncol = 4)
-        hold <- arrangeGrob(z, ncol = 4)
-        # br <- arrangeGrob(grobs  x$poall, ncol = 4)
+        bGrob <- textGrob(label = "", rot = 90)
+        aGrob <- textGrob(label = "A. raveneliana", rot = 90)
+        lGrob <- textGrob(label = "L. fasciola",    rot = 90)
+        spGrob <- arrangeGrob(bGrob, aGrob, lGrob, nrow = 3, widths = .25,
+                              heights = c(.25, 3, 3))
+        
+        tr   <- arrangeGrob(grobs = append(list(spGrob), x$layerGrob), ncol = 5,
+                            widths = c(.25, rep(2.8, 4)))
+        hold <- arrangeGrob(z, ncol = 2, widths = c(3, 6))
         out <- arrangeGrob(ti, tr, hold, nrow = 3, heights = c(.5, 6.25, 1.5))
+        out
       })
   )
 
-
-
+## Output Figures ####
 lapply(seq_along(results$element), function(i){
   ggsave(filename = sprintf('figures/11a1_elements_by_layer/11a1_%s_%s.pdf' , results$element[i], vers),
          plot = results$gplot[[i]],
@@ -180,17 +139,16 @@ lapply(seq_along(results$element), function(i){
 
 ## Summary plot ####
 
-
-
 summary_dt <- results %>%
   select(element, pvals) %>%
   tidyr::unnest() %>%
   group_by(
-    element, layer
+    element, layer, species
   ) %>%
   summarise(
-    p = min(p)
+    p = min(p, na.rm = TRUE)
   ) %>%
+  ungroup() %>%
   mutate(
     layer = factor(layer, levels = c("Periostracum", "Prismatic layer", "Nacre", "Nacre (annuli A)"), ordered= TRUE),
     thres = p < 0.001,
@@ -212,10 +170,13 @@ p <- ggplot(summary_dt,
     values = c("black", "red"),
     guide  = FALSE
   ) + 
+  facet_grid(
+    ~ species
+  ) + 
   theme_classic() +
   theme(
     axis.title.y = element_blank()
   )
-
+p
 ggsave(filename = sprintf('figures/11a1_elements_by_layer/11a1_summary_%s.pdf' , vers),
-       p, width = 4, height = 3)
+       p, width = 6, height = 3)
