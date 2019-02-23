@@ -9,11 +9,21 @@ library(grid)
 library(gridExtra)
 library(ggbeeswarm)
 
-vers <- "V012"
+vers <- "V013"
 source("programs/10a_analysis_functions.R")
 source("programs/10b_prepare_analysis_data.R")
 source("programs/11a0_compute_Lmoments.R")
 ## Collect Data ####
+
+ktest <- function(x, g, s= NULL){
+  z <- try(kruskal.test(x, g = g, subset = s)$p.value, silent = TRUE)
+  if(is(z, "try-error")){
+    NA_real_
+  } else {
+    z
+  }
+}
+
 
 moments_dt %>%
   select(layer_data, species, river, site, site_num, id, transect, element, statsA_ratios) %>%
@@ -59,18 +69,25 @@ moments_dt %>%
             ),
             xval = xval +  (site_num - 1)/3)
         ))) %>%
-  mutate(
+  mutate( 
     p = purrr::map2(data, summaries, ~plot_moments(.x, .y)),
     pvals = purrr::map(
       .x = data,
       .f = ~ .x %>%
+        ungroup() %>%
         group_by(statistic) %>%
         summarise(
-          p = kruskal.test(value, factor(site))$p.value
+          p0 = kruskal.test(value, factor(site))$p.value,
+          p1 = ktest(x = value, g = factor(I(site == "Baseline"))),
+          p2 = ktest(x = value, g = factor(river), s= I(river != "Baseline"))
+        ) %>%
+        tidyr::gather(
+          key = "hypothesis", value = "p", -statistic
         ))
   ) -> results
 
 
+results$pvals[[1]]
 ## Produce output #### 
 
 results <- results %>%
