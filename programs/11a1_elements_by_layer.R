@@ -79,7 +79,7 @@ moments_dt %>%
         summarise(
           p0 = kruskal.test(value, factor(site))$p.value,
           p1 = ktest(x = value, g = factor(I(site == "Baseline"))),
-          p2 = ktest(x = value, g = factor(river), s= I(river != "Baseline"))
+          p2 = ktest(x = value, g = factor(river), s = I(river != "Baseline"))
         ) %>%
         tidyr::gather(
           key = "hypothesis", value = "p", -statistic
@@ -87,7 +87,6 @@ moments_dt %>%
   ) -> results
 
 
-results$pvals[[1]]
 ## Produce output #### 
 
 results <- results %>%
@@ -127,10 +126,29 @@ results <- results %>%
             mutate(layer = l)
         }
       )),
-    pvals = purrr::map(pvals, ~ do.call("rbind", args = .x)),
-    pval_plot = purrr::map(pvals, ~ plot_pvals(.x)),
+    pvals      = purrr::map(pvals, ~ do.call("rbind", args = .x)),
+    pval_plots = purrr::map(
+      .x = pvals, 
+      .f = ~ .x %>%
+        group_by(hypothesis) %>% tidyr::nest() %>% 
+        .$data %>%
+        purrr::map(~ plot_pvals(.x))),
+    pvalGrob  = purrr::map(
+      .x  = pval_plots,
+      .f  = function(x){
+        
+        lab0  <- textGrob(label = "Any site different?")
+        lab1  <- textGrob(label = "Tuck/LiTN different than baseline?")
+        lab2  <- textGrob(label = "Tuck different from LiTN?")
+        labs  <- arrangeGrob(lab0, lab1, lab2,
+                             ncol = 3, nrow = 1,
+                             widths = c(3, 3, 3), heights = c(.25))
+        plots <- arrangeGrob(grobs = x, ncol = 3, nrow = 1,
+                             widths = c(3, 3, 3), heights = c(1.5))
+        arrangeGrob(labs, plots, nrow = 2, heights = c(.25, 1.5))
+      }),
     gplot = purrr::pmap(
-      .l = list(data, element, pval_plot),
+      .l = list(data, element, pvalGrob),
       .f = function(x, y, z){
         ti <- textGrob(label = y)
         bGrob <- textGrob(label = "", rot = 90)
@@ -141,11 +159,12 @@ results <- results %>%
         
         tr   <- arrangeGrob(grobs = append(list(spGrob), x$layerGrob), ncol = 5,
                             widths = c(.25, rep(2.8, 4)))
-        hold <- arrangeGrob(z, ncol = 2, widths = c(3, 6))
-        out <- arrangeGrob(ti, tr, hold, nrow = 3, heights = c(.5, 6.25, 1.5))
+        # hold <- arrangeGrob(z, ncol = 2, widths = c(3, 6))
+        out <- arrangeGrob(ti, tr, z, nrow = 3, heights = c(.5, 6.25, 1.75))
         out
       })
   )
+
 
 ## Output Figures ####
 lapply(seq_along(results$element), function(i){
@@ -160,13 +179,19 @@ summary_dt <- results %>%
   select(element, pvals) %>%
   tidyr::unnest() %>%
   group_by(
-    element, layer, species
+    element, layer, species, hypothesis
   ) %>%
   summarise(
     p = min(p, na.rm = TRUE)
   ) %>%
   ungroup() %>%
   mutate(
+    hypothesis = factor(
+      hypothesis,
+      levels = c("p0", "p1", "p2"),
+      labels = c("Any site different?", "Tuck/LiTN different than baseline?", "Tuck different from LiTN?"),
+      ordered = TRUE
+    ),
     layer = factor(layer, levels = c("Periostracum", "Prismatic layer", "Nacre", "Nacre (annuli A)"), ordered= TRUE),
     thres = p < 0.001,
     label = if_else(
@@ -188,12 +213,12 @@ p <- ggplot(summary_dt,
     guide  = FALSE
   ) + 
   facet_grid(
-    ~ species
+    hypothesis ~ species
   ) + 
   theme_classic() +
   theme(
     axis.title.y = element_blank()
   )
-p
+# p
 ggsave(filename = sprintf('figures/11a1_elements_by_layer/11a1_summary_%s.pdf' , vers),
-       p, width = 6, height = 3)
+       p, width = 6, height = 6)
