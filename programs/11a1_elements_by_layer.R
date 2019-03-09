@@ -9,7 +9,7 @@ library(grid)
 library(gridExtra)
 library(ggbeeswarm)
 
-vers <- "V013"
+vers <- "V014"
 source("programs/10a_analysis_functions.R")
 source("programs/10b_prepare_analysis_data.R")
 source("programs/11a0_compute_Lmoments.R")
@@ -182,7 +182,11 @@ summary_dt <- results %>%
     element, layer, species, hypothesis
   ) %>%
   summarise(
-    p = min(p, na.rm = TRUE)
+    p = prod(p, na.rm = TRUE)
+  ) %>%
+  group_by(layer, species, hypothesis) %>%
+  mutate(
+    p = p.adjust(p, method = "hochberg")
   ) %>%
   ungroup() %>%
   mutate(
@@ -200,6 +204,7 @@ summary_dt <- results %>%
       ""
     )
   )
+
 
 p <- ggplot(summary_dt,
        aes(x = -log10(p), y = layer, color = thres)) +
