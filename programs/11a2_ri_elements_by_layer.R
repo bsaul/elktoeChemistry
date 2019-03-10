@@ -4,7 +4,7 @@
 #     Date: 20180308
 #  Purpose:
 #-----------------------------------------------------------------------------#
-vers <- "V001"
+vers <- "V002"
 source("programs/10a_analysis_functions.R")
 source("programs/10b_prepare_analysis_data.R")
 source("programs/11a0_compute_Lmoments.R")
@@ -133,7 +133,18 @@ p <- plotdt %>%
     data = .,
     aes(x = element, y = -log10(p), color = species )
   ) + 
+  geom_hline(
+    yintercept = c(0)
+  ) + 
+  geom_hline(
+    yintercept = c(1, 2), color = "grey50", linetype = "dotted"
+  ) + 
   geom_point(shape = 1) +
+  geom_text(
+    data = plotdt %>% filter(p < 0.5),
+    aes(label = substr(element, 1, 2)),
+    nudge_x = 1,
+    size = 2) + 
   facet_wrap(hypothesis ~ layer_data) +
   theme_classic() +
   theme(
