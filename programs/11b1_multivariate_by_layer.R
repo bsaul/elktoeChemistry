@@ -127,6 +127,18 @@ ggsave(filename = sprintf("figures/11b1_multivariate_by_layer/princomp_river_%s.
        width = 10, height = 7,
        plot = rvpcplot)
 
+sitepcplot <- ggplot(  
+  data = plot_dt %>% filter(site != "Baseline", site_num %in% c(1, 3)),
+  aes(x = PC1, y = PC2, color = factor(site_num))
+) + 
+  geom_point(shape = 1, size = 0.5) +
+  facet_wrap(species + river ~ layer_title, ncol = 4)
+
+ggsave(filename = sprintf("figures/11b1_multivariate_by_layer/princomp_sites13_%s.pdf", vers),
+       width = 10, height = 7,
+       plot = sitepcplot)
+
+
 # z <- get_dist(mvdt$pr_mat[[4]])
 # fviz_dist(z, gradient = list(low = "#00AFBB", mid = "white", high = "#FC4E07"))
 # 
