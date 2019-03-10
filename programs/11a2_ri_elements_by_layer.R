@@ -76,13 +76,10 @@ moments_dt %>%
   group_by(id) %>%
   filter(transect == min(transect)) %>%
   tidyr::unnest() %>%
-  ### HACK!!!!
+  ### TODO: how to handle missing values?
   mutate(
     value = if_else(is.na(value), 0, value)
   ) -> dt
-
-
-  
 
 
 rdt <- bind_rows(
@@ -95,7 +92,7 @@ rdt <- bind_rows(
   
 
 hold <- rdt %>%
-  group_by(hypothesis, element, layer_data) %>%
+  group_by(species, hypothesis, element, layer_data) %>%
   group_nest() %>%
   mutate(
     dec = purrr::map(data, ~ define_simple_declaration(.x$data[[1]]$Z)),
@@ -109,27 +106,42 @@ hold <- rdt %>%
       }
     )
   ) 
+
   
-  
-hold %>%
-  select(hypothesis, element, layer_data, vals) %>%
+plotdt <- hold %>%
+  select(hypothesis, species, element, layer_data, vals) %>%
   tidyr::unnest() %>%
-  select(hypothesis, layer_data, element, statistic, pvals) %>% 
+  select(hypothesis, species, layer_data, element, statistic, pvals) %>% 
   tidyr::unnest() %>%
-  group_by(hypothesis, element, statistic) %>%
+  group_by(hypothesis, species, element, statistic) %>%
   mutate(
     p_obs = mean(est_obs[1] <= est_sim)
   ) %>%
-  group_by(hypothesis, layer_data, element, sim) %>%
+  group_by(hypothesis, species, layer_data, element, sim) %>%
   summarise(
     p     = min(p_est),
     p_obs = min(p_obs)
   ) %>%
-  group_by(hypothesis, layer_data, element) %>%
+  group_by(hypothesis, species, layer_data, element) %>%
   summarise(
     p = mean(p_obs[1] <= p)
-  ) %>%
-  tidyr::spread(key = "layer_data", value = "p") %>%
-  View()
+  ) 
 
+
+p <- plotdt %>%
+  ggplot(
+    data = .,
+    aes(x = element, y = -log10(p), color = species )
+  ) + 
+  geom_point(shape = 1) +
+  facet_wrap(hypothesis ~ layer_data) +
+  theme_classic() +
+  theme(
+    axis.text.x = element_text(angle =90, size = 10)
+  )
+
+ggsave(
+  file = sprintf("figures/11a2_pvals_%s.pdf", vers),
+  p, width = 10, height = 8
+)
 
