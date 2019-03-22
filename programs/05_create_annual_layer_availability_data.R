@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------#
-#   Title: Create dataset of data availability for annual layers
+#   Title: Create dataset of data availability for annual layers (in nacre)
 #  Author: B Saul
 #    Date: 2018-10-07
 # Purpose:
