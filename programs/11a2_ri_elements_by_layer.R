@@ -138,7 +138,6 @@ rdt <- bind_rows(
   # create_hypothesis_data(dt, fq = quos(river == "Little Tennessee" & site_num %in% c(1, 3)),
   #                        quo( (site_num == 3) * 1), "LiTN: 1 vs 3")
 )
-  
 
 hold <- rdt %>%
   group_by(stats, species, hypothesis, element, layer_data) %>%
@@ -172,26 +171,29 @@ plotdt <- hold %>%
   tidyr::unnest() %>%
   select(hypothesis, stats, species, layer_data, element, statistic, pvals) %>% 
   tidyr::unnest() %>%
-  group_by(hypothesis, stats, species, element, statistic) %>%
+  group_by(hypothesis, stats, species, layer_data, element, statistic, add = FALSE) %>%
   mutate(
     p_obs = mean(est_obs[1] <= est_sim)
   ) %>%
-  group_by(hypothesis, stats, species, layer_data, element, sim) %>%
+  mutate(
+    p_obs = if_else(is.na(p_obs), 1, p_obs),
+    p_est = if_else(is.na(p_est), 1, p_est)
+  ) %>%
+  group_by(hypothesis, stats, species, layer_data, element, sim, add = FALSE) %>%
   summarise(
     p     = prod(p_est),
     p_obs = prod(p_obs)
   ) %>%
-  group_by(hypothesis, stats, species, layer_data, element) %>%
+  group_by(hypothesis, stats, species, layer_data, element, add = FALSE) %>%
   summarise(
     p = mean(p_obs[1] <= p)
   ) 
 
-plotdt %>%
-  group_by(hypothesis, species, element) %>%
-  filter(!is.na(p)) %>%
-  mutate(
-   p = p.adjust(p, method = "fdr")
-  ) %>% View()
+# plotdt <- plotdt %>%
+#   group_by(hypothesis, stats, species, layer_data) %>%
+#   mutate(
+#    p = p.adjust(p, method = "fdr")
+#   ) 
 
 p <- plotdt %>%
   ggplot(
@@ -202,11 +204,11 @@ p <- plotdt %>%
     yintercept = c(0)
   ) + 
   geom_hline(
-    yintercept = c(1, 2), color = "grey50", linetype = "dotted"
+    yintercept = c(-log10(0.05), 1, 2), color = "grey50", linetype = "dotted"
   ) + 
   geom_point(shape = 1) +
   geom_text(
-    data = plotdt %>% filter(p < 0.5),
+    data = plotdt %>% filter(p < 0.05),
     aes(label = substr(element, 1, 2)),
     nudge_x = 1,
     size = 2) + 
@@ -216,6 +218,7 @@ p <- plotdt %>%
     axis.text.x = element_text(angle =90, size = 10)
   )
 p
+
 ggsave(
   file = sprintf("figures/11a2_pvals_%s.pdf", vers),
   p, width = 10, height = 8
