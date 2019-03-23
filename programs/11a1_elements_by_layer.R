@@ -9,7 +9,7 @@ library(grid)
 library(gridExtra)
 library(ggbeeswarm)
 
-vers <- "V014"
+vers <- "V015"
 source("programs/10a_analysis_functions.R")
 source("programs/10b_prepare_analysis_data.R")
 source("programs/11a0_compute_Lmoments.R")
@@ -26,15 +26,18 @@ ktest <- function(x, g, s= NULL){
 
 
 moments_dt %>%
-  select(layer_data, species, river, site, site_num, id, transect, element, statsA_ratios) %>%
-  # TODO: for now keep the first transect per valve
-  group_by(id) %>%
-  filter(transect == min(transect)) %>%
+  select(layer_data, species, river, site, site_num, id, transect, element, statsA) %>%
+  right_join(
+    filter(valve_data, agrp_first_transect_with_A) %>% select(id, transect),
+    by = c("id", "transect")
+  )%>%
   tidyr::unnest() %>%
-  # TODO: setting NA and NaN values of statistics to 0: think on implications/justifications further
-  # mutate(
-  #   value = if_else(is.na(value) | is.nan(value), 0, value)
-  # ) %>%
+  ### TODO: how to handle missing values?
+  # For now, replace with median of site
+  group_by(layer_data, species, site, statistic) %>%
+  mutate(
+    value = if_else(is.na(value), median(value, na.rm = TRUE), value)
+  ) %>%
   group_by(layer_data, species, element) %>%
   tidyr::nest() %>%
   mutate(
@@ -174,56 +177,56 @@ lapply(seq_along(results$element), function(i){
 })
 
 ## Summary plot ####
-
-summary_dt <- results %>%
-  select(element, pvals) %>%
-  tidyr::unnest() %>%
-  group_by(
-    element, layer, species, hypothesis
-  ) %>%
-  summarise(
-    p = prod(p, na.rm = TRUE)
-  ) %>%
-  group_by(layer, species, hypothesis) %>%
-  mutate(
-    p = p.adjust(p, method = "hochberg")
-  ) %>%
-  ungroup() %>%
-  mutate(
-    hypothesis = factor(
-      hypothesis,
-      levels = c("p0", "p1", "p2"),
-      labels = c("Any site different?", "Tuck/LiTN different than baseline?", "Tuck different from LiTN?"),
-      ordered = TRUE
-    ),
-    layer = factor(layer, levels = c("Periostracum", "Prismatic layer", "Nacre", "Nacre (annuli A)"), ordered= TRUE),
-    thres = p < 0.001,
-    label = if_else(
-      p < 0.001,
-      substr(element, 1, 2),
-      ""
-    )
-  )
-
-
-p <- ggplot(summary_dt,
-       aes(x = -log10(p), y = layer, color = thres)) +
-  geom_beeswarm(groupOnX = FALSE, size = 0.5, shape = 1) +
-  geom_text(aes(label = label), size = 2, 
-            nudge_y = 0.1
-            # position =  position_jitter(height=0.2)
-            ) + 
-  scale_color_manual(
-    values = c("black", "red"),
-    guide  = FALSE
-  ) + 
-  facet_grid(
-    hypothesis ~ species
-  ) + 
-  theme_classic() +
-  theme(
-    axis.title.y = element_blank()
-  )
-# p
-ggsave(filename = sprintf('figures/11a1_elements_by_layer/11a1_summary_%s.pdf' , vers),
-       p, width = 6, height = 6)
+# 
+# summary_dt <- results %>%
+#   select(element, pvals) %>%
+#   tidyr::unnest() %>%
+#   group_by(
+#     element, layer, species, hypothesis
+#   ) %>%
+#   summarise(
+#     p = prod(p, na.rm = TRUE)
+#   ) %>%
+#   group_by(layer, species, hypothesis) %>%
+#   mutate(
+#     p = p.adjust(p, method = "hochberg")
+#   ) %>%
+#   ungroup() %>%
+#   mutate(
+#     hypothesis = factor(
+#       hypothesis,
+#       levels = c("p0", "p1", "p2"),
+#       labels = c("Any site different?", "Tuck/LiTN different than baseline?", "Tuck different from LiTN?"),
+#       ordered = TRUE
+#     ),
+#     layer = factor(layer, levels = c("Periostracum", "Prismatic layer", "Nacre", "Nacre (annuli A)"), ordered= TRUE),
+#     thres = p < 0.001,
+#     label = if_else(
+#       p < 0.001,
+#       substr(element, 1, 2),
+#       ""
+#     )
+#   )
+# 
+# 
+# p <- ggplot(summary_dt,
+#        aes(x = -log10(p), y = layer, color = thres)) +
+#   geom_beeswarm(groupOnX = FALSE, size = 0.5, shape = 1) +
+#   geom_text(aes(label = label), size = 2, 
+#             nudge_y = 0.1
+#             # position =  position_jitter(height=0.2)
+#             ) + 
+#   scale_color_manual(
+#     values = c("black", "red"),
+#     guide  = FALSE
+#   ) + 
+#   facet_grid(
+#     hypothesis ~ species
+#   ) + 
+#   theme_classic() +
+#   theme(
+#     axis.title.y = element_blank()
+#   )
+# # p
+# ggsave(filename = sprintf('figures/11a1_elements_by_layer/11a1_summary_%s.pdf' , vers),
+#        p, width = 6, height = 6)
