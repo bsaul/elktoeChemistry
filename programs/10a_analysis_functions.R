@@ -251,8 +251,15 @@ cdf_plot <- function(dt, dt_summary) {
 # Plot sample moments
 
 plot_moments <- function(dd, ss){
-  ggplot(dd,
-         aes(x = xval, y = value)) +
+  
+  dd <- dd %>%
+    group_by(statistic) %>%
+    mutate(
+      is_far_outlier = value > (mean(value) + 2*sd(value)),
+      value          = if_else(is_far_outlier, mean(value) + 2*sd(value), value)
+    ) %>% ungroup() 
+  
+  ggplot(dd, aes(x = xval, y = value)) +
     geom_hline(
       data = ss %>% filter(river == "Baseline"),
       aes(yintercept = median),
@@ -270,7 +277,10 @@ plot_moments <- function(dd, ss){
       color = "red",
       shape = "triangle"
     ) + 
-    geom_point(shape = 1, size = 0.5, color = "grey10") +
+    geom_beeswarm(aes(shape = is_far_outlier), size = 0.5, color = "grey10") +
+    scale_shape_manual(
+      values = c(1, 2), guide = FALSE
+    ) + 
     scale_x_continuous(
       name  = "",
       breaks = c(0, .66, 1, 1.33, 2, 2.33, 2.66),
