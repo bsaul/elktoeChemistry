@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------#
-#    Title: Summarise elemental concentrations by layer 
+#    Title: Summarise summary statistics of elemental concentrations by layer 
 #   Author: B Saul
 #     Date: 20180119
 #  Purpose:
@@ -8,27 +8,20 @@
 library(grid)
 library(gridExtra)
 library(ggbeeswarm)
-
-vers <- "V015"
 source("programs/10a_analysis_functions.R")
 source("programs/10b_prepare_analysis_data.R")
-source("programs/11a0_compute_Lmoments.R")
+source("programs/10c_compute_Lmoments.R")
+
+
+vers <- "V018"
+ANALYSIS_SELECTION <- quo(agrp_transect_most_A)
+OUTPUT_DIRECTORY   <- "figures/11a_summary_stats_by_layer"
+
 ## Collect Data ####
-
-ktest <- function(x, g, s= NULL){
-  z <- try(kruskal.test(x, g = g, subset = s)$p.value, silent = TRUE)
-  if(is(z, "try-error")){
-    NA_real_
-  } else {
-    z
-  }
-}
-
-
 moments_dt %>%
   select(layer_data, species, river, site, site_num, id, transect, element, statsA) %>%
   right_join(
-    filter(valve_data, agrp_first_transect_with_A) %>% select(id, transect),
+    filter(valve_data, !! ANALYSIS_SELECTION) %>% select(id, transect),
     by = c("id", "transect")
   )%>%
   tidyr::unnest() %>%
@@ -38,6 +31,10 @@ moments_dt %>%
   mutate(
     value = if_else(is.na(value), median(value, na.rm = TRUE), value)
   ) %>%
+  group_by(layer_data, species, element, statistic) %>%
+  mutate(
+    value = rank(value)
+  ) %>% 
   group_by(layer_data, species, element) %>%
   tidyr::nest() %>%
   mutate(
@@ -73,26 +70,14 @@ moments_dt %>%
             xval = xval +  (site_num - 1)/3)
         ))) %>%
   mutate( 
-    p = purrr::map2(data, summaries, ~plot_moments(.x, .y)),
-    pvals = purrr::map(
-      .x = data,
-      .f = ~ .x %>%
-        ungroup() %>%
-        group_by(statistic) %>%
-        summarise(
-          p0 = kruskal.test(value, factor(site))$p.value,
-          p1 = ktest(x = value, g = factor(I(site == "Baseline"))),
-          p2 = ktest(x = value, g = factor(river), s = I(river != "Baseline"))
-        ) %>%
-        tidyr::gather(
-          key = "hypothesis", value = "p", -statistic
-        ))
+    p = purrr::map2(data, summaries, ~plot_moments(.x, .y))
   ) -> results
 
+# results$p[[1]]
 
 ## Produce output #### 
 
-results <- results %>%
+plotdt <- results %>%
   mutate(
     speciesGrob = purrr::pmap(
       .l = list(species, p),
@@ -118,42 +103,10 @@ results <- results %>%
   group_by(element) %>%
   tidyr::nest() %>%
   mutate(
-    pvals  = purrr::map(
-      .x = data,
-      .f = ~ purrr::map2(
-        .x$layer_title, .x$data, 
-        function(l, y) {
-          y %>%
-            select(species, pvals) %>%
-            tidyr::unnest() %>%
-            mutate(layer = l)
-        }
-      )),
-    pvals      = purrr::map(pvals, ~ do.call("rbind", args = .x)),
-    pval_plots = purrr::map(
-      .x = pvals, 
-      .f = ~ .x %>%
-        group_by(hypothesis) %>% tidyr::nest() %>% 
-        .$data %>%
-        purrr::map(~ plot_pvals(.x))),
-    pvalGrob  = purrr::map(
-      .x  = pval_plots,
-      .f  = function(x){
-        
-        lab0  <- textGrob(label = "Any site different?")
-        lab1  <- textGrob(label = "Tuck/LiTN different than baseline?")
-        lab2  <- textGrob(label = "Tuck different from LiTN?")
-        labs  <- arrangeGrob(lab0, lab1, lab2,
-                             ncol = 3, nrow = 1,
-                             widths = c(3, 3, 3), heights = c(.25))
-        plots <- arrangeGrob(grobs = x, ncol = 3, nrow = 1,
-                             widths = c(3, 3, 3), heights = c(1.5))
-        arrangeGrob(labs, plots, nrow = 2, heights = c(.25, 1.5))
-      }),
     gplot = purrr::pmap(
-      .l = list(data, element, pvalGrob),
-      .f = function(x, y, z){
-        ti <- textGrob(label = y)
+      .l = list(data, element),
+      .f = function(x, y){
+        ti    <- textGrob(label = y)
         bGrob <- textGrob(label = "", rot = 90)
         aGrob <- textGrob(label = "A. raveneliana", rot = 90)
         lGrob <- textGrob(label = "L. fasciola",    rot = 90)
@@ -163,70 +116,14 @@ results <- results %>%
         tr   <- arrangeGrob(grobs = append(list(spGrob), x$layerGrob), ncol = 5,
                             widths = c(.25, rep(2.8, 4)))
         # hold <- arrangeGrob(z, ncol = 2, widths = c(3, 6))
-        out <- arrangeGrob(ti, tr, z, nrow = 3, heights = c(.5, 6.25, 1.75))
+        out <- arrangeGrob(ti, tr, nrow = 2, heights = c(.5, 6.5))
         out
       })
   )
 
-
 ## Output Figures ####
-lapply(seq_along(results$element), function(i){
-  ggsave(filename = sprintf('figures/11a1_elements_by_layer/11a1_%s_%s.pdf' , results$element[i], vers),
-         plot = results$gplot[[i]],
+lapply(seq_along(plotdt$element), function(i){
+  ggsave(filename = sprintf('%s/11a1_%s_%s.pdf' , OUTPUT_DIRECTORY, plotdt$element[i], vers),
+         plot = plotdt$gplot[[i]],
          height = 7.25, width = 11, units = 'in')
 })
-
-## Summary plot ####
-# 
-# summary_dt <- results %>%
-#   select(element, pvals) %>%
-#   tidyr::unnest() %>%
-#   group_by(
-#     element, layer, species, hypothesis
-#   ) %>%
-#   summarise(
-#     p = prod(p, na.rm = TRUE)
-#   ) %>%
-#   group_by(layer, species, hypothesis) %>%
-#   mutate(
-#     p = p.adjust(p, method = "hochberg")
-#   ) %>%
-#   ungroup() %>%
-#   mutate(
-#     hypothesis = factor(
-#       hypothesis,
-#       levels = c("p0", "p1", "p2"),
-#       labels = c("Any site different?", "Tuck/LiTN different than baseline?", "Tuck different from LiTN?"),
-#       ordered = TRUE
-#     ),
-#     layer = factor(layer, levels = c("Periostracum", "Prismatic layer", "Nacre", "Nacre (annuli A)"), ordered= TRUE),
-#     thres = p < 0.001,
-#     label = if_else(
-#       p < 0.001,
-#       substr(element, 1, 2),
-#       ""
-#     )
-#   )
-# 
-# 
-# p <- ggplot(summary_dt,
-#        aes(x = -log10(p), y = layer, color = thres)) +
-#   geom_beeswarm(groupOnX = FALSE, size = 0.5, shape = 1) +
-#   geom_text(aes(label = label), size = 2, 
-#             nudge_y = 0.1
-#             # position =  position_jitter(height=0.2)
-#             ) + 
-#   scale_color_manual(
-#     values = c("black", "red"),
-#     guide  = FALSE
-#   ) + 
-#   facet_grid(
-#     hypothesis ~ species
-#   ) + 
-#   theme_classic() +
-#   theme(
-#     axis.title.y = element_blank()
-#   )
-# # p
-# ggsave(filename = sprintf('figures/11a1_elements_by_layer/11a1_summary_%s.pdf' , vers),
-#        p, width = 6, height = 6)
