@@ -19,8 +19,8 @@ valve_measurements <- purrr::map_dfr(
     ## Drawer 7 import ####
     
     readxl::read_excel(path = inFile, sheet = 7) %>%
-      filter(grepl("^PAT", `X__2`)) %>%
-      dplyr::select(file_name = `X__2`, matches("Length")) %>% 
+      filter(grepl("^PAT", `...2`)) %>%
+      dplyr::select(file_name = `...2`, matches("Length")) %>% 
       filter(!is.na(`Length from 1 to 2 (mm)`)) %>%
       mutate(
         file_name = stringr::str_remove(file_name, "^PAT:"),

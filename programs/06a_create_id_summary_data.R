@@ -8,14 +8,12 @@
 ## Compute age estimate from measured annuli
 n_annuli <-  valve_data %>%
   group_by(id) %>%
-  summarise_at(.vars = vars(matches("^[A-Z]$")), .funs = funs( sum(.) > 0)) %>%
+  summarise_at(.vars = vars(matches("^[A-Z]$")), .funs = list(~ sum(.) > 0)) %>%
   transmute(
     id       = id,
     n_annuli = rowSums(.[ , 2:ncol(.)])
   )
   
-
-
 mussel_info <- valve_data %>% ungroup() %>%
   distinct(id) %>%
   ## add river, site, info
