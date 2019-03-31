@@ -7,102 +7,21 @@
 vers <- "V004"
 source("programs/10a_analysis_functions.R")
 source("programs/10b_prepare_analysis_data.R")
-source("programs/11a0_compute_Lmoments.R")
+source("programs/10c_compute_Lmoments.R")
+source("programs/12a_ri_functions.R")
 
 library(ri2)
 
-########## FUNCTIONS ####
+ANALYSIS_SELECTION <- quo(agrp_transect_most_A)
+OUTPUT_DIRECTORY   <- "figures/12a_ri_summary_stats_by_layer"
 
-## Declarations #### 
-define_simple_declaration <- function(Z){
-  N <- length(Z)
-  m <- sum(Z == 1)
-  declare_ra(N = N, m= m)
-}
 
-define_multiarm_declaration <- function(Z){
-  N <- length(Z)
-  m <- as.integer(table(Z))
-  declare_ra(N = N, m_each = m)
-}
-
-## Test statistics ####
-ks_test_stat <- function(data) ks.test(data[data$Z == 0, "Y", drop = TRUE], data[data$Z == 1, "Y", drop = TRUE])$statistic
-med_test_stat <- function(data) median(data[data$Z == 0, "Y", drop = TRUE]) - median(data[data$Z == 1, "Y", drop = TRUE])
-
-## Conducting inference ###
-conduct_inference <- function(data, dec, Zmat){
-  
-  # An inelegant solution to switching to multiarm ...
-  if(length(unique(data$Z)) > 2){
-    return(conduct_multiarm_inference(data, dec, Zmat))
-  }
-  
-  conduct_ri(
-    formula            = Y ~ Z,
-    declaration        = dec,
-    sharp_hypothesis   = 0,
-    # test_function      = med_test_stat, 
-    permutation_matrix = Zmat,
-    data               = data
-    # p                  = "twoside"
-  )
-}
-
-conduct_multiarm_inference <- function(data, dec, Zmat){
-  conduct_ri(
-    model_1            = Y ~ 1,
-    model_2            = Y ~ Z,
-    declaration        = dec,
-    sharp_hypothesis   = 0,
-    permutation_matrix = Zmat,
-    data               = as.data.frame(data)
-  )
-}
-
-compute_pvals <- function(rires){
-  out <- rires$sims_df
-  out$sim   <- 1:nrow(out)
-  out$p_est <- numeric(nrow(out))
-  for(i in 1:(nrow(out))){
-    out$p_est[i] <- mean(out$est_sim[i] >= out$est_sim)
-  }
-  out
-}
-
-do_inference <- function(dt, dd, zz){  
-  dt %>%
-    mutate(
-      ri  = purrr::map(
-        .x = data,
-        .f = ~ conduct_inference(.x, dd, zz)
-      ),
-      pvals = purrr::map(
-        .x = ri,
-        .f = ~ compute_pvals(.x)
-      ))
-}
-
-create_hypothesis_data <- function(data, fq = NULL, q, nm){
-  data %>% filter(!!! fq) %>%
-    ungroup() %>%
-    mutate(
-      Z = !! q
-    ) %>%
-    select(
-      Z, Y = value, everything()
-    ) %>%
-    group_by(stats, species, element, layer_data, statistic) %>%
-    group_nest() %>%
-    mutate(hypothesis = nm)
-}
-##### END FUNCTIONS ###
 
 moments_dt %>%
   select(layer_data, species, river, site, site_num, id, transect, element,
          statsA_ratios, statsA) %>%
   right_join(
-    filter(valve_data, agrp_first_transect_with_A) %>% select(id, transect),
+    filter(valve_data, !! ANALYSIS_SELECTION) %>% select(id, transect),
     by = c("id", "transect")
   ) %>% 
   tidyr::gather(
@@ -118,7 +37,7 @@ moments_dt %>%
   ) %>%
   ungroup() -> dt
 
-
+## Experiment data per hypothesis #### 
 rdt <- bind_rows(
   create_hypothesis_data(
     dt, 
@@ -165,7 +84,9 @@ hold <- rdt %>%
     )
   ) 
 
-  
+saveRDS(hold, file = "data/ri_lmoms.rds")
+
+## Create data to plot #### 
 plotdt <- hold %>%
   select(hypothesis, stats, species, element, layer_data, vals) %>%
   tidyr::unnest() %>%
@@ -189,12 +110,7 @@ plotdt <- hold %>%
     p = mean(p_obs[1] <= p)
   ) 
 
-# plotdt <- plotdt %>%
-#   group_by(hypothesis, stats, species, layer_data) %>%
-#   mutate(
-#    p = p.adjust(p, method = "fdr")
-#   ) 
-
+## Create plot ####
 p <- plotdt %>%
   ggplot(
     data = .,
@@ -217,10 +133,9 @@ p <- plotdt %>%
   theme(
     axis.text.x = element_text(angle =90, size = 10)
   )
-p
 
 ggsave(
-  file = sprintf("figures/11a2_pvals_%s.pdf", vers),
+  file = sprintf("%s/12a_ri_stat_summaries_pvals_%s.pdf", OUTPUT_DIRECTORY, vers),
   p, width = 10, height = 8
 )
 
