@@ -5,37 +5,22 @@
 #  Purpose:
 #-----------------------------------------------------------------------------#
 
-
-vers <- "V003"
-source("programs/10a_analysis_functions.R")
-source("programs/10b_prepare_analysis_data.R")
 library(mgcv)
 library(ri2)
 
-## Functions ####
-gam_ts <- function(data){
-  x <- gam(value ~ s(d, bs = "ts") + s(id, bs = "re") + Z, data = data)
-  y <- gam(value ~ s(d, bs = "ts") + s(id, bs = "re"), data = data)
-  anova(x, y)[["Deviance"]][2]
-}
+source("programs/10a_analysis_functions.R")
+source("programs/10b_prepare_analysis_data.R")
+source("programs/12a_ri_functions.R")
 
-gam_ts_ncr <- function(data){
-  x <- gam(value ~ s(d, bs = "ts"):(annuli == "A"):Z + s(id, bs = "re"), data = data)
-  y <- gam(value ~ s(d, bs = "ts"):(annuli == "A") + s(id, bs = "re"), data = data)
-  anova(x, y)[["Deviance"]][2]
-}
-
-define_multiarm_cluster_declaration <- function(Z, id){
-  N <- length(unique(id))
-  m <- tapply(id, Z, function(x) length(unique(x)))
-  declare_ra(N = N, clusters = id, m_each = m)
-}
+vers <- "V003"
+ANALYSIS_SELECTION <- quo(agrp_transect_most_A)
+OUTPUT_DIRECTORY   <- "figures/11a_summary_stats_by_layer"
 
 ##
 
 hold <- analysis_dt %>%
   right_join(
-    filter(valve_data, agrp_first_transect_with_A) %>% select(id, transect),
+    filter(valve_data, !! ANALYSIS_SELECTION) %>% select(id, transect),
     by = c("id", "transect")
   ) %>%
   group_by(layer_data, element, species, id, transect) %>%
@@ -64,8 +49,13 @@ hold <- analysis_dt %>%
   group_by(layer_data, element, species) %>%
   tidyr::nest() %>%
   mutate(
-    dec = purrr::map(data, ~ define_multiarm_cluster_declaration(.x$Z, .x$id))
+    dec = purrr::map(data, ~ define_multiarm_cluster_declaration(.x$Z, .x$id)),
+    data = purrr::map(
+      .x = data,
+      .f = function(x) x %>% group_by(id, transect) %>% mutate(pd = d/n()) %>% ungroup()
+    )
   )
+
 
 out <- hold %>% 
   mutate(
@@ -74,28 +64,19 @@ out <- hold %>%
       .y = data,
       .f =  ~ conduct_ri(
         declaration        = .x,
-        sharp_hypothesis   = 0,
         test_function      = gam_ts, 
         sims               = 500,
-        data               = .y))
-  )
-
-out <- out %>%
-  mutate(
+        data               = as.data.frame(.y))),
     p = purrr::map_dbl(ri, ~ tidy(.x)[['p.value']])
   )
 
-gam_ts_ncr <- function(data){
-  x <- gam(value ~ s(d, bs = "ts") + d:I(annuli == "A"):Z +  s(id, bs = "re"), data = as.data.frame(data))
-  y <- gam(value ~ s(d, bs = "ts") + d:I(annuli == "A")   + s(id, bs = "re"), data = as.data.frame(data))
-  anova(x, y)[["Deviance"]][2]
-}
+saveRDS(out, file = "data/ri_gam_all_layers.rds")
 
 ## 
 
 ncr_only <- hold %>%
   filter(layer_data == "data_ncr_5_5") %>%
-  filter(species == "A. raveneliana") %>%
+  # filter(species == "A. raveneliana") %>%
   mutate(
     ri = purrr::map2(
       .x = dec, 
@@ -103,11 +84,12 @@ ncr_only <- hold %>%
       .f =  ~ conduct_ri(
         declaration        = .x,
         test_function      = gam_ts_ncr, 
+        sims               = 500,
         data               = .y)),
     p = purrr::map_dbl(ri, ~ tidy(.x)[['p.value']])
   )
 
-saveRDS(ncr_only, file = "gam_ri.rds")
+saveRDS(ncr_only, file = "ri_gam_ncr_only.rds")
 
 ## Plotting it ####
 
@@ -142,16 +124,4 @@ ggsave(
 )
 
 
-# dec <- define_multiarm_cluster_declaration(hold$Z, hold$id)
-# obtain_permutation_matrix(dec, maximum_permutations = 10)
-# 
-# test <- conduct_ri(
-#   declaration        = dec,
-#   sharp_hypothesis   = 0,
-#   test_function      = my_ts, 
-#   sims               = 100,
-#   data               = hold)
-# str(test)
-# test$sims_df$est_sim
-# test
 
