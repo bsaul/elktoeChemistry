@@ -12,9 +12,9 @@ source("programs/10a_analysis_functions.R")
 source("programs/10b_prepare_analysis_data.R")
 source("programs/12a_ri_functions.R")
 
-vers <- "V003"
+vers <- "V004"
 ANALYSIS_SELECTION <- quo(agrp_transect_most_A)
-OUTPUT_DIRECTORY   <- "figures/11a_summary_stats_by_layer"
+OUTPUT_DIRECTORY   <- "figures/12b_ri_gam"
 
 ##
 
@@ -84,7 +84,7 @@ ncr_only <- hold %>%
       .f =  ~ conduct_ri(
         declaration        = .x,
         test_function      = gam_ts_ncr, 
-        sims               = 500,
+        sims               = 1000,
         data               = .y)),
     p = purrr::map_dbl(ri, ~ tidy(.x)[['p.value']])
   )

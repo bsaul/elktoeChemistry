@@ -30,8 +30,8 @@ gam_ts <- function(data){
 }
 
 gam_ts_ncr <- function(data){
-  x <- gam(log(value) ~ s(d, bs = "ts") + d:I(annuli == "A")*Z  + s(pd, bs = "ts") + s(id, bs = "re"), data = as.data.frame(data))
-  y <- gam(log(value) ~ s(d, bs = "ts") + d:I(annuli == "A")    + s(pd, bs = "ts") + s(id, bs = "re"), data = as.data.frame(data))
+  x <- gam(log(value) ~ s(d, bs = "ts") + d*I(annuli == "A")*Z + pd*Z + s(pd, bs = "ts") + s(id, bs = "re"), data = as.data.frame(data))
+  y <- gam(log(value) ~ s(d, bs = "ts") + d*I(annuli == "A")   + pd   + s(pd, bs = "ts") + s(id, bs = "re"), data = as.data.frame(data))
   anova(x, y)[["Deviance"]][2]
 }
 
