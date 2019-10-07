@@ -1,0 +1,100 @@
+---
+title: "Untitled"
+author: "Bradley Saul"
+date: "10/7/2019"
+output: pdf_document
+---
+
+### Elements associated with river and/or site
+
+
+Two inferential approaches were used to assess whether the trajectory of element accumulations varied across sites after specimens were randomized to the six sites. Both involve fitting cubic splines for each specimen’s transect per element. The first approach parameterizes a generalized additive model (GAM) to include site-level main effects for changes in the trajectory from a certain distance (in $\mu$m) from each edge, labeled $Z = \{Z_I, Z_O\}$ for the inner and outer edges. Figure \ref{fig:zpoint} illustrates $Z$ on a hypothetical transect.
+
+\begin{figure}
+\label{fig:zpoint}
+\caption{A hypothetical transect showing $Z$ and how the $\delta$ parameters may shift the trajectory from $\mathbb{X}_I$ and $\mathbb{X}_O$ to its respective edge.}
+\includegraphics{holder.png}
+\end{figure}
+
+Let $d_{I}$ and $d_{O}$ be the distance in $\mu$m from the corresponding (I)inner or (O)outer edge to an observation (Figure \ref{xpoint}). Let $Y^e_i$ be the vector of observations from specimen $i = 1, \dots, n$ and element $e$. Let $S_i$ be a specimen’s site (i.e. the experimental treatment). The following generalized additive model was fit per element:
+
+\[
+E[Y_i | L_i = l, b_i] = \mathbf{1}(S_i = l) \left[ \delta_{ZI} ((d_I - Z_{I}) * (d_I - Z_{I} <= 0)) +  \delta_{ZO} ((d_O - Z_{O}) * (d_O - Z_{O} <= 0)) \right] + f_i(d_I, k) + b_i.
+\]
+
+$\mathbf{1}(\cdot)$ is the indicator function. $f_i(d_{I})$ is a cubic spline term fit separately for each specimen with $k$ knots. DESCRIBE HOW K WAS CHOSEN. $b_i$ is an additional specimen-level random effect term. Tuck 1 specimens were used as the reference group, as the all of the $A. raveneliana* specimens were originally collected at a site between Tuck 1 and Tuck 2. 
+
+The parameters of interest in this model are $\delta$, which represent linear site-level departures from the trajectory of Tuck 1 specimens beginning at $Z$.
+
+In theory, $Z_I$ could be measured precisely on each valve using disturbance rings or other visual clues. In practice, this proved difficult, so instead we estimated $\delta$ using different values of $Z$. To compare sensitivity to the choice of $Z$, the above models were fit for $Z_{\cdot} = 25, 50, 100, 200$. A visual inspection of XX *A. raveneliana* valves showed that the average distance to the disturbance line was XXX, while in the *L. fasciola* it was XXX.
+
+Confidence intervals for site-level effects are inferred from standard theory of GAM estimator asymptotics. However, due to the small samples in each site (Table \ref{table1})
+
+Parameters were estimated using the `mgcv` R package [@wood2011fast].
+
+* Model fit?
+* Standard errors were obtained from sandwich type estimators? -- not sure how to do this?
+* Include river main effects? and nest site within river?
+
+
+The second approach uses randomization-based inference to obtain exact p-values based on changes in the trajectory from the $Z$ points. For each species, we consider the 5 pair-wise comparisons of Tuck 1 to each of the other sites, for ten different randomized experiments. Though in fact, there were ${12 \choose 6}$ possible combinations of how specimens could be assigned to either Tuck 1 or another site, we use only the specimens chosen as described above. That is, we consider ${c + t \choose c}$ possible treatment assignment where $c$ is the number of analysis Tuck 1 valves and $t$ is the number of analysis valves in the other site. Let $A = 0$ indicate that a valve was in Tuck 1, and $A = 1$ indicate the comparison site. 
+
+\begin{table}[ht]
+\label{tab:comparisons}
+\caption{Tests of a hypothesis of no difference were made for each combination of the following comparisons.}
+\begin{tabular}{lclc}
+Type   & Comparison & Levels & Number \\
+Between      & Experimental units & Tuck to LiTN; Baseline to Tuck; Baseline to LiTN; Baseline to each of 6 sites; Tuck1 to each of other 5 sites & 11 \\
+Within       & Species & A. rav; L. fas & 2 \\
+Within       & Elements& As, Hg, etc & 23 \\
+Within       & Splines & cross validated spline; no spline & 2 \\
+Within       & Transformations & none; CA ratio; log10 & 3 \\
+Within       & Valve summary & B - Slope from $Z$ to edge; B ratio - ratio of slope from $Z$ to edge and slope of previous valve section; M - mean of value from $Z$ to edge; S - concentration per $\mu$m across entire transect & 4 \\
+Within       & Edge & Inner; Outer & 2 \\
+Within       & $Z$ & 25, 50, 100, 200 & 4 \\
+Total comparisons & & = 11 * 2 * 23 * 2 * 3 * ((3 * 2 * 4) + 1) = 75900 &
+\end{tabular}
+\end{table}
+
+Let $\mathbf{Y}_i(a)$ be the specimen’s potential vector of element concentrations when the specimen is exposed to site $a$. 
+
+* Most of this can probably go in a supplement.
+
+The inferential process proceeds by considering various models and feature of these models for a transect’s vector of concentrations, $Y^e_i(a_i) = \mathcal{M}(f_i(d; k); \delta)$, where $f_i(d; k)$ is a valve-level cubic spline with $k$. Table \ref{tab:models} describes the various models used in the analysis. Each model parameterizes the possible effect of the experiment in a different manner.
+
+\begin{table}
+\centering
+\label{tab:models}
+\caption{Models considered}
+\begin{tabular}{c|cc}
+Label & Description & $\mathcal{M}$ \\
+B & Shift in trajectory from point $Z$ to edge. $\delta$ represents a linear effect of the exposure between distances the edge and $Z$.  & $f_i(d; k) - \delta a (d - Z)[(d - Z) \leq 0]$ \\
+BR & Shift in ratio of trajectory from after point $Z$ to edge relative to prior trajectory & TBD \\
+M & Difference in average value from point $Z$ to edge & $f_i(d; k) - \delta a (d - Z)$ \\
+S & Difference in total elemental accumulation across entire transect & $\frac{\sum_{id} f_i(d; k) - \delta a }{\sum d}$
+\end{tabular}
+\end{table}
+
+Let $\Omega$ be the set of all possible treatment assignments. P-values testing the null hypothesis of no difference between the valves exposed to Tuck 1 (control) and each of the other sites were computed using randomization-based inference in the following way:
+
+1. Fit cubic spline with $k$ knots to each valve series. 
+2. For each valve, compute the slope from $Y - Y[Z]$ for x values $1, \dots, Z$, where $Y[Z]$ is the observed value at point $Z$. This slope is labeled $B_i$.
+3. For each permutation of treatment assignment ($\mathbf{a} \in \Omega$), compute the test statistic: $(T(\mathbf{a}, \mathbf{F})$. For computational efficiency, when the cardinality of $\Omega$ was greater than 50,000, we randomly sampled 50,000 treatment assignments without replacement.
+4. Compute the two-sided p-value:
+
+\[
+p = \frac{\sum_{\mathbf{a} \in \Omega} \ I(T(\mathbf{a}, \mathbf{F}) \geq T(\mathbf{A}, \mathbf{F}))}{|\Omega|}
+\]
+
+
+* control for multiple comparisons: control False discovery rate within what level?
+
+
+### Elements associated with mortality and morbidity
+
+Logistic regression models were used to measure the association of elemental concentrations with mortality among the *Alasmidonta*. For each element, the following model template was used: $\mbox{logit}^{-1}\{\Pr(Y = 1| S_{\mathcal{X} = s)} \} = \beta_0 + \beta_{1, \mathcal{X}, s} s_{\mathcal{X}}$. Three different summary statistics, $S_{\mathcal{X}} = s)$, of the trajectory between an edge and $\mathcal{X}$ were used: the mean, median, and slope. In sum, 48 $\beta_{1, \mathcal{X}, s}$ parameter estimate were obtained for each elements: four $\mathcal{X}$ distances, two edges, and three summary statistics. 
+
+Comparison within A. rav:
+* per element: logistic regression modeling Pr(dead | covariates) where covariate was each of mean or median within each of the 6 transect sections (plus entire transect)
+* graphical comparison of summary statistics within transect sections for alive, moribund, dead.
+

@@ -1,10 +1,12 @@
 ---
-title: TBD
+title: Trace elements accrued in endangered freshwater bivalves in two North Carolina streams
 author:
 - Bradley C. Saul
 - Nathan R. Miller
 - Heather Gunn
 - Michael Walter
+- Scott Salger
+- Mike Gangloff
 - Jay F. Levine
 bibliography: elktoe.bib
 output: 
@@ -22,172 +24,63 @@ keywords: LA-ICP-MS, Alasmidonta, add more
 
 # Introduction 
 
-The population of the critically endangered Appalachian Elktoe mussel (*Alasmidonta raveneliana*) has precipitous declined in North Carolina's Little Tennessee River in recent years. Causes for the decline are unknown and may be multi-faceted. In order to assess possible reasons for the decline, the Aquatic Epidemiology and Conservation Lab at North Carolina State University conducted a experiment in 2013 wherein *A. raveneliana* were collected from the Tuckaseegee River where the population is stable. The *A. raveneliana* plus an equal number of non-endangered *Lampsilis fasciola* were randomly assigned to six sites (three each in the Tuckaseegee and Little Tennessee) and followed for approximately six months.
+After major hurricane-related flooding in 2004, the population of Federally endangered Appalachian Elktoe (*Alasmidonta raveneliana*) in North Carolina's Little Tennessee River declined precipitously, but within the same watershed's Tuckasegee River populations appear stable. Reasons for the decline are unclear [@jarvis2011water; @miller2013concentrations; @pandolfi2016effects]. To determine how river-specific factors may be associated with health and physiological outcomes, we conducted a completely randomized experiment by assigning eighty-two *A. raveneliana* alongside an equal number of hatchery-raised Wavy-Rayed Lampmussel (*Lampsilis fasciola*) to sites within each river.
 
-Unionoids record certain aspects of their environment in the elemental profiles of their valves [CITATIONS]. ...More context here... Chemical measurements obtained by laser ablation inductively coupled plasma mass spectrometry (LA-ICP-MS). @jackson2003laser experimentally fed contaminated fish to banded water snakes and showed LA-ICP-MS on tail tissue and showed LA-ICP-MS was able to differentiate between treatments.
+Similar to tree rings, bivalve shells archive some aspects of their environmental history and have been used as bioindicators of pollution [@markich2002freshwater; @brown2005freshwater; @shoults2014resolution]. Exposure to certain heavy metals have been shown to increase morbidity and mortality in freshwater bivalves [@naimo1995a-review]. @miller2013concentrations evaluated sediment concentrations of Cu, Cr, Ni, and Zn in the Little Tennessee and Tuckasegee. When considered with the chemical concentrations of *A. raveneliana* shells measured by @jarvis2011water, they found these elements (Cu in particular) unlikely to be the primary culprit in the *A. raveneliana* decline.
 
-In this paper, we compare chemistries of the study specimen valves to address two sets of questions. First, are any elements associated with the experimental assignments; i.e., river and/or sites? And to what degree? Second, are any elements associated with the observerd morbidity and mortality in *A. raveneliana*?  Our answers represent important contributions to scientific understanding of unionid physiology, ecological experiments, and … . They also lead us to propose hypotheses as to the decline of *A. raveneliana*.
+In this paper, we ask whether and to what degree the exposure to the experimental sites modified the accretion of twenty trace elements in specimens’ valves. We demonstrate how chemical profiles obtained by laser ablation inductively coupled plasma mass spectrometry (LA-ICP-MS) [@pozebon2014review] can be aligned with anatomical features of the valves, thus making comparisons of concentrations from specific valve layers possible. Since the assignment to sites was completely randomized, we use the randomization distribution to draw inference. While this approach to statistical inference dates back to Fisher [CITE], it is less common to use this approach with multivariate data. 
 
-...TODO... brief summary of results ...
+For each element, we tested the hypothesis that log(conc mol/ Ca mmol) trajectories within the nacre did not differ between any of the sites. Inference was drawn using the randomization distribution and a test statistic of the deviance between two nested Generalized Additive Mixed Models (GAMM): one including terms for experimental sites and one without.
+
+...TODO...
+* Our answers represent important contributions to scientific understanding of unionid physiology, ecological experiments, and … . 
+* They also lead us to propose hypotheses as to the decline of *A. raveneliana*.
 
 The paper is organized as follows. Section \ref{materials-and-methods} outlines the experimental design, data collection and QC processes, and the statistical methods. More details for each of these topics is provided in the supplement. Section \ref{results} provides results. In Section \ref{discussion}, we discuss the implications of our results, hypothesize on causes of the *A. raveneliana*, and suggest future research. We also provide the data and code to reproduce our results at the study website (ADD LINK) 
 
-
 # Materials and methods
 
-## Experimental Design 
+## Study Specimens
 
-For complete details, see Salger et al. (2017). Briefly, ...
+Eighty-two *A. raveneliana* specimens were drawn from the Tuckasegee river. Ten were killed for baseline comparisons, and the remaining 72 were randomly assigned to 6 experimental sites (3 on each river) [INSERT FIGURE OF SITES]. The same number of *L. faciola* specimens were taken from the NC Wildlife Resources' Marian hatchery and were placed in a separate cage alongside the *A. raveneliana* as control specimens. The specimens were deposited at each site in April 2013. The *A. raveneliana* were pulled six months later. Some of the *L. faciola* were pulled at the same time, while the remaining were extracted the following Spring. 
 
-Eighty-two specimens were drawn from the Tuckasegee river. Ten were killed for baseline comparisons, and the remaining 72 were randomly assigned to 6 experimental sites (3 on each river). Seventy-two *Lampsilis faciola* specimens were taken from the XXX hatchery and were placed in a separate cage alongside the *A. raveneliana* as control specimens. The specimens were deposited at each site in April XXXX. The *A. rav* were pulled six months later. Some of the *L. fas* were pulled at the same time, while the remaining were extracted the following spring. At least one LA-XXX-MS transect was run on XXX shells measuring the profiles of XX elements. The transect was positioned to include the region of the most recent growth on the shell.
-
-\begin{table}
-\centering
-\label{table1}
-\caption{A table with basic descriptive stats per site}
-\begin{tabular}{c}
-TODO
-\end{tabular}
-\end{table}
-
-
+The mussels were held in plastic mesh cages anchored in the bottom substrate. All animals were individually identified with randomly selected numeric identification tags clued to the shells. Shell metrics and weight were obtained before and after deployment in the cages. After the experiment, a small (approximately 0.5 inch) section of the right valve from each animal was removed and embedded in plastic for laser ablation analyses.
 
 ## LA-ICP-MS
 
-Analyses were conducted at the University of Texas at Austin using an ESI New Wave Research NWR193 excimer laser coupled to an Agilent 7500ce ICP-MS. The laser system has a large format laser cell that enabled up to nine slides (30 valves) to be loaded with standards in a single drawer. Each slide was scanned at high resolution (4800 dpi) and optimal transects determined prior to loading each sample drawer. Once loaded the coordinates of each traverse were established in the laser experiment according to the digital scan maps. For analysis we surveyed a broad range of industrial metals, as well as bio-metals; specifically: Mg, Ca, Cr, Mn, Fe, Co, Ni, Cu, Zn, As, Se, Kr (for Se interference correction if detected), Sr, Mo, Cd, Sn, Ba, Hg, Pb and U (n = 20). 
+As youngest growth was of principal interest, we targeted growth parallel transects from the outer margins of valves, away from the umbo. For thicker valves we also analyzed additional offset scans to evaluate reproducibility and include older growth. In most cases, the entire preserved growth history was recorded by making multiple offset traverses (Figure \ref{}). Along each transect, readings were taken every 2.88$\mu$m. All transects moved from the inner to the outer shell, parallel to the growth direction, beginning and ending in epoxy. The scans varied in terms of residing solely with the outer prismatic layer and periostracum, or being compound scans initiating in the nacreous layer. 
 
-As youngest growth was of principal interest, we targeted growth parallel transects from the outer margins of valves, away from the umbo. For thicker valves we also analyzed additional offset scans to evaluate reproducibility and include older growth. In most cases, the entire preserved growth history was recorded by making multiple offset traverses (Figure \ref{}). Continuous lateral transects (edge to umbo) were performed within the outer prismatic layer of two valves. Most valves were on the order of 1 mm thick, but some ranged up to 3-4 mm. We used a 25$\mu$m spot and scanned at 5$\mu$m/sec. The quadrupole sampling interval was 0.5762, equating to readings each 2.88$\mu$m along the transect. All transects moved from the inner to the outer shell, parallel to the growth direction, beginning and ending in epoxy. The scans varied in terms of residing solely with the outer prismatic layer and periostracum, or being compound scans initiating in the nacreous layer. Each scan resulted in a chemical time-series for each analyte (concentration vs. distance; a matrix of ~7000 concentration measurements per mm). For data reduction we assumed a stoichiometric CaCO3 composition (40.0432 wt% Ca) and did not adjust for mineralogy (aragonite vs. calcite). We used USGS MACS-3 (synthetic aragonite) as the primary calibration standard, and analyzed NIST 614 (trace elements at ~1 ppm) and NIST 612 (trace elements at ~35 ppm). For drift compensation, each hour of data collection on unknowns was bracketed by analyses of each standard (in duplicate). 
+Each transect resulted in a chemical time-series for each analyte (concentration vs. distance; a matrix of ~7000 concentration measurements per mm). For data reduction we assumed a stoichiometric CaCO3 composition (40.0432 wt% Ca) and did not adjust for mineralogy (aragonite vs. calcite). We used USGS MACS-3 (synthetic aragonite) as the primary calibration standard, and analyzed NIST 614 (trace elements at ~1 ppm) and NIST 612 (trace elements at ~35 ppm). For drift compensation, each hour of data collection on unknowns was bracketed by analyses of each standard (in duplicate). We surveyed a broad range of industrial metals and bio-metals; specifically: Mg, Ca, Cr, Mn, Fe, Co, Ni, Cu, Zn, As, Se, Kr (for Se interference correction if detected), Sr, Mo, Cd, Sn, Ba, Hg, Pb and U (n = 20). 
 
-## Data preparations
+Analyses were conducted at the University of Texas at Austin using an ESI New Wave Research NWR193 excimer laser coupled to an Agilent 7500ce ICP-MS. 
 
-Each valve was prepared in a thin layer of epoxy, some data at the inner and outer edges of each transect measured elemental concentrations in epoxy rather than shell. From each edge, the beginning of valve was the minimum of 50 $\mu$m or the point at which $log_{10}(x + 1)$ of copper, lead and mercury were less than one. This criteria was based on inspection of plots of elemental concentrations. 
+## Chemical/Anatomical Alignment
 
-As many as four transects were ablated per valve. Using valve scans that included transect locations, one transect per valve was chosen so that all transects in the analyses would include the region of most recent growth for each valve. In total, XX transects were included (XX A. rav - XX Baseline, XX LiTN, XX Tuck; YY L. fas - YY Baseline, YY LiTN, YY Tuck).
-
-The raw data and the code used to prepare data for analysis are available in the supplementary materials.
-
-* differentiate that we used step-scanning (perpendicular to annual growth rings) vs fly-scanning [@shoults2014resolution]
-* make sure to analyze the amount of data trimmed by epoxy algorithm and that this is evenly distributed across sites and dead/alive specimens. i.e., more or less data trimmed on dead specimens could indicate something different about those shells.
-
-\begin{figure}
-\label{fig:dataprep}
-\caption{A figure demonstrating the preprocessing steps. (1) Identification of edge/epoxy. (2) Transforming data. (3) Fitting cubic splines. (4) Extracting features.}
-\end{figure}
-
+[ADD DESCRIPTION OF ALIGNMENT]
 
 ## Statistical Analyses
 
-### Elements associated with river and/or site
-
-
-Two inferential approaches were used to assess whether the trajectory of element accumulations varied across sites after specimens were randomized to the six sites. Both involve fitting cubic splines for each specimen’s transect per element. The first approach parameterizes a generalized additive model (GAM) to include site-level main effects for changes in the trajectory from a certain distance (in $\mu$m) from each edge, labeled $Z = \{Z_I, Z_O\}$ for the inner and outer edges. Figure \ref{fig:zpoint} illustrates $Z$ on a hypothetical transect.
-
-\begin{figure}
-\label{fig:zpoint}
-\caption{A hypothetical transect showing $Z$ and how the $\delta$ parameters may shift the trajectory from $\mathbb{X}_I$ and $\mathbb{X}_O$ to its respective edge.}
-\includegraphics{holder.png}
-\end{figure}
-
-Let $d_{I}$ and $d_{O}$ be the distance in $\mu$m from the corresponding (I)inner or (O)outer edge to an observation (Figure \ref{xpoint}). Let $Y^e_i$ be the vector of observations from specimen $i = 1, \dots, n$ and element $e$. Let $S_i$ be a specimen’s site (i.e. the experimental treatment). The following generalized additive model was fit per element:
-
-\[
-E[Y_i | L_i = l, b_i] = \mathbf{1}(S_i = l) \left[ \delta_{ZI} ((d_I - Z_{I}) * (d_I - Z_{I} <= 0)) +  \delta_{ZO} ((d_O - Z_{O}) * (d_O - Z_{O} <= 0)) \right] + f_i(d_I, k) + b_i.
-\]
-
-$\mathbf{1}(\cdot)$ is the indicator function. $f_i(d_{I})$ is a cubic spline term fit separately for each specimen with $k$ knots. DESCRIBE HOW K WAS CHOSEN. $b_i$ is an additional specimen-level random effect term. Tuck 1 specimens were used as the reference group, as the all of the $A. raveneliana* specimens were originally collected at a site between Tuck 1 and Tuck 2. 
-
-The parameters of interest in this model are $\delta$, which represent linear site-level departures from the trajectory of Tuck 1 specimens beginning at $Z$.
-
-In theory, $Z_I$ could be measured precisely on each valve using disturbance rings or other visual clues. In practice, this proved difficult, so instead we estimated $\delta$ using different values of $Z$. To compare sensitivity to the choice of $Z$, the above models were fit for $Z_{\cdot} = 25, 50, 100, 200$. A visual inspection of XX *A. raveneliana* valves showed that the average distance to the disturbance line was XXX, while in the *L. fasciola* it was XXX.
-
-Confidence intervals for site-level effects are inferred from standard theory of GAM estimator asymptotics. However, due to the small samples in each site (Table \ref{table1})
-
-Parameters were estimated using the `mgcv` R package [@wood2011fast].
-
-* Model fit?
-* Standard errors were obtained from sandwich type estimators? -- not sure how to do this?
-* Include river main effects? and nest site within river?
-
-
-The second approach uses randomization-based inference to obtain exact p-values based on changes in the trajectory from the $Z$ points. For each species, we consider the 5 pair-wise comparisons of Tuck 1 to each of the other sites, for ten different randomized experiments. Though in fact, there were ${12 \choose 6}$ possible combinations of how specimens could be assigned to either Tuck 1 or another site, we use only the specimens chosen as described above. That is, we consider ${c + t \choose c}$ possible treatment assignment where $c$ is the number of analysis Tuck 1 valves and $t$ is the number of analysis valves in the other site. Let $A = 0$ indicate that a valve was in Tuck 1, and $A = 1$ indicate the comparison site. 
-
-\begin{table}[ht]
-\label{tab:comparisons}
-\caption{Tests of a hypothesis of no difference were made for each combination of the following comparisons.}
-\begin{tabular}{lclc}
-Type   & Comparison & Levels & Number \\
-Between      & Experimental units & Tuck to LiTN; Baseline to Tuck; Baseline to LiTN; Baseline to each of 6 sites; Tuck1 to each of other 5 sites & 11 \\
-Within       & Species & A. rav; L. fas & 2 \\
-Within       & Elements& As, Hg, etc & 23 \\
-Within       & Splines & cross validated spline; no spline & 2 \\
-Within       & Transformations & none; CA ratio; log10 & 3 \\
-Within       & Valve summary & B - Slope from $Z$ to edge; B ratio - ratio of slope from $Z$ to edge and slope of previous valve section; M - mean of value from $Z$ to edge; S - concentration per $\mu$m across entire transect & 4 \\
-Within       & Edge & Inner; Outer & 2 \\
-Within       & $Z$ & 25, 50, 100, 200 & 4 \\
-Total comparisons & & = 11 * 2 * 23 * 2 * 3 * ((3 * 2 * 4) + 1) = 75900 &
-\end{tabular}
-\end{table}
-
-Let $\mathbf{Y}_i(a)$ be the specimen’s potential vector of element concentrations when the specimen is exposed to site $a$. 
-
-* Most of this can probably go in a supplement.
-
-The inferential process proceeds by considering various models and feature of these models for a transect’s vector of concentrations, $Y^e_i(a_i) = \mathcal{M}(f_i(d; k); \delta)$, where $f_i(d; k)$ is a valve-level cubic spline with $k$. Table \ref{tab:models} describes the various models used in the analysis. Each model parameterizes the possible effect of the experiment in a different manner.
-
-\begin{table}
-\centering
-\label{tab:models}
-\caption{Models considered}
-\begin{tabular}{c|cc}
-Label & Description & $\mathcal{M}$ \\
-B & Shift in trajectory from point $Z$ to edge. $\delta$ represents a linear effect of the exposure between distances the edge and $Z$.  & $f_i(d; k) - \delta a (d - Z)[(d - Z) \leq 0]$ \\
-BR & Shift in ratio of trajectory from after point $Z$ to edge relative to prior trajectory & TBD \\
-M & Difference in average value from point $Z$ to edge & $f_i(d; k) - \delta a (d - Z)$ \\
-S & Difference in total elemental accumulation across entire transect & $\frac{\sum_{id} f_i(d; k) - \delta a }{\sum d}$
-\end{tabular}
-\end{table}
-
-Let $\Omega$ be the set of all possible treatment assignments. P-values testing the null hypothesis of no difference between the valves exposed to Tuck 1 (control) and each of the other sites were computed using randomization-based inference in the following way:
-
-1. Fit cubic spline with $k$ knots to each valve series. 
-2. For each valve, compute the slope from $Y - Y[Z]$ for x values $1, \dots, Z$, where $Y[Z]$ is the observed value at point $Z$. This slope is labeled $B_i$.
-3. For each permutation of treatment assignment ($\mathbf{a} \in \Omega$), compute the test statistic: $(T(\mathbf{a}, \mathbf{F})$. For computational efficiency, when the cardinality of $\Omega$ was greater than 50,000, we randomly sampled 50,000 treatment assignments without replacement.
-4. Compute the two-sided p-value:
-
-\[
-p = \frac{\sum_{\mathbf{a} \in \Omega} \ I(T(\mathbf{a}, \mathbf{F}) \geq T(\mathbf{A}, \mathbf{F}))}{|\Omega|}
-\]
-
-
-* control for multiple comparisons: control False discovery rate within what level?
-
-
-### Elements associated with mortality and morbidity
-
-Logistic regression models were used to measure the association of elemental concentrations with mortality among the *Alasmidonta*. For each element, the following model template was used: $\mbox{logit}^{-1}\{\Pr(Y = 1| S_{\mathcal{X} = s)} \} = \beta_0 + \beta_{1, \mathcal{X}, s} s_{\mathcal{X}}$. Three different summary statistics, $S_{\mathcal{X}} = s)$, of the trajectory between an edge and $\mathcal{X}$ were used: the mean, median, and slope. In sum, 48 $\beta_{1, \mathcal{X}, s}$ parameter estimate were obtained for each elements: four $\mathcal{X}$ distances, two edges, and three summary statistics. 
-
-Comparison within A. rav:
-* per element: logistic regression modeling Pr(dead | covariates) where covariate was each of mean or median within each of the 6 transect sections (plus entire transect)
-* graphical comparison of summary statistics within transect sections for alive, moribund, dead.
-
-
-
 # Results
 
-Brief summary of results
+## Description of survival
 
+## Chemicals 
+
+Preliminary results revealed differences in nacre elemental trajectories of the experimental sites. In A. raveneliana, for example, trajectories of Mn differ in at least one experimental site (p-value = 0.002). Visual examination of the predicted values from a GAMM model show systematically higher levels in the region of most recent growth in Little Tennessee specimens. Results for the comparatively younger L. fasciola specimens show a similar though not as obvious pattern (p-value = 0.054). 
 
 ## Elements associated with rivers and sites
 
 Figure XX shows effect estimates and 9X% confidence intervals of the contrast of baseline to Tuck, baseline to LiTN, and Tuck to LiTN. 
 
-
 ## Elements associated with morbidity/mortality
 
 Figure XX shows effect estimates from logistic regressions. Only elements with a statistically significant effect (or p < 0.1?) are shown; remaining are in Supplementary Materials.
 
-
 # Discussion
+
+Our analysis showed differences between the experimental sites in Mn concentrations accumulated during the study period. Manganese is an essential trace element with important roles in numerous enzymatic pathways that could have harmful effects on freshwater bivalves. The completely randomized design allows for robust, internally valid inference; however, further analyses with these data are needed to: 1) Examine other observed differences in elemental concentrations; 2) Rule out possible confounding such as seasonal and batch effects; and 3) Explore sources of these elements within the watersheds.
+
+* Based on how valves grow [@checa2000a-new-model], we should have captured the most recent growth
 
 We have shown that …
 
@@ -201,6 +94,10 @@ We have shown that …
 ## Limitations
 
 * discussion of cage effect
+
+## ETC
+
+* @jackson2003laser experimentally fed contaminated fish to banded water snakes and showed LA-ICP-MS on tail tissue and showed LA-ICP-MS was able to differentiate between treatments.
 
 
 # References
