@@ -27,7 +27,7 @@ apply_lod <- function(chem_dt, lod_dt){
     tidyr::spread(temp, value) %>%
     dplyr::rename_at(
       .var  = vars(ends_with("_value")),
-      .funs = funs(stringr::str_remove(., "_value"))
+      .funs = list(~stringr::str_remove(., "_value"))
     )
 }
 
@@ -136,8 +136,8 @@ ppm_to_mmol <- function(ppm, gmol){
   (ppm / 1000) / gmol
 }
 
-ppm_to_mmol_camol <- function(ppm, gmol, ca_ppm = 400432){
-  ca_mol <- ppm_to_mmol(ca_ppm, 40.078)/1000
+ppm_to_mmol_camol <- function(ppm, gmol, ca_wt_pct = 40.078, ca_ppm = 400432){
+  ca_mol <- ppm_to_mmol(ca_ppm, ca_wt_pct)/1000
   ppm_to_mmol(ppm = ppm, gmol = gmol)/ca_mol
 }
 

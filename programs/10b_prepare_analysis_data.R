@@ -73,11 +73,14 @@ valve_data %>%
   left_join(select(element_info, element, mass), by = "element") %>%
   ## Convert values to mmmol per Ca mol ####
   mutate(
-    data = purrr::map2(
-      .x = data, 
-      .y = mass, 
-      .f = function(x, y){
-        mutate(x, value = ppm_to_mmol_camol(value, y))
+    data = purrr::pmap(
+      .l = list(x = data, y = mass, z = layer),
+      .f = function(x, y, z){
+        if(z == "ncr"){
+          mutate(x, value = ppm_to_mmol_camol(value, y, ca_wt_pct = 39.547395))
+        } else {
+          mutate(x, value = ppm_to_mmol_camol(value, y, ca_wt_pct = 40.078))
+        }
       })
   ) %>%
   tidyr::unnest() ->
