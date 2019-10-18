@@ -16,8 +16,9 @@ header-includes:
 - \usepackage{amsmath, setspace}
 - \usepackage{multirow}
 - \graphicspath{ {figures/} } 
-abstract: TBD
-keywords: LA-ICP-MS, Alasmidonta, add more
+abstract: >
+  \noindent Precipitous declines in the Federally endangered Appalachian Elktoe (*Alasmidonta raveneliana*) have been observed since 2004 in the Little Tennessee River, but populations appear stable in the Tuckasegee River. To assess river-specific factors associated with health and physiological outcomes, we conducted a completely randomized experiment, assigning specimens to sites within each river. Here, we examine differences between sites in trace element concentrations accumulated in specimens’ valves during the experiment.
+keywords: TODO
 ---
 
 \doublespacing
@@ -31,6 +32,7 @@ Similar to tree rings, bivalve shells archive some aspects of their environmenta
 In this paper, we ask whether and to what degree the exposure to the experimental sites modified the accretion of twenty trace elements in specimens’ valves. We demonstrate how chemical profiles obtained by laser ablation inductively coupled plasma mass spectrometry (LA-ICP-MS) [@pozebon2014review] can be aligned with anatomical features of the valves, thus making comparisons of concentrations from specific valve layers possible. Since the assignment to sites was completely randomized, we use the randomization distribution to draw inference. While this method of statistical inference dates back to Fisher [CITE], it is less common to use this approach with multivariate data. 
 
 ...TODO...
+
 * Our answers represent important contributions to scientific understanding of unionid physiology, ecological experiments, and … . 
 * They also lead us to propose hypotheses as to the decline of *A. raveneliana*.
 
@@ -48,7 +50,7 @@ The mussels were held in plastic mesh cages anchored in the bottom substrate. Al
 
 As youngest growth was of principal interest, we targeted growth parallel transects from the outer margins of valves, away from the umbo. For thicker valves we also analyzed additional offset scans to evaluate reproducibility and include older growth. In most cases, the entire preserved growth history was recorded by making multiple offset traverses (Figure \ref{}). Along each transect, readings were taken every 2.88$\mu$m. All transects moved from the inner to the outer shell, parallel to the growth direction, beginning and ending in epoxy. The scans varied in terms of residing solely with the outer prismatic layer and periostracum, or being compound scans initiating in the nacreous layer. 
 
-Each transect resulted in a chemical time-series for each analyte (concentration vs. distance; a matrix of ~7000 concentration measurements per mm). For data reduction (?) we assumed a stoichiometric CaCO3 composition (40.0432 wt% Ca) and did not adjust for mineralogy (aragonite vs. calcite). We used USGS MACS-3 (synthetic aragonite) as the primary calibration standard, and analyzed NIST 614 (trace elements at ~1 ppm) and NIST 612 (trace elements at ~35 ppm). For drift compensation, each hour of data collection on unknowns was bracketed by analyses of each standard (in duplicate). We surveyed twenty industrial metals and bio-metals: Mg, Ca, Cr, Mn, Fe, Co, Ni, Cu, Zn, As, Se, Kr (for Se interference correction if detected), Sr, Mo, Cd, Sn, Ba, Hg, Pb and U. 
+Each transect resulted in a chemical time-series for each analyte (concentration vs. distance; a matrix of ~7000 concentration measurements per mm). For data reduction (?) we assumed a stoichiometric CaCO3 composition of 39.547 wt\% Ca in nacreous tissue and 40.0432 wt\% Ca in other tissue and did not adjust for mineralogy (aragonite vs. calcite). We used USGS MACS-3 (synthetic aragonite) as the primary calibration standard, and analyzed NIST 614 (trace elements at ~1 ppm) and NIST 612 (trace elements at ~35 ppm). For drift compensation, each hour of data collection on unknowns was bracketed by analyses of each standard (in duplicate). We surveyed twenty industrial metals and bio-metals: Mg, Ca, Cr, Mn, Fe, Co, Ni, Cu, Zn, As, Se, Kr (for Se interference correction if detected), Sr, Mo, Cd, Sn, Ba, Hg, Pb and U. 
 Analyses were conducted at the University of Texas at Austin using an ESI New Wave Research NWR193 excimer laser coupled to an Agilent 7500ce ICP-MS. 
 
 ## Chemical/Anatomical Alignment
@@ -65,7 +67,14 @@ For each element, we tested the hypothesis that $\text{log}(\text{mol/Ca mmol})$
 
 # Results
 
-## Description of survival
+## Morbidity and Mortality
+
+Morbidity and mortality in *A. raveneliana* varied significantly across sites (Figure \ref{fig:mortality}). In the Little Tennessee, all but three specimens lost weight or died, whereas in Tuckaseegee Site 1 no individuals died and few lost weight. In both rivers, outcomes worsened downstream for *A. raveneliana*. Mortality increased monotonically down the river gradient, and the median relative weight loss also tended to increase. In constrast to *A. raveneliana*, none of the *L. fasciola* died and all gained weight.
+
+\label{fig:mortality}
+```{r mortality, echo = FALSE, fig.cap= "TODO"}
+knitr::include_graphics(here::here("manuscript", "figures", "mussel_outcomes_v000.pdf"))
+```
 
 ## Chemicals 
 
