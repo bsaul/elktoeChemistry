@@ -9,8 +9,9 @@ author:
 - Mike Gangloff
 - Jay F. Levine
 bibliography: elktoe.bib
+toc: false
 output: 
-  pdf_document:
+  bookdown::pdf_document2:
     number_sections: true
 header-includes:   
 - \usepackage{amsmath, setspace}
@@ -33,7 +34,7 @@ In this paper, we ask whether and to what degree the exposure to the experimenta
 
 ...TODO...
 
-* Our answers represent important contributions to scientific understanding of unionid physiology, ecological experiments, and … . 
+* Our answers represent important contributions to scientific understanding of unionid physiology, ecological experiments, and ... 
 * They also lead us to propose hypotheses as to the decline of *A. raveneliana*.
 
 The paper is organized as follows. Section \ref{materials-and-methods} outlines the experimental design, data collection, anatomy/chemical alignment procedurew, and the statistical methods. Section \ref{results} provides results. In Section \ref{discussion}, we discuss the implications of our results, hypothesize on causes of the *A. raveneliana*, and suggest future research. Data and code are available at the study website (ADD LINK) 
@@ -61,6 +62,12 @@ To align anatomical features with chemistry data, several methods were used to i
 
 * applied lower limit of detection by taking the mean lower limit of detection with each of the seven batches of the LA-ICP-MS
 
+Figure \@ref(fig:alignment) shows the analytic process.
+
+```{r alignment, echo = FALSE, fig.cap= "TODO"}
+knitr::include_graphics(here::here("manuscript", "figures", "figure_alignment.pdf"))
+```
+
 ## Statistical Analyses
 
 For each element, we tested the hypothesis that $\text{log}(\text{mol/Ca mmol})$ trajectories within the nacre did not differ between any of the sites. Inference was drawn using the randomization distribution and a test statistic of the deviance between two nested Generalized Additive Mixed Models (GAMM): one including terms for experimental sites and one without.
@@ -69,24 +76,15 @@ For each element, we tested the hypothesis that $\text{log}(\text{mol/Ca mmol})$
 
 ## Morbidity and Mortality
 
-Morbidity and mortality in *A. raveneliana* varied significantly across sites (Figure \ref{fig:mortality}). In the Little Tennessee, all but three specimens lost weight or died, whereas in Tuckaseegee Site 1 no individuals died and few lost weight. In both rivers, outcomes worsened downstream for *A. raveneliana*. Mortality increased monotonically down the river gradient, and the median relative weight loss also tended to increase. In constrast to *A. raveneliana*, none of the *L. fasciola* died and all gained weight.
+Morbidity and mortality in *A. raveneliana* varied significantly across sites (Figure \@ref(fig:mortality). In the Little Tennessee, all but three specimens lost weight or died, whereas in Tuckaseegee Site 1 no individuals died and few lost weight. In both rivers, outcomes worsened downstream for *A. raveneliana*. Mortality increased monotonically down the river gradient, and the median relative weight loss also tended to increase. In constrast to *A. raveneliana*, none of the *L. fasciola* died and all gained weight.
 
-\label{fig:mortality}
 ```{r mortality, echo = FALSE, fig.cap= "TODO"}
 knitr::include_graphics(here::here("manuscript", "figures", "mussel_outcomes_v000.pdf"))
 ```
 
-## Chemicals 
+## Trace element accrual
 
-Preliminary results revealed differences in nacre elemental trajectories of the experimental sites. In A. raveneliana, for example, trajectories of Mn differ in at least one experimental site (p-value = 0.002). Visual examination of the predicted values from a GAMM model show systematically higher levels in the region of most recent growth in Little Tennessee specimens. Results for the comparatively younger L. fasciola specimens show a similar though not as obvious pattern (p-value = 0.054). 
-
-## Elements associated with rivers and sites
-
-Figure XX shows effect estimates and 9X% confidence intervals of the contrast of baseline to Tuck, baseline to LiTN, and Tuck to LiTN. 
-
-## Elements associated with morbidity/mortality
-
-Figure XX shows effect estimates from logistic regressions. Only elements with a statistically significant effect (or p < 0.1?) are shown; remaining are in Supplementary Materials.
+Figure \ref{} displays p-values for tests that each trace element's trajectory within the nacre differs in at least one experimental site by species. Trajectories of Mn in *A. raveneliana* differ in at least one  site (p = 0.002). Visual examination of the predicted values from a GAMM model show systematically higher levels in the region of most recent growth in Little Tennessee specimens (Figure \ref{}). Results for the comparatively younger L. fasciola specimens show a similar though not as obvious pattern (p = 0.054). 
 
 # Discussion
 
@@ -97,11 +95,8 @@ Our analysis showed differences between the experimental sites in Mn concentrati
 We have shown that …
 
 * XXX, YYY, and ZZZ appeared in greater concentration in LiTN valves. Notably, XXX has been shown to have physiological effect AAA, and so on for YYY and ZZZ.
-*
-
 * associations with morbidity/mortality are not causal effects. would be causal if...
 * associations of elements and river/site do have causal interpretation under following assumptions <-- worth mentioning?
-
 
 ## Limitations
 
@@ -110,6 +105,5 @@ We have shown that …
 ## ETC
 
 * @jackson2003laser experimentally fed contaminated fish to banded water snakes and showed LA-ICP-MS on tail tissue and showed LA-ICP-MS was able to differentiate between treatments.
-
 
 # References
