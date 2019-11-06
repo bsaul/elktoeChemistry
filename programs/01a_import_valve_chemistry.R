@@ -5,16 +5,19 @@
 # Purpose: Load and save data objects for analysis
 #-----------------------------------------------------------------------------#
 
-sourceDir   <- "extdata/Data/Geochemical Time-Series"
-valve_files <- list.files(path = sourceDir,
-                          full.names = TRUE,
-                          recursive = TRUE,
-                          include.dirs = FALSE)
+sourceDir <- "extdata/Data/Geochemical Time-Series"
+outFile   <- "data/valve_chemistry.rds"
+
+valve_files <- list.files(
+  path         = sourceDir,
+  full.names   = TRUE,
+  recursive    = TRUE,
+  include.dirs = FALSE)
 
 valve_files <- valve_files[!str_detect(valve_files, glue::glue_collapse(exclude_files, sep = "|"))]
-raw_data   <- purrr::map(valve_files, read_excel)
-sheets     <- purrr::map_chr(valve_files, excel_sheets)
-file_names <- str_extract(valve_files, "(?<=[1-9]/).*(?=\\.xlsx)")
+raw_data    <- purrr::map(valve_files, read_excel)
+sheets      <- purrr::map_chr(valve_files, excel_sheets)
+file_names  <- str_extract(valve_files, "(?<=[1-9]/).*(?=\\.xlsx)")
 names(raw_data) <- file_names
 
 ## Consistency checks on data preimport ####
@@ -91,8 +94,8 @@ hold %>%
   {if(. > 0) warning("not all files have on and off indictators")}
 
 ## Prepare dataset to save ####
-
-valve_chemistry <- valve_chemistry %>%
+valve_chemistry <-
+valve_chemistry %>%
   group_by(file_name) %>%
   # Identify laser on/off points
   mutate(
@@ -115,4 +118,4 @@ valve_chemistry <- valve_chemistry %>%
   tidyr::separate(file_name, sep = "-", into = c("id", "transect")) %>%
   dplyr::select(id, transect, distance = scan_distance, everything(), -time, -note)
 
-saveRDS(valve_chemistry, file = 'data/valve_chemistry.rds')
+saveRDS(valve_chemistry, file = outFile)

@@ -2,13 +2,20 @@
 #   Title: QC of linking processes
 #  Author: B Saul
 #    Date: 2018-10-07
-# Purpose: 
+# Purpose: Tests various methods of identifying reference points from which 
+#          to calculate distances. Selects the best method for each transect
+#          as the one with the smallest mean squared error (difference between
+#          the transect distance measured manually and the distance between the
+#          inner and outer reference points determined by each method).
 #-----------------------------------------------------------------------------#
 
+inFile1 <- outFile <- "data/valve_data.rds"
+inFile2 <- "data/valve_measurements.rds"
 
-# Testing various methods of identifying the reference point from which to
-# calculate distances
+valve_data <- readRDS(inFile1)
+valve_measurements <- readRDS(inFile2)
 
+# The methods to test
 test_methods <- list(
   A = list(
     rt = "on_",
@@ -18,22 +25,26 @@ test_methods <- list(
   B = list(
     rt = "ipx_",
     zf = id_changepoint,
-    zfa = list(.var = "Ca43_CPS", .use_up_to_row = 150, .method = "AMOC", .outer = FALSE)
+    zfa = list(.var = "Ca43_CPS", .use_up_to_row = 150, .method = "AMOC",
+               .outer = FALSE)
   ),
   C = list(
     rt = "_opx",
     zf = id_changepoint,
-    zfa = list(.var = "Ca43_CPS", .use_up_to_row = 150, .method = "AMOC", .outer = TRUE)
+    zfa = list(.var = "Ca43_CPS", .use_up_to_row = 150, .method = "AMOC", 
+               .outer = TRUE)
   ),
   D = list(
     rt = "ipx_",
     zf = id_changepoint,
-    zfa = list(.var = "Pb208_CPS", .use_up_to_row = 150, .method = "AMOC", .outer = FALSE)
+    zfa = list(.var = "Pb208_CPS", .use_up_to_row = 150, .method = "AMOC", 
+               .outer = FALSE)
   ),
   E = list(
     rt = "_opx",
     zf = id_changepoint,
-    zfa = list(.var = "Pb208_CPS", .use_up_to_row = 150, .method = "AMOC", .outer = TRUE)
+    zfa = list(.var = "Pb208_CPS", .use_up_to_row = 150, .method = "AMOC",
+               .outer = TRUE)
   ),
   `F` = list(
     rt = "ipx_",
@@ -58,46 +69,43 @@ test_methods <- list(
   J = list(
     rt = "ipx_",
     zf = maxpoint,
-    zfa = list(.var = "ratio", .use_up_to_row = 150, .threshold = function(x) quantile(x, .95), .outer = FALSE)
+    zfa = list(.var = "ratio", .use_up_to_row = 150,
+               .threshold = function(x) quantile(x, .95), .outer = FALSE)
   ),
   K = list(
     rt = "_opx",
     zf = maxpoint,
-    zfa = list(.var = "ratio", .use_up_to_row = 150, .threshold = function(x) quantile(x, .95), .outer = TRUE)
+    zfa = list(.var = "ratio", .use_up_to_row = 150, 
+               .threshold = function(x) quantile(x, .95), .outer = TRUE)
   ),
   L = list(
     rt = "ipx_",
     zf = maxpoint,
-    zfa = list(.var = "Pb208_CPS", .use_up_to_row = 150, .threshold = 1000, .outer = FALSE)
+    zfa = list(.var = "Pb208_CPS", .use_up_to_row = 150, .threshold = 1000,
+               .outer = FALSE)
   ),
   M = list(
     rt = "_opx",
     zf = maxpoint,
-    zfa = list(.var = "Pb208_CPS", .use_up_to_row = 150, .threshold = 1000,  .outer = TRUE)
+    zfa = list(.var = "Pb208_CPS", .use_up_to_row = 150, .threshold = 1000, 
+               .outer = TRUE)
   )
-  # N = list(
-  #   rt = "ipx_",
-  #   zf = id_changepoint,
-  #   zfa = list(.var = "U_ppm_m238", .use_up_to_row = 150, .outer = FALSE)
-  # ),
-  # O = list(
-  #   rt = "_opx",
-  #   zf = id_changepoint,
-  #   zfa = list(.var = "U_ppm_m238", .use_up_to_row = 150, .outer = TRUE)
-  # )
 )
 
 ## Apply all the methods ####
 method_tests <- purrr::map2_dfr(
-  test_methods, names(test_methods), 
-  ~ apply_ref_method(valve_data %>% select(-lod), .x, .y)) %>%
+  .x = test_methods, 
+  .y = names(test_methods), 
+  .f = ~ apply_ref_method(valve_data %>% select(-lod), .x, .y)) %>%
   mutate(idref_method = factor(idref_method))
-
 
 ## Calculate the valve lengths as measured ####
 valve_lengths <- valve_measurements %>%
   group_by(id, transect) %>%
-  filter(sum(grepl("ipx_", layer_transition)) > 0, sum(grepl("opx_", layer_transition)) > 0) %>%
+  filter(
+    sum(grepl("ipx_", layer_transition)) > 0,
+    sum(grepl("opx_", layer_transition)) > 0
+  ) %>%
   summarise(
     on_opx_distance = distance[grepl("_opx", layer_transition)],
     on_ipx_distance = distance[grepl("ipx_", layer_transition)], 
@@ -145,8 +153,6 @@ chem_valve_lengths <- method_tests %>%
   select(idref_grouping, inner_edge_rn, outer_edge_rn,
          idt, auto_detect_valve_length)
 
-
-
 chem_valve_lengths_A <- method_tests %>% 
   filter(idref_method == "A") %>%
   group_by(idref_method, id, transect) %>%
@@ -161,7 +167,6 @@ chem_valve_lengths_A <- method_tests %>%
   select(
     idref_grouping = idref_method, idt, inner_edge_rn, outer_edge_rn
   )
-
 
 chem_valve_lengths <- bind_rows(chem_valve_lengths, chem_valve_lengths_A)
 
@@ -200,7 +205,9 @@ best_method_by_idt <- valve_length_compare %>%
   ) %>%
   select(-which_method)
 
-valve_length_compare <- bind_rows(valve_length_compare, mutate(best_method_by_idt, idref_grouping  = "best"))
+valve_length_compare <- bind_rows(
+  valve_length_compare,
+  mutate(best_method_by_idt, idref_grouping  = "best"))
 
 
 ##  plot differences ####
@@ -229,7 +236,8 @@ best_grouping <- valve_length_compare %>%
     MSE = mean(difference^2, na.rm = TRUE),
     MAD = mean(abs(difference), na.rm = TRUE),
   ) %>%
-  filter(MSE == min(MSE)) %>% pull(idref_grouping)
+  filter(MSE == min(MSE)) %>% 
+  pull(idref_grouping)
 
 ##
 rel_diff_threshold <- 0.02
@@ -244,7 +252,9 @@ inner_edge <- method_tests %>% mutate(idt = paste(id, transect, sep = "_")) %>%
 
 inner_edge_best <- inner_edge %>%
   left_join(
-    valve_length_compare %>% filter(idref_grouping == "best") %>% dplyr::select(idt, best_method),
+    valve_length_compare %>%
+      filter(idref_grouping == "best") %>%
+      dplyr::select(idt, best_method),
     by = "idt"
   ) %>%
   filter(str_detect(best_method, as.character(idref_method))) %>%
@@ -317,7 +327,9 @@ distances <- method_tests %>%
   mutate(idt = paste(id, transect, sep = "_")) %>%
   filter(idref_method  %in% c("A", "B", "D", "F", "H", "J", "L")) %>%
   left_join(
-    valve_length_compare %>% filter(idref_grouping == "best") %>% dplyr::select(idt, best_method),
+    valve_length_compare %>% 
+      filter(idref_grouping == "best") %>% 
+      dplyr::select(idt, best_method),
     by = "idt"
   ) %>%
   filter(str_detect(best_method, as.character(idref_method))) %>%
@@ -330,4 +342,4 @@ valve_data <- valve_data %>%
   select(everything(), distance = data)
 
 
-saveRDS(valve_data, file = 'data/valve_data.rds')
+saveRDS(valve_data, file = outFile)

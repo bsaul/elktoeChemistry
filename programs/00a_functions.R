@@ -1,3 +1,9 @@
+#-----------------------------------------------------------------------------#
+#   Title: Functions used in data processing
+#  Author: B Saul
+#    Date: 2016-03-05
+# Purpose:
+#-----------------------------------------------------------------------------#
 
 ## Data import functions ####
 #' Clean up IDs contained in the raw data

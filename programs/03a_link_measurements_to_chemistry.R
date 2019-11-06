@@ -2,8 +2,17 @@
 #   Title: Link the chemistry data to the valve measurements
 #  Author: B Saul
 #    Date: 2018-10-07
-# Purpose: 
+# Purpose: This script creates a file where the chemistry data created in 
+#          01a_import_valve_chemistry.R and measurements created in 
+#          02_import_valve_measurements.R are linked.
 #-----------------------------------------------------------------------------#
+
+inFile1 <- "data/valve_chemistry.rds"
+inFile2 <- "data/valve_measurements.rds"
+outFile <- "data/valve_data.rds"
+
+valve_chemistry    <- readRDS(inFile1)
+valve_measurements <- readRDS(inFile2)
 
 chem_ids <- unique(paste0(valve_chemistry$id, valve_chemistry$transect))
 meas_ids <- unique(paste0(valve_measurements$id, valve_measurements$transect))
@@ -22,25 +31,29 @@ setdiff(mussels_wide$id, unique(valve_chemistry$id))
 setdiff(unique(valve_chemistry$id), mussels_wide$id) 
 # most (all?) of these are baseline IDs
 
-## Link chemistry & datum measurements ####
-valve_data <- inner_join(
-  valve_chemistry %>%
-    group_by(id, transect) %>%
-    mutate(obs = 1:n()) %>%
-    select(-distance, -contains("CPS")) %>%
-    tidyr::nest(.key = "chemistry"),
-  valve_chemistry %>%
-    group_by(id, transect) %>%
-    mutate(obs = 1:n()) %>%
-    select(id, transect, distance, obs, contains("CPS")) %>%
-    tidyr::nest(.key = "distance"),
-  by = c("id", "transect")) %>%
-  inner_join(
-  valve_measurements %>%
-    # dplyr::select(-drawer) %>%
-    group_by(id, transect) %>%
-    tidyr::nest(.key = "measures"),
-  by = c("id", "transect"))
 
-saveRDS(valve_data, file = 'data/valve_data.rds')
+valve_data <- 
+  inner_join(
+    valve_chemistry %>%
+      group_by(id, transect) %>%
+      mutate(obs = 1:n()) %>%
+      select(-distance, -contains("CPS")) %>%
+      tidyr::nest(.key = "chemistry"),
+    valve_chemistry %>%
+      group_by(id, transect) %>%
+      mutate(obs = 1:n()) %>%
+      select(id, transect, distance, obs, contains("CPS")) %>%
+      tidyr::nest(.key = "distance"),
+    by = c("id", "transect")
+  ) %>%
+  ## Link chemistry & datum measurements ####
+  inner_join(
+    valve_measurements %>%
+      # dplyr::select(-drawer) %>%
+      group_by(id, transect) %>%
+      tidyr::nest(.key = "measures"),
+    by = c("id", "transect")
+  )
+
+saveRDS(valve_data, file = outFile)
 
