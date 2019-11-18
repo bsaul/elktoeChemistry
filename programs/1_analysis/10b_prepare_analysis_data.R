@@ -6,9 +6,10 @@
 #-----------------------------------------------------------------------------#
 library(ggplot2)
 library(dplyr)
-valve_data   <- readRDS("data/valve_data.rds")
-element_info <- readRDS(file = 'data/element_info.rds')
-lod          <- readRDS(file = 'data/lower_detection_limits.rds')
+valve_data   <- readRDS(file = "data/valve_data.rds")
+element_info <- readRDS(file = "data/element_info.rds")
+lod          <- readRDS(file = "data/lower_detection_limits.rds")
+outFile      <- "data/analysis_data.rds"
 
 valve_data %>%
   dplyr::mutate(
@@ -16,8 +17,11 @@ valve_data %>%
     # Apply the lower limit of detection to chemical concentrations
     chemistry       = purrr::map2(chemistry, lod, ~ apply_lod(.x, .y)),
     
-    # Drop censoring variables for now
-    chemistry       = purrr::map(chemistry, ~ dplyr::select(.x, - ends_with("_censor"))),
+    # Drop unneeded variables (e.g. censoring)
+    chemistry       = purrr::map(
+      .x = chemistry, 
+      .f - ~ dplyr::select(.x, - ends_with("_censor"))
+    ),
     
     # Create a filtering function for each valve/transect 
     valve_filterFUN = purrr::map2(
@@ -43,16 +47,21 @@ valve_data %>%
       .x = valve_filterFUN, 
       .f = ~ .x(.layer = "pio",
                 .inner_buffer = 5, .outer_buffer = 5))) %>%
+  
   # Drop the CPS variables
   mutate_at(
     .vars = vars(starts_with("data_")),
     .funs = funs(purrr::map(.x = ., ~ select(.x, -contains("CPS"))))
   ) %>%
+  
   # Transform the distance variable so that distance starts at 0 within each layer
   mutate_at(
     .vars = vars(starts_with("data_")),
-    .funs = funs(purrr::map(.x = ., ~ mutate(.x, distance = distance - min(distance))))
+    .funs = funs(
+      purrr::map(.x = ., .f = ~ mutate(.x, distance = distance - min(distance)))
+    )
   ) %>%
+  
   # Convert the analytic dataset to a long format
   mutate_at(
     .vars = vars(starts_with("data_")),
@@ -71,6 +80,7 @@ valve_data %>%
   group_by(drawer, layer, element) %>%
   tidyr::nest() %>%
   left_join(select(element_info, element, mass), by = "element") %>%
+  
   ## Convert values to mmmol per Ca mol ####
   mutate(
     data = purrr::pmap(
