@@ -15,7 +15,7 @@ inFile2 <- "data/valve_measurements.rds"
 valve_data <- readRDS(inFile1)
 valve_measurements <- readRDS(inFile2)
 
-# The methods to test
+## Specifications for the alignment methods to test ####
 test_methods <- list(
   A = list(
     rt = "on_",
@@ -99,8 +99,9 @@ method_tests <- purrr::map2_dfr(
   .f = ~ apply_ref_method(valve_data %>% select(-lod), .x, .y)) %>%
   mutate(idref_method = factor(idref_method))
 
-## Calculate the valve lengths as measured ####
-valve_lengths <- valve_measurements %>%
+## Calculate the valve lengths as measured "by hand" ####
+valve_lengths <- 
+  valve_measurements %>%
   group_by(id, transect) %>%
   filter(
     sum(grepl("ipx_", layer_transition)) > 0,
@@ -116,11 +117,13 @@ valve_lengths <- valve_measurements %>%
   ) %>% ungroup %>%
   select(idt, valve_length)
 
-## Calculate detected inner/outer edges ####
+##  Detected inner/outer edges and calculate lengths between the two ####
 tm     <- test_methods[2:length(test_methods)]
 tm_lgl <- c(purrr::map_lgl(tm, ~ .x$zfa$.outer))
 
-chem_valve_lengths <- method_tests %>% 
+# lengths using all methods except "A"
+chem_valve_lengths <- 
+  method_tests %>% 
   filter(idref_method != "A") %>%
   group_by(idref_method, id, transect) %>%
   summarise(
@@ -149,17 +152,21 @@ chem_valve_lengths <- method_tests %>%
     valve_obs = outer_edge_rn - inner_edge_rn,
     auto_detect_valve_length = valve_obs * 2.881,
     idt   = paste(id, transect, sep = "_")
-  ) %>% ungroup() %>%
+  ) %>% 
+  ungroup() %>%
   select(idref_grouping, inner_edge_rn, outer_edge_rn,
          idt, auto_detect_valve_length)
 
-chem_valve_lengths_A <- method_tests %>% 
+# lengths using method "A"
+chem_valve_lengths_A <- 
+  method_tests %>% 
   filter(idref_method == "A") %>%
   group_by(idref_method, id, transect) %>%
   summarise(
     outer_edge_rn = min(which(layer == "opx"), na.rm = TRUE),
     inner_edge_rn = max(which(layer == "ipx"), na.rm = TRUE)
-  ) %>%ungroup() %>%
+  ) %>% 
+  ungroup() %>%
   mutate(
     idref_method = as.character(idref_method),
     idt   = paste(id, transect, sep = "_")
@@ -178,10 +185,12 @@ valve_length_compare <- chem_valve_lengths %>%
     rel_diff   = difference/valve_length
   )
 
-best_method_by_idt <- valve_length_compare %>%
+best_method_by_idt <- 
+  valve_length_compare %>%
   filter(idref_grouping != "A", !is.na(rel_diff)) %>%
   left_join(
-    chem_valve_lengths_A %>% select(idt, A_iedge = inner_edge_rn), by = "idt"
+    chem_valve_lengths_A %>% select(idt, A_iedge = inner_edge_rn), 
+    by = "idt"
   ) %>%
   group_by(idt) %>%
   mutate(
@@ -209,8 +218,7 @@ valve_length_compare <- bind_rows(
   valve_length_compare,
   mutate(best_method_by_idt, idref_grouping  = "best"))
 
-
-##  plot differences ####
+## Plot differences ####
 
 ggplot(
   data = valve_length_compare %>% filter(idref_grouping != "A"),
@@ -228,7 +236,8 @@ ggplot(
 
 ## Find grouping with smallest error ####
 
-best_grouping <- valve_length_compare %>%
+best_grouping <- 
+  valve_length_compare %>%
   filter(idref_grouping != "A") %>%
   group_by(idref_grouping) %>%
   summarise(
@@ -323,7 +332,8 @@ ids <- distinct(ungroup(plot_dt), idt) %>% pull(idt)
 
 ## Update valve_data distance with "best" choice ####
 
-distances <- method_tests %>%
+distances <- 
+  method_tests %>%
   mutate(idt = paste(id, transect, sep = "_")) %>%
   filter(idref_method  %in% c("A", "B", "D", "F", "H", "J", "L")) %>%
   left_join(

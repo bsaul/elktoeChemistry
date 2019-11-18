@@ -5,10 +5,15 @@
 # Purpose:
 #-----------------------------------------------------------------------------#
 
-
 data("periodicTable", package = "PeriodicTable")
+inFile  <- "data/valve_data.rds"
+outFile <- "data/element_info.rds"
+valve_data <- readRDS(inFile)
 
-element_info <- left_join(valve_data$chemistry[[1]], valve_data$distance[[1]], by = "obs") %>%
+element_info <- 
+  left_join(valve_data$chemistry[[1]], 
+            valve_data$distance[[1]], 
+            by = "obs") %>%
   select(-ends_with("value_raw"), -ends_with("censor")) %>%
   select(-idt, -idref_method, -best_method) %>%
   create_long_analysis_data() %>%
@@ -19,9 +24,9 @@ element_info <- left_join(valve_data$chemistry[[1]], valve_data$distance[[1]], b
     ) %>%
     left_join(periodicTable %>%
                 dplyr::select(symb, name, group, period, type, mass, color),
-              by = 'symb')
+              by = 'symb') %>%
+  saveRDS(file = outFile)
 
 
-saveRDS(element_info, file = 'data/element_info.rds')
 rm(list = ls())
 

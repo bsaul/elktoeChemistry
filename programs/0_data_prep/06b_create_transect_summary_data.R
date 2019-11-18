@@ -12,6 +12,9 @@
 #    * agrp_first_transect_with_AB: first transect of an id with nacre annuli A AND B
 #-----------------------------------------------------------------------------#
 
+inFile1 <- outFile <- "data/valve_data.rds"
+valve_data <- readRDS(inFile1)
+
 # Find the transect of an id with the longest section of annuli A
 most_A <- valve_data %>%
   select(id, transect, distance) %>%
@@ -26,7 +29,8 @@ most_A <- valve_data %>%
     agrp_transect_most_A = TRUE
   )
 
-valve_data <- valve_data %>%
+valve_data <- 
+  valve_data %>%
   group_by(id) %>%
   mutate(
     agrp_any_A                  = any(A),
@@ -38,16 +42,17 @@ valve_data <- valve_data %>%
       agrp_any_B, transect[min(which(B))], ""),
     agrp_first_transect_with_A  = (transect == firstA_transect),
     agrp_first_transect_with_B  = (transect == firstB_transect),  
-    agrp_first_transect_with_AB = (transect == firstA_transect) & (transect == firstB_transect)
+    agrp_first_transect_with_AB = (transect == firstA_transect) &
+                                  (transect == firstB_transect)
   ) %>% 
   left_join(most_A, by = c("id", "transect")) %>%
   mutate(
-    agrp_transect_most_A = if_else(is.na(agrp_transect_most_A), FALSE, agrp_transect_most_A)
+    agrp_transect_most_A = if_else(is.na(agrp_transect_most_A), 
+                                   FALSE, 
+                                   agrp_transect_most_A)
   ) %>%
   select(-firstA_transect, -firstB_transect)
 
-
-
-saveRDS(valve_data, file = 'data/valve_data.rds')
+saveRDS(valve_data, file = outFile)
 
 

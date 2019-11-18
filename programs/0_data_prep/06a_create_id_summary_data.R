@@ -5,6 +5,9 @@
 # Purpose:
 #-----------------------------------------------------------------------------#
 
+inFile1 <- outFile <- "data/valve_data.rds"
+valve_data <- readRDS(inFile1)
+
 ## Compute age estimate from measured annuli
 n_annuli <-  valve_data %>%
   group_by(id) %>%
@@ -14,9 +17,12 @@ n_annuli <-  valve_data %>%
     n_annuli = rowSums(.[ , 2:ncol(.)])
   )
   
-mussel_info <- valve_data %>% ungroup() %>%
+## Add covariates and outcome variables ####
+mussel_info <- 
+  valve_data %>% 
+  ungroup() %>%
   distinct(id) %>%
-  ## add river, site, info
+  # add river, site, and other info
   left_join(mussels_wide, by = 'id') %>%
   mutate(
     prop_weight_lost = (buoyant_weight_g_1 - buoyant_weight_g_0)/buoyant_weight_g_0,
@@ -31,16 +37,17 @@ mussel_info <- valve_data %>% ungroup() %>%
     moribund      = ifelse(is.na(moribund), 0, moribund),
     dead          = ifelse(river == 'Baseline', 0, dead),
     final_status  = ifelse(dead, 'Dead', ifelse(moribund, 'Moribund', 'Alive')),
-    final_status  = factor(final_status, ordered = TRUE, levels = c('Alive', 'Moribund', 'Dead')),
+    final_status  = factor(final_status, ordered = TRUE, 
+                           levels = c('Alive', 'Moribund', 'Dead')),
     site_num      = as.integer(if_else(site == "Baseline", "1", substr(site, 6, 6)))
   ) %>%
-  dplyr::select(id, site, site_num, river, species, dead, prop_weight_lost, moribund, final_status) %>%
+  dplyr::select(id, site, site_num, river, species, dead,
+                prop_weight_lost, moribund, final_status) %>%
   left_join(n_annuli, by = "id")
 
+valve_data %>%
+  left_join(mussel_info, by = "id") %>%
+  saveRDS(file = outFile)
 
-valve_data <- valve_data %>%
-  left_join(mussel_info, by = "id")
-
-saveRDS(valve_data, file = 'data/valve_data.rds')
 rm(n_annuli)
 

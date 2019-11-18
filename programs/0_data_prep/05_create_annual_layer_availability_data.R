@@ -1,9 +1,12 @@
 #-----------------------------------------------------------------------------#
-#   Title: Create dataset of data availability for annual layers (in nacre)
+#   Title: Add a variable providing availability for annual layers (in nacre)
 #  Author: B Saul
 #    Date: 2018-10-07
 # Purpose:
 #-----------------------------------------------------------------------------#
+
+inFile1 <- outFile <- "data/valve_data.rds"
+valve_data <- readRDS(inFile1)
 
 valve_annual_layer_availability <- valve_data %>%
   select(id, transect, distance) %>%
@@ -16,9 +19,8 @@ valve_annual_layer_availability <- valve_data %>%
     key = annuli, value = n, fill = FALSE
   )
 
-valve_data <- valve_data %>%
-  left_join(valve_annual_layer_availability, by = c("id", "transect"))
-
-saveRDS(valve_data, file = 'data/valve_data.rds')
+valve_data %>%
+  left_join(valve_annual_layer_availability, by = c("id", "transect")) %>%
+  saveRDS(file = outFile)
 
 rm(valve_annual_layer_availability)
