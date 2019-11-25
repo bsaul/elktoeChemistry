@@ -86,7 +86,10 @@ layer_filter_FUN <- function(valve_data, layer){
       select(drawer, id, transect, site, site_num, river, species, dead,
              final_status, n_annuli, analysis_dt) %>%
       mutate(
-        analysis_dt = purrr::map(analysis_dt,  ~.x %>% convert_to_long())) %>%  
+        analysis_dt = purrr::map(
+          .x = analysis_dt,  
+          .f = ~ .x %>% convert_to_long())
+      ) %>%  
       tidyr::unnest() %>%
       mutate(idt = paste(id, transect, sep = "-")) %>%
       dplyr::filter(grepl("ppm", element))

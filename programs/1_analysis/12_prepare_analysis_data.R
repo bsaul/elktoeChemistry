@@ -19,7 +19,7 @@ valve_data %>%
     # Drop unneeded variables (e.g. censoring)
     chemistry       = purrr::map(
       .x = chemistry, 
-      .f - ~ dplyr::select(.x, - ends_with("_censor"))
+      .f = ~ dplyr::select(.x, - ends_with("_censor"))
     ),
     
     # Create a filtering function for each valve/transect 
@@ -45,26 +45,33 @@ valve_data %>%
     data_pio_5_5  = purrr::map(
       .x = valve_filterFUN, 
       .f = ~ .x(.layer = "pio",
-                .inner_buffer = 5, .outer_buffer = 5))) %>%
+                .inner_buffer = 5, .outer_buffer = 5))
+  ) %>%
   
   # Drop the CPS variables
   mutate_at(
     .vars = vars(starts_with("data_")),
-    .funs = funs(purrr::map(.x = ., ~ select(.x, -contains("CPS"))))
+    .funs = list(~ purrr::map(.x = ., ~ select(.x, -contains("CPS"))))
   ) %>%
   
   # Transform the distance variable so that distance starts at 0 within each layer
   mutate_at(
     .vars = vars(starts_with("data_")),
-    .funs = funs(
-      purrr::map(.x = ., .f = ~ mutate(.x, distance = distance - min(distance)))
-    )
+    .funs = list(
+      ~ purrr::map(
+        .x = ., 
+        .f = ~ 
+          mutate(.x, 
+            distance = if (length(distance) >= 1) distance - min(distance) else NA_real_
+          )
+        )
+      )
   ) %>%
   
   # Convert the analytic dataset to a long format
   mutate_at(
     .vars = vars(starts_with("data_")),
-    .funs = funs(purrr::map(., convert_to_long))
+    .funs = list(~purrr::map(., convert_to_long))
   ) %>%
   select(
     id, transect, drawer, river, species, site, site_num, contains("data_")
@@ -96,3 +103,4 @@ valve_data %>%
   analysis_dt
       
 saveRDS(analysis_dt, file = outFile)
+

@@ -17,11 +17,11 @@ analysis_dt %>%
   ) %>%
   group_by(layer_data, element, species, id, transect) %>%
   mutate(d = 1:n()) %>%
-  
   # Must have at least 12 observations
   group_by(id, transect) %>%
   filter(max(d) > 12) %>%
   ungroup() %>%
+
   group_nest(layer_data, element, species, id) %>% 
   mutate(
     id = 1:n()
@@ -90,3 +90,4 @@ hold %>%
   ncr_only
 
 saveRDS(ncr_only, file = outFile2)
+rm(list = ls())
