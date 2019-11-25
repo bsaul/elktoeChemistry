@@ -5,20 +5,12 @@
 #  Purpose:
 #-----------------------------------------------------------------------------#
 
-library(mgcv)
-library(ri2)
-
-source("programs/10a_analysis_functions.R")
-source("programs/10b_prepare_analysis_data.R")
-source("programs/12a_ri_functions.R")
-
-vers <- "V004"
-ANALYSIS_SELECTION <- quo(agrp_transect_most_A)
-OUTPUT_DIRECTORY   <- "figures/12b_ri_gam"
-
-##
-
-hold <- analysis_dt %>%
+analysis_dt <- readRDS(file = "data/analysis_data.rds")
+outFile1 <- "data/ri_gam_all_layers.rds"
+outFile2 <- "data/ri_gam_ncr_only.rds"
+  
+  
+analysis_dt %>%
   right_join(
     filter(valve_data, !! ANALYSIS_SELECTION) %>% select(id, transect),
     by = c("id", "transect")
@@ -52,12 +44,18 @@ hold <- analysis_dt %>%
     dec = purrr::map(data, ~ define_multiarm_cluster_declaration(.x$Z, .x$id)),
     data = purrr::map(
       .x = data,
-      .f = function(x) x %>% group_by(id, transect) %>% mutate(pd = d/n()) %>% ungroup()
+      .f = function(x) { 
+        x %>% 
+          group_by(id, transect) %>%
+          mutate(pd = d/n()) %>% 
+          ungroup()
+      }
     )
-  )
+  ) ->
+  hold
 
 
-out <- hold %>% 
+hold %>% 
   mutate(
     ri = purrr::map2(
       .x = dec, 
@@ -68,13 +66,14 @@ out <- hold %>%
         sims               = 500,
         data               = as.data.frame(.y))),
     p = purrr::map_dbl(ri, ~ tidy(.x)[['p.value']])
-  )
+  ) ->
+  out
 
-saveRDS(out, file = "data/ri_gam_all_layers.rds")
+saveRDS(out, file = outFile1)
 
 ## 
 
-ncr_only <- hold %>%
+hold %>%
   filter(layer_data == "data_ncr_5_5") %>%
   # filter(species == "A. raveneliana") %>%
   mutate(
@@ -87,41 +86,7 @@ ncr_only <- hold %>%
         sims               = 1000,
         data               = .y)),
     p = purrr::map_dbl(ri, ~ tidy(.x)[['p.value']])
-  )
+  ) -> 
+  ncr_only
 
-saveRDS(ncr_only, file = "ri_gam_ncr_only.rds")
-
-## Plotting it ####
-
-p <- out %>% 
-  select(layer_data, element, species, p) %>%
-  ggplot(
-    data = .,
-    aes(x = element, y = -log10(p), color = species )
-  ) + 
-  geom_hline(
-    yintercept = c(0)
-  ) + 
-  geom_hline(
-    yintercept = c(-log10(0.05), 1, 2, 3), color = "grey50", linetype = "dotted"
-  ) + 
-  geom_point(shape = 1) +
-  geom_text(
-    data = out %>% filter(p < 0.05),
-    aes(label = substr(element, 1, 2)),
-    nudge_x = 1,
-    size = 2) + 
-  facet_wrap(~layer_data) +
-  theme_classic() +
-  theme(
-    axis.text.x = element_text(angle =90, size = 10)
-  )
-p
-
-ggsave(
-  file = sprintf("figures/11a3_pvals_%s.pdf", vers),
-  p, width = 8, height = 4
-)
-
-
-
+saveRDS(ncr_only, file = outFile2)

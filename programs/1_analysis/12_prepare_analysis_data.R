@@ -1,11 +1,10 @@
 #-----------------------------------------------------------------------------#
 #   Title: Analysis functions
 #  Author: B Saul
-#    Date: 2018-12-28
+#    Date: 20181228
 # Purpose: Functions for analyzing valve data
 #-----------------------------------------------------------------------------#
-library(ggplot2)
-library(dplyr)
+
 valve_data   <- readRDS(file = "data/valve_data.rds")
 element_info <- readRDS(file = "data/element_info.rds")
 lod          <- readRDS(file = "data/lower_detection_limits.rds")
@@ -96,3 +95,4 @@ valve_data %>%
   tidyr::unnest() ->
   analysis_dt
       
+saveRDS(analysis_dt, file = outFile)
