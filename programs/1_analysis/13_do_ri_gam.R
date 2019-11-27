@@ -6,17 +6,33 @@
 #-----------------------------------------------------------------------------#
 
 analysis_dt <- readRDS(file = "data/analysis_data.rds")
-outFile1 <- "data/ri_gam_all_layers.rds"
-outFile2 <- "data/ri_gam_ncr_only.rds"
-  
-  
+valve_dt    <- readRDS(file = "data/valve_data.rds")
+
+ANALYSIS_CONFIG <- list(
+  list(
+    filtration = quo(TRUE), # no filter
+    test_stat  = gam_ts,
+    nsims      = 10,
+    outFile    = "data/ri_gam_all_layers.rds"
+  ),
+  list(
+    filtration = quo(layer_data == "data_ncr_5_5"),
+    test_stat  = gam_ts_ncr,
+    nsims      = 10,
+    outFile    = "data/ri_gam_ncr_only.rds"
+  )
+)
+
 analysis_dt %>%
+  
+  # Filter to those IDs in the ANALYSIS_SELECTION
   right_join(
-    filter(valve_data, !! ANALYSIS_SELECTION) %>% select(id, transect),
+    filter(valve_dt, !! ANALYSIS_SELECTION) %>% select(id, transect),
     by = c("id", "transect")
   ) %>%
   group_by(layer_data, element, species, id, transect) %>%
   mutate(d = 1:n()) %>%
+  
   # Must have at least 12 observations
   group_by(id, transect) %>%
   filter(max(d) > 12) %>%
@@ -38,7 +54,9 @@ analysis_dt %>%
       site == "LiTN 3"   ~ "T7"
     ))
   ) %>%
-  group_by(layer_data, element, species) %>%
+  
+  # Prepare to carry out inference within species, element, layer
+  group_by(species, element, layer_data) %>%
   tidyr::nest() %>%
   mutate(
     dec = purrr::map(data, ~ define_multiarm_cluster_declaration(.x$Z, .x$id)),
@@ -52,42 +70,19 @@ analysis_dt %>%
       }
     )
   ) ->
-  hold
+  prepared_for_ri
 
 
-hold %>% 
-  mutate(
-    ri = purrr::map2(
-      .x = dec, 
-      .y = data,
-      .f =  ~ conduct_ri(
-        declaration        = .x,
-        test_function      = gam_ts, 
-        sims               = 500,
-        data               = as.data.frame(.y))),
-    p = purrr::map_dbl(ri, ~ tidy(.x)[['p.value']])
-  ) ->
-  out
+## perform inference for each setting in analysis config
+purrr::walk(
+  .x = ANALYSIS_CONFIG,
+  .f = function(x) {
+    prepared_for_ri %>% 
+      filter(!! x$filtration) %>%
+      carryout_inference(x$test_stat, x$nsims) %>%
+      saveRDS(x$outFile)
+  }
+)
 
-saveRDS(out, file = outFile1)
-
-## 
-
-hold %>%
-  filter(layer_data == "data_ncr_5_5") %>%
-  # filter(species == "A. raveneliana") %>%
-  mutate(
-    ri = purrr::map2(
-      .x = dec, 
-      .y = data,
-      .f =  ~ conduct_ri(
-        declaration        = .x,
-        test_function      = gam_ts_ncr, 
-        sims               = 1000,
-        data               = .y)),
-    p = purrr::map_dbl(ri, ~ tidy(.x)[['p.value']])
-  ) -> 
-  ncr_only
-
-saveRDS(ncr_only, file = outFile2)
+# Clean up
 rm(list = ls())

@@ -4,7 +4,6 @@
 #    Date: 20191125
 # Purpose: Script that carries out the analyses
 # 
-# TODO: * parameterize number of sims
 #-----------------------------------------------------------------------------#
 
 library(dplyr)
@@ -16,3 +15,4 @@ source("programs/1_analysis/12_prepare_analysis_data.R")
 source("programs/1_analysis/13_do_ri_gam.R")
 
 ANALYSIS_SELECTION <- quo(agrp_transect_most_A)
+# ANALYSIS_CONFIG is set in 13_do_ri_gam.R
