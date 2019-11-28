@@ -12,17 +12,18 @@ ANALYSIS_CONFIG <- list(
   list(
     filtration = quo(TRUE), # no filter
     test_stat  = gam_ts,
-    nsims      = 10,
+    nsims      = 1000,
     outFile    = "data/ri_gam_all_layers.rds"
   ),
   list(
     filtration = quo(layer_data == "data_ncr_5_5"),
     test_stat  = gam_ts_ncr,
-    nsims      = 10,
+    nsims      = 1000,
     outFile    = "data/ri_gam_ncr_only.rds"
   )
 )
 
+## Prepare data for carrying out inference
 analysis_dt %>%
   
   # Filter to those IDs in the ANALYSIS_SELECTION
@@ -73,7 +74,7 @@ analysis_dt %>%
   prepared_for_ri
 
 
-## perform inference for each setting in analysis config
+# Perform inference for each setting in analysis config
 purrr::walk(
   .x = ANALYSIS_CONFIG,
   .f = function(x) {
