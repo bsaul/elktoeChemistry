@@ -8,52 +8,26 @@
 library(ggplot2)
 library(dplyr)
 library(mgcv)
-source("programs/10a_analysis_functions.R")
-source("programs/10b_prepare_analysis_data.R")
+# source("programs/10a_analysis_functions.R")
+# source("programs/10b_prepare_analysis_data.R")
 
-load("data/mussels_wide.rds")
+analysis_dt <- readRDS("data/analysis_data.rds")
+# valve_dt    <- readRDS("data/valve_data.rds")
+# load("data/mussels_wide.rds")
 
-ANALYSIS_SELECTION <- quo(agrp_transect_most_A)
 OUTPUT_DIRECTORY   <- "figures/nawla_poster_figure"
 
+ff <- log(value) ~ s(d, bs = "ts") + d*I(annuli == "A")*Z + pd*Z + s(pd, bs = "ts") + s(id, bs = "re")
+
+hold <-
 analysis_dt %>%
-  right_join(
-    filter(valve_data, !! ANALYSIS_SELECTION) %>% select(id, transect),
-    by = c("id", "transect")
-  ) %>%
-  group_by(layer_data, element, species, id, transect) %>%
-  mutate(d = 1:n()) %>%
-  # Must have at least 12 observations
-  group_by(id, transect) %>%
-  filter(max(d) > 12) %>%
-  ungroup() %>%
-  group_nest(layer_data, element, species, id, transect) %>% 
   mutate(
-    id = 1:n()
-  ) %>%
-  tidyr::unnest() %>%
-  mutate(
-    Z = factor(case_when(
-      site == "Baseline" ~ "T1",
-      site == "Tuck 1"   ~ "T2",
-      site == "Tuck 2"   ~ "T3",
-      site == "Tuck 3"   ~ "T4",
-      site == "LiTN 1"   ~ "T5",
-      site == "LiTN 2"   ~ "T6",
-      site == "LiTN 3"   ~ "T7"
-    ))
-  ) %>%
-  group_by(layer_data, element, species) %>%
-  tidyr::nest() %>%
-  mutate(
-    data = purrr::map(
+    data = purrr::map(data, as.data.frame),
+    fit  = purrr::map(
       .x = data,
-      .f = function(x) x %>% 
-        group_by(id, transect) %>% 
-        mutate(pd = d/n()) %>% 
-        ungroup()
+      .f = ~ gam(ff, data = .x)
     )
-  ) -> hold1
+  ) 
 
 hold2 <- hold1 %>%
   filter(element == "Mn_ppm_m55", layer_data == "data_ncr_5_5")
@@ -62,7 +36,7 @@ arav_dt <- as.data.frame(hold2$data[[1]])
 lfas_dt <- as.data.frame(hold2$data[[2]])
 
 ff <- log(value) ~ s(d, bs = "cr") + d*Z*Z + s(pd, bs = "ts") + s(id, bs = "re")
-
+ff <- log(value) ~ s(d, bs = "ts") + d*I(annuli == "A")*Z + pd*Z + s(pd, bs = "ts") + s(id, bs = "re")
 # ff <- log(value) ~ s(d, bs = "ts") + d:I(annuli == "A") + s(pd, bs = "ts") + s(id, bs = "re")
 m_arav <- gam(ff, data = arav_dt)
 m_lfas <- gam(ff, data = lfas_dt)
@@ -145,7 +119,7 @@ plotdt %>%
       sprintf("%s (%.2f)", site, pdead))
   ) ->
   plot_labs
-  
+
 
 p <- ggplot(
   data = plotdt,

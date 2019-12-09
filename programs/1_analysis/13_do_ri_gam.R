@@ -25,51 +25,8 @@ ANALYSIS_CONFIG <- list(
 
 ## Prepare data for carrying out inference
 analysis_dt %>%
-  
-  # Filter to those IDs in the ANALYSIS_SELECTION
-  right_join(
-    filter(valve_dt, !! ANALYSIS_SELECTION) %>% select(id, transect),
-    by = c("id", "transect")
-  ) %>%
-  group_by(layer_data, element, species, id, transect) %>%
-  mutate(d = 1:n()) %>%
-  
-  # Must have at least 12 observations
-  group_by(id, transect) %>%
-  filter(max(d) > 12) %>%
-  ungroup() %>%
-
-  group_nest(layer_data, element, species, id) %>% 
   mutate(
-    id = 1:n()
-  ) %>%
-  tidyr::unnest() %>%
-  mutate(
-    Z = factor(case_when(
-      site == "Baseline" ~ "T1",
-      site == "Tuck 1"   ~ "T2",
-      site == "Tuck 2"   ~ "T3",
-      site == "Tuck 3"   ~ "T4",
-      site == "LiTN 1"   ~ "T5",
-      site == "LiTN 2"   ~ "T6",
-      site == "LiTN 3"   ~ "T7"
-    ))
-  ) %>%
-  
-  # Prepare to carry out inference within species, element, layer
-  group_by(species, element, layer_data) %>%
-  tidyr::nest() %>%
-  mutate(
-    dec = purrr::map(data, ~ define_multiarm_cluster_declaration(.x$Z, .x$id)),
-    data = purrr::map(
-      .x = data,
-      .f = function(x) { 
-        x %>% 
-          group_by(id, transect) %>%
-          mutate(pd = d/n()) %>% 
-          ungroup()
-      }
-    )
+    dec = purrr::map(data, ~ define_multiarm_cluster_declaration(.x$Z, .x$id))
   ) ->
   prepared_for_ri
 

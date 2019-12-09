@@ -1,9 +1,8 @@
 #-----------------------------------------------------------------------------#
-#   Title: Carry out analysis
+#   Title: Plot results of inference
 #  Author: B Saul
 #    Date: 20191125
-# Purpose: Script that carries out the analyses
-# 
+# Purpose: 
 #-----------------------------------------------------------------------------#
 
 library(ggplot2)
@@ -61,6 +60,7 @@ plot_dt %>%
   ) ->
   p
 p
+
 ggsave(
   file = outFile,
   p, width = 6, height = 4
