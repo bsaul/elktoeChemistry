@@ -19,15 +19,68 @@ OUTPUT_DIRECTORY   <- "figures/nawla_poster_figure"
 
 ff <- log(value) ~ s(d, bs = "ts") + d*I(annuli == "A")*Z + pd*Z + s(pd, bs = "ts") + s(id, bs = "re")
 
+set.seed(123)
+
+arav_newDataBasis <- tibble::tibble(
+  d      = 1:200, 
+  pd     = d/max(d),
+  annuli = as.character(cut(pd, c(-Inf, 0.33, 0.66, Inf),
+                            labels = LETTERS[1:3])))
+
+lfas_newDataBasis <- tibble::tibble(
+  d      = 1:100, 
+  pd     = d/max(d),
+  annuli = as.character(cut(pd, c(-Inf, 0.4, Inf),
+                            labels = LETTERS[1:2])))
+
 hold <-
 analysis_dt %>%
+  filter(layer_data == "data_ncr_5_5") %>%
   mutate(
     data = purrr::map(data, as.data.frame),
     fit  = purrr::map(
       .x = data,
       .f = ~ gam(ff, data = .x)
     )
-  ) 
+  ) %>%
+  mutate(
+    example_id = purrr::map(
+      .x = data,
+      .f = ~ .x %>%
+        distinct(id, river, site, site_num, Z) %>%
+        group_by(river, site, site_num, Z) %>%
+        sample_n(1) %>%
+        group_by(id) %>%
+        group_split() 
+    )
+  )  %>%
+  # filter(species == "A. raveneliana") %>%
+  mutate(
+    basis    = if_else(
+      species == "A. raveneliana",
+      list(arav_newDataBasis),
+      list(lfas_newDataBasis)
+    ),
+    basis_dt = purrr::map(
+      .x = example_id,
+      .y = basis,
+      .f = ~ purrr::map_dfr(.x, ~ cbind(basis, .x))
+    ),
+    plot_dt = purrr::map2(
+      .x = basis_dt,
+      .y = fit,
+      .f = ~ .x %>% mutate(yhat = predict(.y, newdata = .))
+    )
+  ) %>%
+  select(-basis, -basis_dt) 
+
+
+
+hold
+
+
+
+### older stuff >>>
 
 hold2 <- hold1 %>%
   filter(element == "Mn_ppm_m55", layer_data == "data_ncr_5_5")
@@ -50,7 +103,7 @@ arav_newDataBasis <- tibble::tibble(
                             labels = LETTERS[1:3])))
 
 arav_plotdt <- arav_dt %>%
-  distinct(id, river, site,site_num, Z) %>%
+  distinct(id, river, site, site_num, Z) %>%
   group_by(river, site, site_num, Z) %>%
   sample_n(1) %>%
   group_by(id) %>%
