@@ -8,23 +8,70 @@
 analysis_dt <- readRDS(file = "data/analysis_data.rds")
 valve_dt    <- readRDS(file = "data/valve_data.rds")
 
+NSIMS <- 1000
+
 ANALYSIS_CONFIG <- list(
+  # Any site different within any layer?
   list(
     filtration = quo(TRUE), # no filter
-    test_stat  = gam_ts,
-    nsims      = 1000,
+    test_stat  = make_gam_ts(m1_rhs = ~ s(d, bs = "ts") + d:Z + s(id, bs = "re"),
+                             m2_rhs = ~ s(d, bs = "ts") + s(id, bs = "re")),
+    nsims      = NSIMS,
     outFile    = "data/ri_gam_all_layers.rds"
   ),
+  
+  # Any site different in nacre?
   list(
     filtration = quo(layer_data == "data_ncr_5_5"),
-    test_stat  = gam_ts_ncr,
-    nsims      = 1000,
-    outFile    = "data/ri_gam_ncr_only.rds"
+    test_stat  = make_gam_ts(
+      m1_rhs = ~ s(d, bs = "ts") + d*I(annuli == "A")*Z + pd*Z + s(pd, bs = "ts") + s(id, bs = "re"),
+      m2_rhs = ~ s(d, bs = "ts") + d*I(annuli == "A") + pd   + s(pd, bs = "ts") + s(id, bs = "re")
+    ),
+    nsims      = NSIMS,
+    outFile    = "data/ri_anysite_gam_ncr_5_5.rds"
+  ),
+  
+  # Any site different from baseline in nacre?
+  list(
+    filtration = quo(layer_data == "data_ncr_5_5"),
+    test_stat  = make_gam_ts(
+      m1_rhs = ~ s(d, bs = "ts") + d*I(annuli == "A")*I(Z == "T1") + pd*I(Z == "T1") + s(pd, bs = "ts") + s(id, bs = "re"),
+      m2_rhs = ~ s(d, bs = "ts") + d*I(annuli == "A") + pd   + s(pd, bs = "ts") + s(id, bs = "re")
+    ),
+    nsims      = NSIMS,
+    outFile    = "data/ri_baseline_gam_ncr_5_5.rds"
+  ),
+  
+  # Any site different (excluding baseline) in nacre?
+  list(
+    filtration = quo(layer_data == "data_ncr_5_5_nobaseline"),
+    test_stat  = make_gam_ts(
+      m1_rhs = ~ s(d, bs = "ts") + d*I(annuli == "A")*Z + pd*Z + s(pd, bs = "ts") + s(id, bs = "re"),
+      m2_rhs = ~ s(d, bs = "ts") + d*I(annuli == "A") + pd + s(pd, bs = "ts") + s(id, bs = "re")
+    ),
+    nsims      = NSIMS,
+    outFile    = "data/ri_anysite_gam_ncr_5_5_nobaseline.rds"
   )
 )
 
 ## Prepare data for carrying out inference
 analysis_dt %>%
+  {
+    dt <- .
+    dt %>%
+      filter(layer_data == "data_ncr_5_5") %>%
+      ungroup() %>%
+      mutate(
+        layer_data = "data_ncr_5_5_nobaseline",
+        data = purrr::map(
+          .x = data, 
+          .f =~ filter(.x, Z != "T1") %>%
+            # remove T1 level
+            mutate(Z = factor(Z))
+        ) 
+      ) %>%
+      bind_rows(dt)
+  } %>%
   mutate(
     dec = purrr::map(data, ~ define_multiarm_cluster_declaration(.x$Z, .x$id))
   ) ->

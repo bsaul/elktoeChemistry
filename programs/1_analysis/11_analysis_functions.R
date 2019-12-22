@@ -179,17 +179,32 @@ define_multiarm_cluster_declaration <- function(Z, id){
 ks_test_stat  <- function(data) ks.test(data[data$Z == 0, "Y", drop = TRUE], data[data$Z == 1, "Y", drop = TRUE])$statistic
 med_test_stat <- function(data) median(data[data$Z == 0, "Y", drop = TRUE]) - median(data[data$Z == 1, "Y", drop = TRUE])
 
-gam_ts <- function(data){
-  x <- gam(log(value) ~ s(d, bs = "ts") + d:Z + s(id, bs = "re"), data = data)
-  y <- gam(log(value) ~ s(d, bs = "ts") + s(id, bs = "re"), data = data)
-  anova(x, y)[["Deviance"]][2]
+make_gam_ts <- function(m1_rhs, m2_rhs){
+  
+  fptype <- log(value) ~ .
+  f1 <- update(fptype, new = m1_rhs)
+  f2 <- update(fptype, new = m2_rhs)
+  
+  function(data){
+    dt <- as.data.frame(data)
+    m1 <- gam(f1, data = dt)
+    m2 <- gam(f2, data = dt)
+    
+    anova(m1, m2)[["Deviance"]][2]
+  }
 }
 
-gam_ts_ncr <- function(data){
-  x <- gam(log(value) ~ s(d, bs = "ts") + d*I(annuli == "A")*Z + pd*Z + s(pd, bs = "ts") + s(id, bs = "re"), data = as.data.frame(data))
-  y <- gam(log(value) ~ s(d, bs = "ts") + d*I(annuli == "A")   + pd   + s(pd, bs = "ts") + s(id, bs = "re"), data = as.data.frame(data))
-  anova(x, y)[["Deviance"]][2]
-}
+# gam_ts <- function(data){
+#   x <- gam(log(value) ~ s(d, bs = "ts") + d:Z + s(id, bs = "re"), data = data)
+#   y <- gam(log(value) ~ s(d, bs = "ts") + s(id, bs = "re"), data = data)
+#   anova(x, y)[["Deviance"]][2]
+# }
+# 
+# gam_ts_ncr <- function(data){
+#   x <- gam(log(value) ~ s(d, bs = "ts") + d*I(annuli == "A")*Z + pd*Z + s(pd, bs = "ts") + s(id, bs = "re"), data = as.data.frame(data))
+#   y <- gam(log(value) ~ s(d, bs = "ts") + d*I(annuli == "A")   + pd   + s(pd, bs = "ts") + s(id, bs = "re"), data = as.data.frame(data))
+#   anova(x, y)[["Deviance"]][2]
+# }
 
 ## Conducting inference ###
 conduct_inference <- function(data, dec, Zmat){
@@ -244,7 +259,8 @@ do_inference <- function(dt, dd, zz){
 }
 
 create_hypothesis_data <- function(data, fq = NULL, q, nm){
-  data %>% filter(!!! fq) %>%
+  data %>% 
+    filter(!!! fq) %>%
     ungroup() %>%
     mutate(
       Z = !! q
