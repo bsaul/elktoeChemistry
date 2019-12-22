@@ -1,7 +1,7 @@
 #-----------------------------------------------------------------------------#
 #    Title: Conduct infernce on GAM model 
 #   Author: B Saul
-#     Date: 20180324
+#     Date: 20190324
 #  Purpose:
 #-----------------------------------------------------------------------------#
 
@@ -65,9 +65,20 @@ analysis_dt %>%
         layer_data = "data_ncr_5_5_nobaseline",
         data = purrr::map(
           .x = data, 
-          .f =~ filter(.x, Z != "T1") %>%
+          .f = ~ 
             # remove T1 level
-            mutate(Z = factor(Z))
+            filter(.x, Z != "T1") %>%
+            # update factor levels
+            mutate(
+              Z = factor(case_when(
+                site == "Tuck 1"   ~ "T1",
+                site == "Tuck 2"   ~ "T2",
+                site == "Tuck 3"   ~ "T3",
+                site == "LiTN 1"   ~ "T4",
+                site == "LiTN 2"   ~ "T5",
+                site == "LiTN 3"   ~ "T6"
+              ))
+            )
         ) 
       ) %>%
       bind_rows(dt)

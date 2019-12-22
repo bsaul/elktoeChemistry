@@ -189,7 +189,7 @@ make_gam_ts <- function(m1_rhs, m2_rhs){
     dt <- as.data.frame(data)
     m1 <- gam(f1, data = dt)
     m2 <- gam(f2, data = dt)
-    
+    # browser()
     anova(m1, m2)[["Deviance"]][2]
   }
 }
@@ -280,6 +280,7 @@ create_hypothesis_data <- function(data, fq = NULL, q, nm){
 #' @param nsims the number of randomization samples to draw
 
 carryout_inference <- function(analysis_data, test_stat, nsims){
+  
   analysis_data %>%
     mutate(
       ri = purrr::map2(
