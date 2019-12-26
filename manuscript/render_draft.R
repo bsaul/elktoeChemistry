@@ -1,4 +1,4 @@
-vers <- 'v012'
+vers <- 'v013'
 dir <- 'manuscript/'
 rmarkdown::render(
   input       = paste0(dir, 'elktoe_shells.Rmd'),

@@ -56,7 +56,7 @@ Analyses were conducted at the University of Texas at Austin using an ESI New Wa
 
 ## Chemical/Anatomical Alignment
 
-[ADD DESCRIPTION OF MEASURING ANATOMY]
+Review and annotation of high resolution cross section images was performed using Adobe Illustrator (Adobe Inc, San Jose CA). Annotations of the initial shell/epoxy boundary, annuli, nacre/prismatic layer boundary and terminal shell/epoxy boundary were made within Adobe Illustrator. Annuli were identified as any linear growth feature which could be traced from its origin in the umbo to its emergence through the prismatic and periostracum layers. Non-continuous linear features along the transect were not annotated and assumed to be “false annuli” caused by environmental disturbances [@veinott1996identification]. 
 
 To align anatomical features with chemistry data, several methods were used to identify valve edges within the chemistry data based on algorithmic detection in mean and variance [@killick2014changepoint; @killick2016changepoint] or the minimum (or maximum) [@borchers2018pracma] of Ca43_CPS, Pb208_CPS, or the ratio of the two. The difference of the distance between these detected edges and the distance between the valves edges measured from high resolution scans was then computed. For each valve, the method that minimized this distance was then used to register the anatomy in the chemical data.
 
@@ -70,13 +70,21 @@ knitr::include_graphics(here::here("manuscript", "figures", "figure_alignment.pd
 
 ## Statistical Analyses
 
-For each element, we tested the hypothesis that $\text{log}(\text{mol/Ca mmol})$ trajectories within the nacre did not differ between any of the sites. Inference was drawn using the randomization distribution and a test statistic of the deviance between two nested Generalized Additive Mixed Models (GAMM): one including terms for experimental sites and one without.
+* Describe morbidity and mortality summary stats
+
+* clustered within each specimen
+* used one transect per specimen: the one with the most of annuli A
+
+In order to test for differential accrual of each element within the nacre, we conducted a series of hypothesis tests described in Table XXXX. In each case, we tested the sharp null hypothesis that each specimen would have developed the same elemental trajectory in terms of $\text{log}(\text{mol/Ca mmol})$ regardless of the experimental site to which it was assigned. Since the allocation to site was completely randomized, inference was drawn using 1000 draws from the randomization distribution, using the `ri2` R package [@coppock2019ri2; @rcore2019]. The method can be summarized as follows: (1) compute the observed test statistic ($t_{obs}$) using the observed allocation, (2) permute the allocation by assigning specimens to different sites and re-compute the test statistic, (3) repeat (2) $m = 1000$ times. The two-sided p-value is the proportion of times $t_{obs}$ is greater than or equal to the test statistic distribution.
+
+We used a test statistic of the deviance between two nested Generalized Additive Mixed Models (GAMM) [@wood2017gam]. The models were designed to be flexible and account for individual variation as well as the variation in transect lengths with terms for both absolute and relative distance along the transect. The restricted (null) model did not include terms experimental site, while the unrestricted model did.
+
 
 # Results
 
 ## Morbidity and Mortality
 
-Morbidity and mortality in *A. raveneliana* varied significantly across sites (Figure \@ref(fig:mortality). In the Little Tennessee, all but three specimens lost weight or died, whereas in Tuckaseegee Site 1 no individuals died and few lost weight. In both rivers, outcomes worsened downstream for *A. raveneliana*. Mortality increased monotonically down the river gradient, and the median relative weight loss also tended to increase. In constrast to *A. raveneliana*, none of the *L. fasciola* died and all gained weight.
+Morbidity and mortality in *A. raveneliana* varied significantly across sites (Figure \@ref(fig:mortality)). In the Little Tennessee, all but three specimens lost weight or died, whereas in Tuckaseegee Site 1 no individuals died and few lost weight. In both rivers, outcomes worsened downstream for *A. raveneliana*. Mortality increased monotonically down the river gradient, and the median relative weight loss also tended to increase. In constrast to *A. raveneliana*, none of the *L. fasciola* died and all gained weight.
 
 ```{r mortality, echo = FALSE, fig.cap= "TODO"}
 knitr::include_graphics(here::here("manuscript", "figures", "mussel_outcomes_v000.pdf"))
@@ -84,7 +92,13 @@ knitr::include_graphics(here::here("manuscript", "figures", "mussel_outcomes_v00
 
 ## Trace element accrual
 
-Figure \ref{} displays p-values for tests that each trace element's trajectory within the nacre differs in at least one experimental site by species. Trajectories of Mn in *A. raveneliana* differ in at least one  site (p = 0.002). Visual examination of the predicted values from a GAMM model show systematically higher levels in the region of most recent growth in Little Tennessee specimens (Figure \ref{}). Results for the comparatively younger L. fasciola specimens show a similar though not as obvious pattern (p = 0.054). 
+Figure \@ref(fig:accrualPvals) displays p-values for each hypothesis test described in Table XXX. In *A. raveneliana*, Manganese shows the most evidence for the differences between sites among the elements. The baseline specimens do not appear different from the experimental specimens in terms of their Manganese trajectories (p = XXXX). Figure \@ref(fig:accrualPvals)B suggests that at least one experimental site is different from the others in terms of its Mn trajectories.
+
+In *L. fasciola*, Strontium and Barium have the most evidence for differences. However, small p-value in Strontium appears to be driven by a difference between the baseline specimens and the specimens in experimental sites. This is in constrast to Barium, where the difference appears to be driven by difference among the experimental sites.
+
+```{r accrualPvals, echo = FALSE, fig.cap= "TODO"}
+knitr::include_graphics(here::here("figures", "ri_gam_ncr_pvals_v006.pdf"))
+```
 
 # Discussion
 
