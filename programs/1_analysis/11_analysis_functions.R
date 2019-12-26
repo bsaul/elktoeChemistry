@@ -189,7 +189,6 @@ make_gam_ts <- function(m1_rhs, m2_rhs){
     dt <- as.data.frame(data)
     m1 <- gam(f1, data = dt)
     m2 <- gam(f2, data = dt)
-    # browser()
     anova(m1, m2)[["Deviance"]][2]
   }
 }

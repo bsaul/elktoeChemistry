@@ -14,8 +14,10 @@ ANALYSIS_CONFIG <- list(
   # Any site different within any layer?
   list(
     filtration = quo(TRUE), # no filter
-    test_stat  = make_gam_ts(m1_rhs = ~ s(d, bs = "ts") + d:Z + s(id, bs = "re"),
-                             m2_rhs = ~ s(d, bs = "ts") + s(id, bs = "re")),
+    test_stat  = make_gam_ts(
+      m1_rhs = ~ s(d, bs = "ts") + d:Z + s(id, bs = "re"),
+      m2_rhs = ~ s(d, bs = "ts") + s(id, bs = "re")
+    ),
     nsims      = NSIMS,
     outFile    = "data/ri_gam_all_layers.rds"
   ),
@@ -31,7 +33,7 @@ ANALYSIS_CONFIG <- list(
     outFile    = "data/ri_anysite_gam_ncr_5_5.rds"
   ),
   
-  # Any site different from baseline in nacre?
+  # Baseline different from other sites in nacre?
   list(
     filtration = quo(layer_data == "data_ncr_5_5"),
     test_stat  = make_gam_ts(
