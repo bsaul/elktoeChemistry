@@ -30,15 +30,17 @@ After major hurricane-related flooding in 2004, the population of Federally enda
 
 Similar to tree rings, bivalve shells archive some aspects of their environmental history and have been used as bioindicators of pollution [@markich2002freshwater; @brown2005freshwater; @shoults2014resolution]. Exposure to certain heavy metals have been shown to increase morbidity and mortality in freshwater bivalves [@naimo1995a-review]. @miller2013concentrations evaluated sediment concentrations of Cu, Cr, Ni, and Zn in the Little Tennessee and Tuckasegee. When considered with the chemical concentrations of *A. raveneliana* shells measured by @jarvis2011water, they found these elements (Cu in particular) unlikely to be the primary culprit in the *A. raveneliana* decline.
 
-In this paper, we ask whether and to what degree the exposure to the experimental sites modified the accretion of twenty trace elements in specimens’ valves. We demonstrate how chemical trajectories obtained by laser ablation inductively coupled plasma mass spectrometry (LA-ICP-MS) [@pozebon2014review] can be aligned with anatomical features of the valves, thus making comparisons of specific valve layers and time periods possible. We hypothesized that trajectories in the nacral growth that accumulated during the experiment for some elements may be associated with the experimental sites. The assignment to sites was completely randomized, hence we use the randomization distribution [@coppock2019ri2] to draw inference from generalized additive mixed models [@wood2017gam] of the elemental trajectories. 
+In this paper, we ask whether and to what degree the exposure to the experimental sites modified the accretion of twenty trace elements in specimens’ valves. We demonstrate how chemical trajectories obtained by laser ablation inductively coupled plasma mass spectrometry (LA-ICP-MS) transects [@pozebon2014review] can be aligned with anatomical features of the valves, thus making comparisons of specific valve layers and time periods possible. We hypothesized that trajectories in the nacral growth that accumulated during the experiment for some elements would be associated with the experimental sites. The assignment to sites was completely randomized, hence we use the randomization distribution [@coppock2019ri2] to draw inference from generalized additive mixed models [@wood2017gam] of the elemental trajectories. 
 
-The paper is organized as follows. Section \ref{materials-and-methods} outlines the experimental design, data collection, anatomy/chemical alignment procedurew, and the statistical methods. Results are presented in Section \ref{results}. In Section \ref{discussion}, we discuss the implications of our results, hypothesize on causes of the *A. raveneliana*, and suggest future research. Data and code are available at the study website (ADD LINK). 
+TODO: one more paragraph with contributions of this paper
+
+The paper is organized as follows. Section \ref{materials-and-methods} outlines the experimental design, data collection, anatomy/chemical alignment procedures, and the statistical methods. Results are presented in Section \ref{results}. In Section \ref{discussion}, we discuss the implications of our results, hypothesize on causes of the *A. raveneliana* decline, and suggest future research. Data and code are available at the study website (TODO: ADD LINK). 
 
 # Materials and methods
 
 ## Study Specimens
 
-Eighty-two *A. raveneliana* specimens were drawn from the Tuckasegee river. Ten were killed for baseline comparisons, and the remaining 72 were randomly assigned to 6 experimental sites (3 on each river) \@ref(fig:studyMap). The same number of *L. faciola* specimens were taken from the NC Wildlife Resources' Marian hatchery and were placed in a separate cage alongside the *A. raveneliana* as control specimens. The specimens were deposited at each site in April 2013. Due to high mortality at some sites, the *A. raveneliana* were pulled six months later. Some of the *L. faciola* were pulled at the same time, while the remaining were extracted the following Spring. 
+Eighty-two *A. raveneliana* specimens were drawn from a single location in the Tuckasegee river. Ten were randomly selected and killed for baseline comparisons, and the remaining 72 were randomly assigned to 6 experimental sites (3 on each river) \@ref(fig:studyMap). The same number of *L. faciola* specimens were taken from the NC Wildlife Resources' Marian hatchery and were placed in a separate cage alongside the *A. raveneliana* as control specimens. The specimens were deposited at each site in April 2013. Due to high mortality at some sites, the *A. raveneliana* were pulled six months later. Some of the *L. faciola* were pulled at the same time, while the remaining were extracted the following Spring. 
 
 ```{r studyMap, echo = FALSE, fig.cap= "TODO: create a map of experimental sites."}
 knitr::include_graphics(here::here("manuscript", "figures", "study_map.pdf"))
@@ -50,21 +52,23 @@ The mussels were held in plastic mesh cages anchored in the bottom substrate. Al
 
 As youngest growth was of principal interest, we targeted growth parallel transects from the outer margins of valves, away from the umbo. For thicker valves we also analyzed additional offset scans to evaluate reproducibility and include older growth. In most cases, the entire preserved growth history was recorded by making multiple offset traverses (Figure \@ref(fig:alignment)). Along each transect, readings were taken every 2.88$\mu$m. The laser trajectories were drawn perpendicular to annular growth rings in a "step-scanning" approach [@shoults2014resolution], moving from the inner to the outer shell, beginning and ending in epoxy. The scans varied in terms of residing solely with the outer prismatic layer and periostracum, or being compound scans initiating in the nacreous layer. 
 
-Each transect resulted in a chemical time-series for each analyte (concentration vs. distance; a matrix of ~7000 concentration measurements per mm). For data reduction (?) we assumed a stoichiometric CaCO3 composition of 39.547 wt\% Ca in nacreous tissue and 40.0432 wt\% Ca in other tissue and did not adjust for mineralogy (aragonite vs. calcite). We used USGS MACS-3 (synthetic aragonite) as the primary calibration standard, and analyzed NIST 614 (trace elements at ~1 ppm) and NIST 612 (trace elements at ~35 ppm). For drift compensation, each hour of data collection on unknowns was bracketed by analyses of each standard (in duplicate). We surveyed twenty industrial metals and bio-metals: Mg, Ca, Cr, Mn, Fe, Co, Ni, Cu, Zn, As, Se, Kr (for Se interference correction if detected), Sr, Mo, Cd, Sn, Ba, Hg, Pb and U. Analyses were conducted at the University of Texas at Austin using an ESI New Wave Research NWR193 excimer laser coupled to an Agilent 7500ce ICP-MS. 
+Each transect resulted in a chemical time-series for each analyte (concentration vs. distance; a matrix of about 7000 concentration measurements per mm). For data reduction (?) we assumed a stoichiometric CaCO3 composition of 39.547 wt\% Ca in nacreous tissue and 40.0432 wt\% Ca in other tissue and did not adjust for mineralogy (aragonite vs. calcite). We used USGS MACS-3 (synthetic aragonite) as the primary calibration standard, and analyzed NIST 614 (trace elements at ~1 ppm) and NIST 612 (trace elements at ~35 ppm). For drift compensation, each hour of data collection on unknowns was bracketed by analyses of each standard (in duplicate). We surveyed twenty industrial metals and bio-metals: Mg, Ca, Cr, Mn, Fe, Co, Ni, Cu, Zn, As, Se, Kr (for Se interference correction if detected), Sr, Mo, Cd, Sn, Ba, Hg, Pb and U. Analyses were conducted at the University of Texas at Austin using an ESI New Wave Research NWR193 excimer laser coupled to an Agilent 7500ce ICP-MS. 
 
 ## Anatomical Alignment
 
 Review and annotation of high resolution cross section images was performed using Adobe Illustrator (Adobe Inc, San Jose CA). Annotations of the initial shell/epoxy boundary, annuli, nacre/prismatic layer boundary and terminal shell/epoxy boundary were made within Adobe Illustrator. Annuli were identified as any linear growth feature which could be traced from its origin in the umbo to its emergence through the prismatic and periostracum layers. Non-continuous linear features along the transect were not annotated and assumed to be “false annuli” caused by environmental disturbances [@veinott1996identification]. 
 
-To align anatomical features with chemistry data, several methods were used to identify valve edges within the chemistry data based on algorithmic detection in mean and variance [@killick2014changepoint; @killick2016changepoint] or the minimum (or maximum) [@borchers2018pracma] of Ca43_CPS, Pb208_CPS, or the ratio of the two. The difference of the distance between these detected edges and the distance between the valves edges measured from high resolution scans was then computed. For each valve, the method that minimized this distance was then used to register the anatomy in the chemical data.
-
-* applied lower limit of detection by taking the mean lower limit of detection with each of the seven batches of the LA-ICP-MS
-
-Figure \@ref(fig:alignment) shows the analytic process.
+To align anatomical features with chemistry data, several methods were used to identify valve edges within the chemistry data based on algorithmic detection in mean and variance [@killick2014changepoint; @killick2016changepoint] or the minimum (or maximum) [@borchers2018pracma] of Ca43_CPS, Pb208_CPS, or the ratio of the two. The difference of the distance between these detected edges and the distance between the valves edges measured from high resolution scans was then computed. For each valve, the method that minimized this distance was then used to register the anatomy in the chemical data. Figure \@ref(fig:alignment) shows the process of anatomical alignment.
 
 ```{r alignment, echo = FALSE, fig.cap= "TODO"}
 knitr::include_graphics(here::here("manuscript", "figures", "figure_alignment.pdf"))
 ```
+
+## Chemical data pre-processing
+
+* applied lower limit of detection by taking the mean lower limit of detection with each of the seven batches of the LA-ICP-MS
+* ratio of Ca
+* Tranformed to $\text{log}(\text{mol/Ca mmol})$
 
 ## Statistical Analyses
 
@@ -98,9 +102,9 @@ knitr::include_graphics(here::here("figures", "ri_gam_ncr_pvals_v006.pdf"))
 
 # Discussion
 
-Based on current understanding of bivalve shell growth [@checa2000a-new-model], the laser transects that crossed the nacre should have captured the accretion that occurred during the experiment. By careful alignment of anatomic imaging and chemical data obtained by LA-ICP-MS, we were able to extract and analyze elemental concentrations from the nacre, including the locations of annuli within the nacre. We hypothesized that some elements would differentially accrue within the nacre and this could detected from LA-ICP-MS data. For example, @jackson2003laser experimentally fed contaminated fish to banded water snakes and showed LA-ICP-MS used on tail tissue was able to differentiate between treatments.
+Based on current understanding of bivalve shell growth [@checa2000a-new-model], the laser transects that crossed the nacre should have captured the accretion that occurred during the experiment. By careful alignment of anatomic imaging and chemical data obtained by LA-ICP-MS, we were able to extract and analyze elemental concentrations from the nacre, including the locations of annuli within the nacre. We hypothesized that some elements would differentially accrue within the nacre and could be detected from LA-ICP-MS data. @jackson2003laser, for example, experimentally fed contaminated fish to banded water snakes and showed LA-ICP-MS used on tail tissue was able to differentiate between treatments.
 
-Our analysis shows differences between the experimental sites in Mn concentrations accumulated during the study period. Manganese is an essential trace element with important roles in numerous enzymatic pathways that could have harmful effects on freshwater bivalves. We propose three explanations for the Mn result. 
+Our analysis shows differences between the experimental sites in Mn concentrations accumulated during the study period. Manganese is an essential trace element with important roles in numerous enzymatic pathways that could have harmful effects on freshwater bivalves. We suggest two, possibly overlapping explanations for the Mn result. 
 
 First, the differences in Manganese accumulation could have resulted from differences in survival times at the sites. @shoults2014resolution shows that Manganese concentrations naturally vary cyclically within the prismatic layer. The reasons for the seasonal variation in shell Mn are unknown. If Manganese also naturally cycles within the nacre, then shorter survival times would have resulted in different accrual patterns. Those that survived longer would have kept accumulating Mn for later in the season.
 
@@ -108,24 +112,11 @@ A second explanation for the Mn pattern is that the trajectories reflect differe
 
 * TODO: look at soil and pollution maps. Do we see evidence of differential Mn at the sites?
 
-A third explanation, related to the second,  is that other factors, unrelated to mortality , at the experimental sites Mn 
-
-
-
+These explanation point out limitations of our study design and measurements. The important scientific questions are related to the factors causing the *A. raveneliana*'s decline. The completely randomized design of our study permits internally valid causal inference in reference to the experimental assignments. Since we controlled elemental exposures only by proxy, nor do we have rich data of the water and substrate chemistries we cannot be robustly distinguish between the two explanations. Also, we do not know how long mussels survived during the experiment. Notching or otherwise marking the start of the experiment on the shells could have helped by measuring the amount valve deposited during the experiment [@haag2008testing].
 
 
 The completely randomized design allows for robust, internally valid inference; however, further analyses with these data are needed to: 1) Examine other observed differences in elemental concentrations; 2) Rule out possible confounding such as seasonal and batch effects; and 3) Explore sources of these elements within the watersheds.
 
-
-We have shown that …
-
-* XXX, YYY, and ZZZ appeared in greater concentration in LiTN valves. Notably, XXX has been shown to have physiological effect AAA, and so on for YYY and ZZZ.
-* associations with morbidity/mortality are not causal effects. would be causal if...
-* associations of elements and river/site do have causal interpretation under following assumptions <-- worth mentioning?
-
-## Limitations
-
-* discussion of cage effect
 
 
 
