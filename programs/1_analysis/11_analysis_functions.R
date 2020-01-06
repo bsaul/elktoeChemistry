@@ -163,11 +163,11 @@ define_simple_declaration <- function(Z){
   declare_ra(N = N, m= m)
 }
 
-define_multiarm_declaration <- function(Z){
-  N <- length(Z)
-  m <- as.integer(table(Z))
-  declare_ra(N = N, m_each = m)
-}
+# define_multiarm_declaration <- function(Z){
+#   N <- length(Z)
+#   m <- as.integer(table(Z))
+#   declare_ra(N = N, m_each = m)
+# }
 
 define_multiarm_cluster_declaration <- function(Z, id){
   N <- length(unique(id))
@@ -176,8 +176,8 @@ define_multiarm_cluster_declaration <- function(Z, id){
 }
 
 ## Test statistics ####
-ks_test_stat  <- function(data) ks.test(data[data$Z == 0, "Y", drop = TRUE], data[data$Z == 1, "Y", drop = TRUE])$statistic
-med_test_stat <- function(data) median(data[data$Z == 0, "Y", drop = TRUE]) - median(data[data$Z == 1, "Y", drop = TRUE])
+# ks_test_stat  <- function(data) ks.test(data[data$Z == 0, "Y", drop = TRUE], data[data$Z == 1, "Y", drop = TRUE])$statistic
+# med_test_stat <- function(data) median(data[data$Z == 0, "Y", drop = TRUE]) - median(data[data$Z == 1, "Y", drop = TRUE])
 
 make_gam_ts <- function(m1_rhs, m2_rhs){
   

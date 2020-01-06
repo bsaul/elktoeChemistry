@@ -142,7 +142,80 @@ valve_data %>%
           mutate(pd = d/n()) %>% 
           ungroup()
     )
-  ) ->
+  ) %>% 
+  {
+    dt <- .
+    
+    ncr_dt <- 
+      dt %>%
+      filter(layer_data == "data_ncr_5_5") %>%
+      ungroup() 
+    
+    # Remove baseline site (T1 level from incoming data)
+    ncr_nobaseline <- 
+      ncr_dt %>%
+      mutate(
+        layer_data = "data_ncr_5_5_nobaseline",
+        data = purrr::map(
+          .x = data, 
+          .f = ~ 
+            filter(.x, Z != "T1") %>%
+            # update factor levels
+            mutate(
+              Z = factor(case_when(
+                site == "Tuck 1"   ~ "T1",
+                site == "Tuck 2"   ~ "T2",
+                site == "Tuck 3"   ~ "T3",
+                site == "LiTN 1"   ~ "T4",
+                site == "LiTN 2"   ~ "T5",
+                site == "LiTN 3"   ~ "T6"
+              ))
+            )
+        ) 
+      )
+    
+    # LiTN only
+    ncr_litn <- 
+      ncr_dt %>%
+      mutate(
+        layer_data = "data_ncr_5_5_litn",
+        data = purrr::map(
+          .x = data, 
+          .f = ~ 
+            filter(.x, river == "Little Tennessee") %>%
+            # update factor levels
+            mutate(
+              Z = factor(case_when(
+                site == "LiTN 1"   ~ "T1",
+                site == "LiTN 2"   ~ "T2",
+                site == "LiTN 3"   ~ "T3"
+            )) 
+          )
+        ) 
+      )
+    
+    # Tuck only
+    ncr_tuck <- 
+      ncr_dt %>%
+      mutate(
+        layer_data = "data_ncr_5_5_tuck",
+        data = purrr::map(
+          .x = data, 
+          .f = ~ 
+            filter(.x, river == "Tuckasegee") %>%
+            # update factor levels
+            mutate(
+              Z = factor(case_when(
+                site == "Tuck 1"   ~ "T1",
+                site == "Tuck 2"   ~ "T2",
+                site == "Tuck 3"   ~ "T3"
+              )) 
+            )
+        ) 
+      )
+    
+    bind_rows(dt, ncr_nobaseline, ncr_tuck, ncr_litn)
+  } ->
   analysis_dt
       
 saveRDS(analysis_dt, file = outFile)

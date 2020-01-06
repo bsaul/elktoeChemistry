@@ -58,33 +58,6 @@ ANALYSIS_CONFIG <- list(
 
 ## Prepare data for carrying out inference
 analysis_dt %>%
-  {
-    dt <- .
-    dt %>%
-      filter(layer_data == "data_ncr_5_5") %>%
-      ungroup() %>%
-      mutate(
-        layer_data = "data_ncr_5_5_nobaseline",
-        data = purrr::map(
-          .x = data, 
-          .f = ~ 
-            # remove T1 level
-            filter(.x, Z != "T1") %>%
-            # update factor levels
-            mutate(
-              Z = factor(case_when(
-                site == "Tuck 1"   ~ "T1",
-                site == "Tuck 2"   ~ "T2",
-                site == "Tuck 3"   ~ "T3",
-                site == "LiTN 1"   ~ "T4",
-                site == "LiTN 2"   ~ "T5",
-                site == "LiTN 3"   ~ "T6"
-              ))
-            )
-        ) 
-      ) %>%
-      bind_rows(dt)
-  } %>%
   mutate(
     dec = purrr::map(data, ~ define_multiarm_cluster_declaration(.x$Z, .x$id))
   ) ->
