@@ -35,6 +35,9 @@ valve_data %>%
   ) %>% 
   # Create datasets for each valve layer of interest
   mutate(
+    # TODO: parametrize the creatinon of these datasets
+    # TODO: include the datasets created ~ line 149 in this step, as 
+    #       valve_filterFUN includes an option to filter by river and/or site
     data_ncrA_5_5 = purrr::map(
       .x = valve_filterFUN, 
       .f = ~ .x(.layer = "ncr", .annuli = "A",
@@ -144,12 +147,19 @@ valve_data %>%
     )
   ) %>% 
   {
+    # TODO: refactor this step
     dt <- .
     
     ncr_dt <- 
       dt %>%
       filter(layer_data == "data_ncr_5_5") %>%
       ungroup() 
+   
+    
+    ncrA_dt <- 
+      dt %>%
+      filter(layer_data == "data_ncrA_5_5") %>%
+      ungroup()  
     
     # Remove baseline site (T1 level from incoming data)
     ncr_nobaseline <- 
@@ -194,6 +204,26 @@ valve_data %>%
         ) 
       )
     
+    # LiTN annuli A only
+    ncrA_litn <- 
+      ncrA_dt %>%
+      mutate(
+        layer_data = "data_ncrA_5_5_litn",
+        data = purrr::map(
+          .x = data, 
+          .f = ~ 
+            filter(.x, river == "Little Tennessee") %>%
+            # update factor levels
+            mutate(
+              Z = factor(case_when(
+                site == "LiTN 1"   ~ "T1",
+                site == "LiTN 2"   ~ "T2",
+                site == "LiTN 3"   ~ "T3"
+              )) 
+            )
+        ) 
+      )
+    
     # Tuck only
     ncr_tuck <- 
       ncr_dt %>%
@@ -214,7 +244,26 @@ valve_data %>%
         ) 
       )
     
-    bind_rows(dt, ncr_nobaseline, ncr_tuck, ncr_litn)
+    # Tuck annuli A only
+    ncrA_tuck <- 
+      ncrA_dt %>%
+      mutate(
+        layer_data = "data_ncrA_5_5_tuck",
+        data = purrr::map(
+          .x = data, 
+          .f = ~ 
+            filter(.x, river == "Tuckasegee") %>%
+            # update factor levels
+            mutate(
+              Z = factor(case_when(
+                site == "Tuck 1"   ~ "T1",
+                site == "Tuck 2"   ~ "T2",
+                site == "Tuck 3"   ~ "T3"
+              )) 
+            )
+        ) 
+      )
+    bind_rows(dt, ncr_nobaseline, ncr_tuck, ncrA_tuck, ncr_litn, ncrA_litn)
   } ->
   analysis_dt
       

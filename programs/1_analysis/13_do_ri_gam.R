@@ -53,6 +53,17 @@ ANALYSIS_CONFIG <- list(
     ),
     nsims      = NSIMS,
     outFile    = "data/ri_anysite_gam_ncr_5_5_nobaseline.rds"
+  ),
+  
+  # Trend in LiTN sites within annuli A in nacre?
+  list(
+    filtration = quo(layer_data == "data_ncrA_5_5_litn"),
+    test_stat  = make_gam_ts(
+      m1_rhs = ~ s(d, bs = "ts") + d*I(annuli == "A")*Z + pd*Z + s(pd, bs = "ts") + s(id, bs = "re"),
+      m2_rhs = ~ s(d, bs = "ts") + d*I(annuli == "A") + pd + s(pd, bs = "ts") + s(id, bs = "re")
+    ),
+    nsims      = NSIMS,
+    outFile    = "data/ri_anysite_gam_ncrA_5_5_litn.rds"
   )
 )
 

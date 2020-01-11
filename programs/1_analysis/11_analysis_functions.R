@@ -193,6 +193,16 @@ make_gam_ts <- function(m1_rhs, m2_rhs){
   }
 }
 
+make_trend_ts <- function(){
+  
+  function(data){
+    dt <- as.data.frame(data)
+    m1 <- gam(f1, data = dt)
+    m2 <- gam(f2, data = dt)
+    anova(m1, m2)[["Deviance"]][2]
+  }
+}
+
 # gam_ts <- function(data){
 #   x <- gam(log(value) ~ s(d, bs = "ts") + d:Z + s(id, bs = "re"), data = data)
 #   y <- gam(log(value) ~ s(d, bs = "ts") + s(id, bs = "re"), data = data)
@@ -234,28 +244,28 @@ conduct_multiarm_inference <- function(data, dec, Zmat){
   )
 }
 
-compute_pvals <- function(rires){
-  out <- rires$sims_df
-  out$sim   <- 1:nrow(out)
-  out$p_est <- numeric(nrow(out))
-  for(i in 1:(nrow(out))){
-    out$p_est[i] <- mean(out$est_sim[i] >= out$est_sim)
-  }
-  out
-}
+# compute_pvals <- function(rires){
+#   out <- rires$sims_df
+#   out$sim   <- 1:nrow(out)
+#   out$p_est <- numeric(nrow(out))
+#   for(i in 1:(nrow(out))){
+#     out$p_est[i] <- mean(out$est_sim[i] >= out$est_sim)
+#   }
+#   out
+# }
 
-do_inference <- function(dt, dd, zz){  
-  dt %>%
-    mutate(
-      ri  = purrr::map(
-        .x = data,
-        .f = ~ conduct_inference(.x, dd, zz)
-      ),
-      pvals = purrr::map(
-        .x = ri,
-        .f = ~ compute_pvals(.x)
-      ))
-}
+# do_inference <- function(dt, dd, zz){  
+#   dt %>%
+#     mutate(
+#       ri  = purrr::map(
+#         .x = data,
+#         .f = ~ conduct_inference(.x, dd, zz)
+#       ),
+#       pvals = purrr::map(
+#         .x = ri,
+#         .f = ~ compute_pvals(.x)
+#       ))
+# }
 
 create_hypothesis_data <- function(data, fq = NULL, q, nm){
   data %>% 
