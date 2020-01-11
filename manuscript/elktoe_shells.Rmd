@@ -66,25 +66,28 @@ knitr::include_graphics(here::here("manuscript", "figures", "figure_alignment.pd
 
 ## Chemical data pre-processing
 
-* applied lower limit of detection by taking the mean lower limit of detection with each of the seven batches of the LA-ICP-MS
-* ratio of Ca
-* Tranformed to $\text{log}(\text{mol/Ca mmol})$
+The LA-ICP-MS was processed in seven batches and during each batch the lower limit of detection (LOD) was assessed multiple times using the standards dicsussed in Section \ref{la-icp-ms}. We censored concentrations based on the mean LOD within a batch for each element. For analysis, parts-per-million (ppm) concentrations were transformed to $\text{mol/Ca mmol}$ where the $Ca mmol$ was based on XXXX of ~39.54\% for nacral observations and 40.078\% for all other layers.
 
 ## Statistical Analyses
 
-* Describe morbidity and mortality summary stats
-
-In order to test for differential accrual of each element within the nacre, we conducted a series of hypothesis tests described in Table XXXX. In each case, we tested the sharp null hypothesis [@coppock2019ri2] that each specimen would have developed the same elemental trajectory in terms of $\text{log}(\text{mol/Ca mmol})$ regardless of the experimental site to which it was assigned. Our experiment can be viewed as a cluster randomized trial, where the specimens are indepedent replicates and transect are clustered within a specimen. To preserve indepedence of the statistical replicates, we selected the one transect per specimen for analysis with the most observations of the youngest annuli identified as described in \@ref(anatomical-alignment). Transects eligible for analysis also had to include at least 25$\mu$m of nacre. 
+We graphically summarized morbidity and mortality during the experiment by plotting trends in death and relative weight change at each site. In order to test for differential accrual of each element within the nacre, we conducted a series of hypothesis tests described in Table XXXX. In each case, we tested the sharp null hypothesis [@coppock2019ri2] that each specimen would have developed the same elemental trajectory in terms of $\text{log}(\text{mol/Ca mmol})$ regardless of the experimental site to which it was assigned. Our experiment can be viewed as a cluster randomized trial, where the specimens are indepedent replicates and transect are clustered within a specimen. To preserve indepedence of the experimental replicates, we selected one transect per specimen which contain the most observations of the youngest annuli identified as described in \ref{anatomical-alignment}. Transects eligible for analysis also had to include at least 25$\mu$m of nacre. 
 
 Inference was drawn using 1000 draws from the randomization distribution, using the `ri2` R package [@coppock2019ri2; @rcore2019]. The method can be summarized as follows: (1) compute the observed test statistic ($t_{obs}$) using the observed allocation, (2) permute the allocation by assigning specimens to different sites and re-compute the test statistic, (3) repeat (2) $m = 1000$ times. The two-sided p-value is the proportion of times $t_{obs}$ is greater than or equal to the test statistic distribution.
 
 We used a test statistic of the deviance between two nested Generalized Additive Mixed Models (GAMM) [@wood2017gam]. The models were designed to be flexible and account for individual variation as well as the variation in transect lengths with terms for both absolute and relative distance along the transect. The restricted (null) model did not include terms experimental site, while the unrestricted model did.
 
+TODO:
+
+* Discuss how censored observations were (or will be) handled in the model
+* Discuss using Nacre *excluding* annuli as a negative control
+
+For descriptive purposes, we computed the proportion censored, first three probability of censor weighted L-moments ratios[@lmomco2018], and the maximum of observations within each anatomical area of interest for each element. These summary statistics were then plotted to examine trends in the elemental distributions.
+
 # Results
 
 ## Morbidity and Mortality
 
-Morbidity and mortality in *A. raveneliana* varied significantly across sites and between species (Figure \@ref(fig:mortality)). In both rivers, outcomes worsened downstream for *A. raveneliana*. Mortality increased monotonically down the river gradient, and the median relative weight change also tended to decrease. In the Little Tennessee, all but three specimens lost weight or died, whereasno individuals died and few lost weight at Tuckaseegee Site 1, the closest site to the baseline site. In constrast to *A. raveneliana*, none of the hatchery-raised and younger *L. fasciola* died and all gained weight.
+Morbidity and mortality in *A. raveneliana* varied significantly across sites and between species (Figure \@ref(fig:mortality)). In both rivers, outcomes worsened downstream for *A. raveneliana*. Mortality increased monotonically down the river gradient, and the median relative weight change also tended to decrease. In the Little Tennessee, all but three specimens lost weight or died, whereas no individuals died and few lost weight at Tuckaseegee 1, the closest site to the baseline site. In constrast to *A. raveneliana*, none of the hatchery-raised and younger *L. fasciola* died and all gained weight.
 
 ```{r mortality, echo = FALSE, fig.cap= "TODO"}
 knitr::include_graphics(here::here("manuscript", "figures", "mussel_outcomes_v000.pdf"))
@@ -92,7 +95,13 @@ knitr::include_graphics(here::here("manuscript", "figures", "mussel_outcomes_v00
 
 ## Trace element accrual
 
-Figure \@ref(fig:accrualPvals) displays p-values for each hypothesis test described in Table XXX. In *A. raveneliana*, Manganese shows the most evidence for the differences between sites among the elements. The baseline specimens do not appear different from the experimental specimens in terms of their Manganese trajectories (p = XXXX). Figure \@ref(fig:accrualPvals)B suggests that at least one experimental site is different from the others in terms of its Mn trajectories.
+Figure \@ref(fig:accrualPvals) displays p-values for each hypothesis test described in Table XXXX. In *A. raveneliana*, Manganese shows the most evidence for the differences between sites among the elements. The baseline specimens do not appear different from the experimental specimens in terms of their Manganese trajectories (p = XXXX). Figure \@ref(fig:accrualPvals)B suggests that at least one experimental site is different from the others in terms of its Mn trajectories.
+
+TODO: 
+
+* discuss Pb
+* discuss negative control outcome
+* discuss trends (maybe?) seen in distributional summaries
 
 In *L. fasciola*, Strontium and Barium show evidence of differences between sites. However, small p-value in Strontium appears to be driven by a difference between the baseline specimens and the specimens in experimental sites. This is in constrast to Barium, where the difference appears to be driven by difference among the experimental sites.
 
@@ -116,8 +125,5 @@ These explanation point out limitations of our study design and measurements. Th
 
 
 The completely randomized design allows for robust, internally valid inference; however, further analyses with these data are needed to: 1) Examine other observed differences in elemental concentrations; 2) Rule out possible confounding such as seasonal and batch effects; and 3) Explore sources of these elements within the watersheds.
-
-
-
 
 # References
