@@ -9,11 +9,12 @@
 library(dplyr)
 library(mgcv)
 library(ri2)
+library(cenGAM)
 
-ANALYSIS_SELECTION <- quo(agrp_transect_most_A)
 # ANALYSIS_CONFIG is set in 13_do_ri_gam.R
 
 source("programs/1_analysis/11_analysis_functions.R")
 source("programs/1_analysis/12_prepare_analysis_data.R")
 source("programs/1_analysis/13_do_ri_gam.R")
+source("programs/1_analysis/14_compute_moments.R")
 

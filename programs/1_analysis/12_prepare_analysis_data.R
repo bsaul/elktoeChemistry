@@ -10,262 +10,223 @@ element_info <- readRDS(file = "data/element_info.rds")
 lod          <- readRDS(file = "data/lower_detection_limits.rds")
 outFile      <- "data/analysis_data.rds"
 
-valve_data %>%
-  # Filter to those IDs in the ANALYSIS_SELECTION
-  right_join(
-    filter(valve_data, !! ANALYSIS_SELECTION) %>% select(id, transect),
-    by = c("id", "transect")
+# A list containing options to be passed to the transect_filter,
+# a function that filters data for each transect.
+filter_options <- 
+  tibble::tibble(
+    name   = c("ncr_all", "ncr_A", "ncr_notA", "psm_all", "pio_all"),
+    .layer  = c("ncr",  "ncr", "ncr", "psm", "pio"),
+    .annuli = list(NULL, "A", LETTERS[-1], NULL, NULL),
   ) %>%
+  mutate(j = "") %>%
+  right_join(
+    tibble(
+      j = "",
+     .inner_buffer = c(0, 5, 10),
+     .outer_buffer = c(0, 0, 0)),
+    by = "j") %>%
+  mutate(
+    name = paste(name, .inner_buffer, .outer_buffer, sep = "_")
+  ) %>%
+  select(-j) %>%
+  purrr::pmap(list) %>%
+  purrr::set_names(nm = purrr::map_chr(., "name"))
+
+# Analysis groupings 
+agrps <-
+  valve_data %>%
+  select(id, transect, contains("agrp_")) %>%
+  mutate(
+    agrp_all = TRUE
+  ) %>%
+  tidyr::pivot_longer(
+    cols = starts_with("agrp_"),
+    names_to = "which_agrp",
+    names_prefix = "^agrp_"
+  ) %>%
+  filter(value == TRUE) %>%
+  select(-value) %>%
+  filter(
+    which_agrp %in% c("all", "first_transect_with_AB", "transect_most_A")
+  ) %>%
+  ungroup() %>%
+  mutate(
+    idt = paste(id, transect, sep = "_")
+  ) %>%
+  group_nest(which_agrp) %>%
+  mutate(
+    ids = purrr::map(data, ~ .x[["idt"]])
+  ) %>%
+  select(-data)
+
+# Doing the heavy lifting...
+valve_data %>%
   dplyr::mutate(
     
     # Apply the lower limit of detection to chemical concentrations
-    chemistry       = purrr::map2(chemistry, lod, ~ apply_lod(.x, .y)),
-    
     # Drop unneeded variables (e.g. censoring)
-    chemistry       = purrr::map(
+    chemistry  = purrr::map2(
       .x = chemistry, 
-      .f = ~ dplyr::select(.x, - ends_with("_censor"))
-    ),
+      .y = lod,
+      .f = ~ apply_lod(.x, .y) %>% dplyr::select(-ends_with("_censor"))),
     
     # Create a filtering function for each valve/transect 
-    valve_filterFUN = purrr::map2(
+    tsect_filterFUN = purrr::map2(
       .x = chemistry, 
       .y = distance, 
-      .f = ~ make_transect_filter(.x, .y))
-  ) %>% 
-  # Create datasets for each valve layer of interest
-  mutate(
-    # TODO: parametrize the creatinon of these datasets
-    # TODO: include the datasets created ~ line 149 in this step, as 
-    #       valve_filterFUN includes an option to filter by river and/or site
-    data_ncrA_5_5 = purrr::map(
-      .x = valve_filterFUN, 
-      .f = ~ .x(.layer = "ncr", .annuli = "A",
-                .inner_buffer = 5, .outer_buffer = 5)),
-    data_ncr_5_5  = purrr::map(
-      .x = valve_filterFUN, 
-      .f = ~ .x(.layer = "ncr",
-                .inner_buffer = 5, .outer_buffer = 5)),
-    data_psm_5_5  = purrr::map(
-      .x = valve_filterFUN, 
-      .f = ~ .x(.layer = "psm", 
-                .inner_buffer = 5, .outer_buffer = 5)),
-    data_pio_5_5  = purrr::map(
-      .x = valve_filterFUN, 
-      .f = ~ .x(.layer = "pio",
-                .inner_buffer = 5, .outer_buffer = 5))
-  ) %>%
-  
-  # Drop the CPS variables
-  mutate_at(
-    .vars = vars(starts_with("data_")),
-    .funs = list(~ purrr::map(.x = ., ~ select(.x, -contains("CPS"))))
-  ) %>%
-  
-  # Transform the distance variable so that distance starts at 0 within each layer
-  mutate_at(
-    .vars = vars(starts_with("data_")),
-    .funs = list(
-      ~ purrr::map(
-        .x = ., 
-        .f = ~ 
-          mutate(.x, 
+      .f = ~ make_transect_filter(.x, .y)),
+    
+    # Create a dataset for each id/transect for each setting in filter_options
+    # Transform the distance variable so that distance starts at 0 within each layer
+    # Drop the CPS variables
+    data = purrr::map(
+      .x = tsect_filterFUN,
+      .f = ~ purrr::map_dfr(
+        .x  = filter_options, # see filter_options created above
+        .id = "filtration",
+        .f  = function(opts) do.call(.x, args = opts[-1]) %>%
+          mutate( 
             distance = if (length(distance) >= 1) distance - min(distance) else NA_real_
-          )
-        )
+          ) %>%
+          select(-contains("CPS")) 
       )
-  ) %>%
-  
-  # Convert the analytic dataset to a long format
-  mutate_at(
-    .vars = vars(starts_with("data_")),
-    .funs = list(~purrr::map(., convert_to_long))
-  ) %>%
+    ),
+    
+    # Reshape data from wide to long 
+    data = purrr::map(
+      .x = data,
+      .f = ~ tidyr::gather(
+        .x, key = "element", value = "value",
+        -filtration, -obs, -distance, -layer, -annuli)
+    )
+  )  %>%
   select(
-    id, transect, drawer, river, species, site, site_num, contains("data_")
+    id, transect, drawer, river, species, site, site_num, data
   ) %>%
-  tidyr::gather(
-    key  = "layer_data",
-    value = "value",
-    -id, -transect, -drawer, -river, -species, -site, -site_num
+  tidyr::unnest(cols = c(data)) %>%
+  # Keep LOD information along
+  # TODO: this join is a duplicate of the join in apply_lod
+  left_join(
+    lod,
+    by = c("element", "drawer")
   ) %>%
-  tidyr::unnest(cols = c(value)) %>%
-  select(-obs, -distance) %>%
-  group_by(drawer, layer, element) %>%
-  tidyr::nest() %>%
-  left_join(select(element_info, element, mass), by = "element") %>%
-  
   ## Convert values to mmmol per Ca mol ####
+  group_by(layer, element) %>%
+  tidyr::nest() %>%
+  left_join(select(element_info, element, mass), by = "element") %>% 
   mutate(
     data = purrr::pmap(
       .l = list(x = data, y = mass, z = layer),
       .f = function(x, y, z){
-        if(z == "ncr"){
-          mutate(x, value = ppm_to_mmol_camol(value, y, ca_wt_pct = 39.547395))
-        } else {
-          mutate(x, value = ppm_to_mmol_camol(value, y, ca_wt_pct = 40.078))
-        }
+        
+        cons <- if (z == "ncr") 39.547395 else 40.078
+        
+        x %>%
+          mutate(
+            value = ppm_to_mmol_camol(value, y, ca_wt_pct = cons),
+            lod   = ppm_to_mmol_camol(lod, y, ca_wt_pct = cons)
+          )
+
       })
   ) %>%
+  select(-mass) %>%
   tidyr::unnest(cols = c(data)) %>%
+  group_by(filtration, element, species, id, transect) %>%
+  mutate(
+    d  = 1:n(),
+    pd = d/max(d)
+  ) %>%
+  ungroup() -> temp1
 
-  group_by(layer_data, element, species, id, transect) %>%
-  mutate(d = 1:n()) %>%
+temp1 %>%
   
-  # Must have at least 12 observations
-  group_by(id, transect) %>%
-  filter(max(d) > 12) %>%
-  ungroup() %>%
-  
-  group_nest(layer_data, element, species, id) %>% 
-  mutate(
-    id = 1:n()
-  ) %>%
-  tidyr::unnest(cols = c(data)) %>%
-  mutate(
-    Z = factor(case_when(
-      site == "Baseline" ~ "T1",
-      site == "Tuck 1"   ~ "T2",
-      site == "Tuck 2"   ~ "T3",
-      site == "Tuck 3"   ~ "T4",
-      site == "LiTN 1"   ~ "T5",
-      site == "LiTN 2"   ~ "T6",
-      site == "LiTN 3"   ~ "T7"
-    ))
+  # # Transect must have at least 12 observations
+  # group_by(filtration, element, species, id, transect) %>%
+  # filter(max(d) > 12) %>%
+  # ungroup() %>%
+  select(-layer) %>%
+
+  group_nest(species, element, filtration) %>%
+  tidyr::separate(
+    col = "filtration",
+    into = c("which_layer", "which_annuli", "inner_buffer", "outer_buffer")
   ) %>%
   
-  # Prepare to carry out inference within species, element, layer
-  group_by(species, element, layer_data) %>%
-  tidyr::nest() %>%
+  # Create a dataset for each river grouping of interest
   mutate(
     data = purrr::map(
       .x = data,
-      .f = ~ .x %>% 
-          group_by(id, transect) %>%
-          mutate(pd = d/n()) %>% 
-          ungroup()
+      .f = function(dt) {
+          purrr::map_dfr(
+            .x = list(all = c("Baseline", "Little Tennessee", "Tuckasegee"), 
+                      nobaseline = c("Little Tennessee", "Tuckasegee"),
+                      litn = "Little Tennessee", 
+                      tuck = "Tuckasegee"),
+            .id = "which_river",
+            .f = ~ dt %>% filter(river %in% .x) 
+          ) %>%
+          group_nest(which_river) 
+      }
     )
-  ) %>% 
-  {
-    # TODO: refactor this step
-    dt <- .
-    
-    ncr_dt <- 
-      dt %>%
-      filter(layer_data == "data_ncr_5_5") %>%
-      ungroup() 
-   
-    
-    ncrA_dt <- 
-      dt %>%
-      filter(layer_data == "data_ncrA_5_5") %>%
-      ungroup()  
-    
-    # Remove baseline site (T1 level from incoming data)
-    ncr_nobaseline <- 
-      ncr_dt %>%
-      mutate(
-        layer_data = "data_ncr_5_5_nobaseline",
-        data = purrr::map(
-          .x = data, 
-          .f = ~ 
-            filter(.x, Z != "T1") %>%
-            # update factor levels
-            mutate(
-              Z = factor(case_when(
-                site == "Tuck 1"   ~ "T1",
-                site == "Tuck 2"   ~ "T2",
-                site == "Tuck 3"   ~ "T3",
-                site == "LiTN 1"   ~ "T4",
-                site == "LiTN 2"   ~ "T5",
-                site == "LiTN 3"   ~ "T6"
-              ))
-            )
-        ) 
-      )
-    
-    # LiTN only
-    ncr_litn <- 
-      ncr_dt %>%
-      mutate(
-        layer_data = "data_ncr_5_5_litn",
-        data = purrr::map(
-          .x = data, 
-          .f = ~ 
-            filter(.x, river == "Little Tennessee") %>%
-            # update factor levels
-            mutate(
-              Z = factor(case_when(
-                site == "LiTN 1"   ~ "T1",
-                site == "LiTN 2"   ~ "T2",
-                site == "LiTN 3"   ~ "T3"
-            )) 
-          )
-        ) 
-      )
-    
-    # LiTN annuli A only
-    ncrA_litn <- 
-      ncrA_dt %>%
-      mutate(
-        layer_data = "data_ncrA_5_5_litn",
-        data = purrr::map(
-          .x = data, 
-          .f = ~ 
-            filter(.x, river == "Little Tennessee") %>%
-            # update factor levels
-            mutate(
-              Z = factor(case_when(
-                site == "LiTN 1"   ~ "T1",
-                site == "LiTN 2"   ~ "T2",
-                site == "LiTN 3"   ~ "T3"
-              )) 
-            )
-        ) 
-      )
-    
-    # Tuck only
-    ncr_tuck <- 
-      ncr_dt %>%
-      mutate(
-        layer_data = "data_ncr_5_5_tuck",
-        data = purrr::map(
-          .x = data, 
-          .f = ~ 
-            filter(.x, river == "Tuckasegee") %>%
-            # update factor levels
-            mutate(
-              Z = factor(case_when(
-                site == "Tuck 1"   ~ "T1",
-                site == "Tuck 2"   ~ "T2",
-                site == "Tuck 3"   ~ "T3"
-              )) 
-            )
-        ) 
-      )
-    
-    # Tuck annuli A only
-    ncrA_tuck <- 
-      ncrA_dt %>%
-      mutate(
-        layer_data = "data_ncrA_5_5_tuck",
-        data = purrr::map(
-          .x = data, 
-          .f = ~ 
-            filter(.x, river == "Tuckasegee") %>%
-            # update factor levels
-            mutate(
-              Z = factor(case_when(
-                site == "Tuck 1"   ~ "T1",
-                site == "Tuck 2"   ~ "T2",
-                site == "Tuck 3"   ~ "T3"
-              )) 
-            )
-        ) 
-      )
-    bind_rows(dt, ncr_nobaseline, ncr_tuck, ncrA_tuck, ncr_litn, ncrA_litn)
-  } ->
+  ) -> temp2
+
+temp2 %>%
+  # Create the Z (treatment variable) used by the randomization inference 
+  # functions
+  tidyr::unnest(cols = "data") %>%
+  mutate(
+    data = purrr::map2(
+      .x = which_river,
+      .y = data,
+      .f = ~ Z_maker(.x, .y)
+    )
+  )  %>%
+  
+  # For analysis grouping of interest, subset each each analytic dataset to
+  # these id/transects
+  mutate(j = TRUE) %>%
+  full_join(agrps %>% mutate(j = TRUE), by = "j") %>%
+  mutate(
+    data = purrr::map2(
+      .x = data,
+      .y = ids,
+      .f = function(dt, .ids) {
+        dt %>%
+          mutate(idt = paste(id, transect, sep = "_")) %>%
+          filter(idt %in% .ids) %>%
+          group_nest(id, transect) ->
+          hold
+        
+        # Handle the case where the data contains no ids
+        if (nrow(hold) > 0){
+          hold %>%
+            # Create an integer analysis id
+            mutate(analysis_id = 1:n()) %>%
+            tidyr::unnest(cols = "data")
+        } else {
+          NULL
+        }
+      }
+    )
+  ) %>%
+  select(-j, -ids) %>%
+  mutate(
+    m_per_arm = purrr::map(
+      .x = data,
+      .f = ~ table(distinct(.x, analysis_id, Z)$Z)
+    ),
+    at_least_2_per_arm = purrr::map_lgl(
+      .x = m_per_arm,
+      .f = ~ all(.x >= 2)
+    )
+  ) ->
   analysis_dt
-      
+  
+analysis_dt %>%
+  # Remove any records where the data is empty
+  filter(!purrr::map_lgl(analysis_dt$data, is.null))  -> 
+  analysis_dt
+
+  
 saveRDS(analysis_dt, file = outFile)
 
