@@ -145,6 +145,24 @@ First, the differences in Manganese accumulation could have resulted from differ
 
 A second explanation for the Mn pattern is that the trajectories reflect differences in the water and/or substrate chemistries at the sites unrelated to seasonal variation. Interestingly, surviving valves from the Little Tennessee had microscopic crystal-like substance on their gill tissues, which upon mass spectrometry analysis consisted largely of Mn.
 
+Other notes on Mn:
+
+* correlation with growth bands: [@siegele2001manganese]
+* toxic to snook: [@tuzuki2017effects]
+* Mn bioaccumulation to mussels exposed to Mn: [@flores-montalvao2019how-leachates]
+* "Mn negatively correlated with mussel survival and biomass": [@archambault2016assessing]
+* "Valve movement responses to Mn were directly proportional to the activity of the free metal ion (Mn2 + ), which is consistent with the FIAM." [@markich2000valve]
+* Mn in gills: @silverman1986interaction
+* "The main results highlighted that only Mn caused a clear drop in glycogen levels in gills": @oliveira2019single
+* Mn in archival monitoring: [@jeffree1995shell]
+* @rzymski2014bioaccumulation
+* higher densities of benthic invertebrates in Mn uncoated substrate: @wilson2019manganese
+* pollution: @hameed1990freshwater, @wren1991the-effect
+
+Notes on Mg:
+
+* @kleinhenz2019acute
+
 * TODO: look at soil and pollution maps. Do we see evidence of differential Mn at the sites?
 
 These explanation point out limitations of our study design and measurements. The important scientific questions are related to the factors causing the *A. raveneliana*'s decline. The completely randomized design of our study permits internally valid causal inference in reference to the experimental assignments. Since we controlled elemental exposures only by proxy, nor do we have rich data of the water and substrate chemistries we cannot be robustly distinguish between the two explanations. Also, we do not know how long mussels survived during the experiment. Notching or otherwise marking the start of the experiment on the shells could have helped by measuring the amount valve deposited during the experiment [@haag2008testing].
