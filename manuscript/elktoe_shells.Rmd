@@ -67,45 +67,52 @@ knitr::include_graphics(here::here("manuscript", "figures", "figure_alignment.pd
 
 ## Chemical data pre-processing
 
-Valves were grouped into seven batches for LA-ICP-MS processing. During each batch process, the lower limit of detection (LOD) was assessed multiple times using the standards dicsussed in Section \ref{la-icp-ms}. We censored concentrations based on the mean LOD within a batch for each element. For analysis, parts-per-million (ppm) concentrations were transformed to $\text{mol/Ca mmol}$ where the $Ca mmol$ was based on Ca\% of ~39.54\% for nacral observations and 40.078\% for all other layers.
+Valves were grouped into seven batches for LA-ICP-MS processing. During each batch process, the lower limit of detection (LOD) was assessed multiple times using the standards described in Section \ref{la-icp-ms}. We censored valve measurements based on the mean LOD within a batch for each element. For analysis, parts-per-million (ppm) values were transformed to $\text{mol/Ca mmol}$ where the $Ca mmol$ was based on Ca\% of ~39.54\% for nacral observations and 40.078\% for all other layers.
 
 ## Statistical Analyses
 
+We graphically summarized morbidity and mortality during the experiment by plotting trends in death and relative weight change at each site. 
+
+### Study questions
+
 We hypothesized that the distributions of elements accrued in the nacre during the experiment may differ between experimental sites. To examine differential accrual, we asked a series of questions described in Table \ref{hypothesis-table} along with the methods we used to address the question. The first question (A) asks if there is difference any of the seven sites (baseline plus 3 experiment sites per river). Though notable, a difference between the baseline site and experimental sites does not address the primary scientific aim, hence we then asked whether experimental sites were different from each other (B) and whether the baseline site differed from the experimental sites in aggregrate (C). Each question implies a set of contrasts which purposefully observe the completely randomized experimental design, thus permiting randomization-based inference [@splawa-neyman1990on-the-application] by permuting assignments to sites. 
 
-If randomization is valid instrument for our questions, we would expect that the differences between distributions of elements accrued in the nacre *prior* to the experiment to vary only randomly, hence we address this negative control outcome in question D. Lastly, in the case at least one experimental site is different in an element, we then explored the trends within a river (E) and assocations with mordibity and mortality in the *A. raveneliana*. In the remaining subsections, the statistical methods are described in more detail.
+If randomization is unbiased instrument for our questions, we would expect only random differences between distributions of elements accrued in the nacre *prior* to the experiment. We address this negative control outcome [@arnold2016negative] in question D. Lastly, in the case at least one experimental site is different in an element, we then explored the trends within a river (E) and assocations with mordibity and mortality in the *A. raveneliana*. In the remaining subsections, the statistical methods are described in more detail.
 
 \begin{table}
 \label{hypothesis-table}
-\begin{tabular}{llcc}
-Label & Question & Annuli included & Methods \\
+\begin{tabular}{llcccc}
+Label & Question & Annuli included & \multicolumn{3}{c}{Methods} \\
+ &   & & ri$_{gam}$ & ri$_{mom}$ & explore \\
 \hline \\
-A & Is at least one site (including baseline) different?  & All & ri:(gam, moments) \\
-B & Is at least one site (excluding baseline) different?  & All & ri:(gam, moments)\\
-C & Is the baseline site different from experiment sites? & All & ri:(gam, moments)\\
-D & Is at least one site (including baseline) different?  & Excluding most recent & ri:(gam, moments)\\
-E(a|b) & Is there trend within (Little Tennessee/Tuckasegee)? & All & graphical \\
+A & Is at least one site (including baseline) different?  & All & yes & yes & \\
+B & Is at least one site (excluding baseline) different?  & All & yes & yes & \\
+C & Is the baseline site different from experiment sites? & All & yes & yes & \\
+D & Is at least one site (including baseline) different?  & Excluding most recent & yes & yes & \\
+E(a|b) & Is there trend within (Little Tennessee/Tuckasegee)? & All &  & & yes \\
 \hline
 \end{tabular}
 \end{table}
 
-
-We graphically summarized morbidity and mortality during the experiment by plotting trends in death and relative weight change at each site. 
-
 ### Randomization-based inference
 
-In each case, we tested the sharp null hypothesis [@coppock2019ri2] that each specimen would have developed the same elemental trajectory in terms of $\text{log}(\text{mol/Ca mmol})$ regardless of the experimental site to which it was assigned. Our experiment can be viewed as a cluster randomized trial, where the specimens are indepedent replicates and transect are clustered within a specimen. To preserve indepedence of the experimental replicates, we selected one transect per specimen which contain the most observations of the youngest annuli identified as described in \ref{anatomical-alignment}. Transects eligible for analysis also had to include at least 25$\mu$m of nacre. 
+For questions A-D, we tested for differences between elemental distributions using two related 
+
+
+tested the sharp null hypothesis [@coppock2019ri2] that each specimen would have developed the same elemental trajectory in terms of $\text{log}(\text{mol/Ca mmol})$ regardless of the experimental site to which it was assigned. Our experiment can be viewed as a cluster randomized trial, where the specimens are indepedent replicates and transect are clustered within a specimen. To preserve indepedence of the experimental replicates, we selected one transect per specimen which contain the most observations of the youngest annuli identified as described in \ref{anatomical-alignment}. Transects eligible for analysis also had to include at least 25$\mu$m of nacre. 
 
 Inference was drawn using 1000 draws from the randomization distribution, using the `ri2` R package [@coppock2019ri2; @rcore2019]. The method can be summarized as follows: (1) compute the observed test statistic ($t_{obs}$) using the observed allocation, (2) permute the allocation by assigning specimens to different sites and re-compute the test statistic, (3) repeat (2) $m = 1000$ times. The two-sided p-value is the proportion of times $t_{obs}$ is greater than or equal to the test statistic distribution.
 
 #### Test statistics
 
+GAM:
+
+* modelled: $\text{log}(\text{mol/Ca mmol})$ 
+* doesn't handle censoring (at least in the way we implemented it)
+
 We used a test statistic of the deviance between two nested Generalized Additive Mixed Models (GAMM) [@wood2017gam]. The models were designed to be flexible and account for individual variation as well as the variation in transect lengths with terms for both absolute and relative distance along the transect. The restricted (null) model did not include terms experimental site, while the unrestricted model did.
 
-TODO:
-
-* Discuss how censored observations were (or will be) handled in the model
-* Describe why L-moment were chosen for descriptions of the distributions
+L-moments
 
 For descriptive purposes, we computed the proportion censored, first three probability of censor weighted L-moments ratios[@lmomco2018], and the maximum of observations within each anatomical area of interest for each element. These summary statistics were then plotted to examine trends in the elemental distributions.
 
