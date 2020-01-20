@@ -14,20 +14,21 @@ moments_dt <-
   filter(
     which_annuli == "all",  
     which_layer  == "ncr",
-    which_river  == "all"
+    which_river  == "all",
+    which_agrp   == "all"
   ) %>%
   mutate(
-    moments = purrr::map(
+    moments_by_annuli = purrr::map(
       .x = data, 
-      .f = ~ create_moments_data(.x, quos(id, annuli)))
+      .f = ~ create_moments_data(.x, quos(river, site, site_num, id, annuli)))
   )  %>%
   select(-data) %>%
-  tidyr::unnest(cols = "moments") %>%
-  select(-pwm, -nbelow, -nobs, -prop_censored, -max, -lmomA, -lmomB, 
-         -m_per_arm) %>%
-  tidyr::unnest(cols = "statsA") 
+  tidyr::unnest(cols = "moments_by_annuli") %>%
+  select(-pwm, -nbelow, -nobs, -prop_censored, -max, -lmomA, -lmomB, -lod,
+         -m_per_arm, -data) %>%
+  tidyr::unnest(cols = "stats") 
+
 
 saveRDS(moments_dt, file = outFile)
-
 # Clean up
 rm(list = ls())

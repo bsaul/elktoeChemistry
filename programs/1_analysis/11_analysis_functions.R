@@ -137,15 +137,16 @@ create_moments_data <- function(data, grouping){
       lmomB = purrr::map(
         .x = pwm,
         .f = ~ lmomco::pwm2lmom(.x$Bprimebetas)),
-      statsA = purrr::pmap(
-        .l = list(x = lmomA, y = prop_censored, z = max),
-        .f = function(x, y, z){
+      stats = purrr::pmap(
+        .l = list(n = nobs, x = lmomA, y = prop_censored, z = max),
+        .f = function(n, x, y, z){
           tibble::tibble(
-            statistic = c("p_censored", 
+            statistic = c("n", 
+                          "p_censored", 
                           paste0("L-moment ", 1:3),
                           paste0("L-ratio ", 1:3),
                           "max"),
-            value     = c(y, x$lambdas[1:3], x$ratios[2:4], z)
+            value     = c(n, y, x$lambdas[1:3], x$ratios[2:4], z)
           )
         }
       )
@@ -237,26 +238,4 @@ create_hypothesis_data <- function(data, fq = NULL, q, nm){
     group_by(stats, species, element, layer_data, statistic) %>%
     group_nest() %>%
     mutate(hypothesis = nm)
-}
-
-#' Carry out inference on a nested dataset
-#' 
-#' @param analysis_data a dataset with dec (an ri declaration) and data columns
-#' @param test_stat a test statistic function
-#' @param nsims the number of randomization samples to draw
-
-carryout_inference <- function(analysis_data, test_stat, nsims){
-  
-  analysis_data %>%
-    mutate(
-      ri = purrr::map2(
-        .x = dec, 
-        .y = data,
-        .f =  ~ conduct_ri(
-          declaration        = .x,
-          test_function      = test_stat, 
-          sims               = nsims,
-          data               = as.data.frame(.y))),
-      p = purrr::map_dbl(ri, ~ tidy(.x)[['p.value']])
-    )
 }

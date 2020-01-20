@@ -9,9 +9,10 @@
 library(dplyr)
 library(mgcv)
 library(ri2)
-library(cenGAM)
+library(furrr)
+# library(cenGAM)
 
-# ANALYSIS_CONFIG is set in 13_do_ri_gam.R
+# RI_ANALYSIS_CONFIG is set in 13_do_ri_gam.R
 
 source("programs/1_analysis/11_analysis_functions.R")
 source("programs/1_analysis/12_prepare_analysis_data.R")

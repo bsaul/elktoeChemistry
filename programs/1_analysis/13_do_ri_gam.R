@@ -6,83 +6,95 @@
 #-----------------------------------------------------------------------------#
 
 analysis_dt <- readRDS(file = "data/analysis_data.rds")
-valve_dt    <- readRDS(file = "data/valve_data.rds")
-
-NSIMS <- 500
+outDir <- "data/ri"
+NSIMS <- 700
+plan(multicore)
 
 RI_ANALYSIS_CONFIG <- list(
   # Any site different within any layer?
   list(
-    filtration = quos(
-      which_river == "all",
-      which_agrp  == "transect_most_A"
-    ), 
-    test_stat  = make_gam_ts(
+    label = "Z",
+    desc  = "all layers",
+    filtration = list(quos(
+      which_river  == "all",
+      which_annuli == "all",
+      which_agrp   == "transect_most_A"
+    )), 
+    test_stat  = list(make_gam_ts(
       m1_rhs = ~ s(d, bs = "ts") + d:Z + s(analysis_id, bs = "re"),
       m2_rhs = ~ s(d, bs = "ts") + s(analysis_id, bs = "re")
-    ),
-    nsims      = NSIMS,
-    outFile    = "data/ri_gam_all_layers.rds"
+    )),
+    nsims      = 250
   ),
   
-  # Any site different in nacre?
   list(
-    filtration = quos(
-      which_layer == "ncr",
-      which_river == "all",
-      which_agrp  == "transect_most_A"
-    ),
-    test_stat  = make_gam_ts(
+    label =  "A",
+    desc  = "Is at least one site (including baseline) different?",
+    filtration = list(quos(
+      which_layer  == "ncr",
+      which_river  == "all",
+      which_annuli == "all",
+      which_agrp   == "transect_most_A"
+    )),
+    test_stat  = list(make_gam_ts(
       m1_rhs = ~ s(d, bs = "ts") + d*I(annuli == "A")*Z + pd*Z + s(pd, bs = "ts") + s(analysis_id, bs = "re"),
       m2_rhs = ~ s(d, bs = "ts") + d*I(annuli == "A") + pd   + s(pd, bs = "ts") + s(analysis_id, bs = "re")
-    ),
-    nsims      = NSIMS,
-    outFile    = "data/ri_anysite_gam_ncr_5_5.rds"
+    )),
+    nsims      = NSIMS
   ),
   
-  # Baseline different from other sites in nacre?
-  list(
-    filtration =  quos(
-      which_layer == "ncr",
-      which_river == "all",
-      which_agrp  == "transect_most_A"
-    ),
-    test_stat  = make_gam_ts(
-      m1_rhs = ~ s(d, bs = "ts") + d*I(annuli == "A")*I(Z == "T1") + pd*I(Z == "T1") + s(pd, bs = "ts") + s(analysis_id, bs = "re"),
-      m2_rhs = ~ s(d, bs = "ts") + d*I(annuli == "A") + pd   + s(pd, bs = "ts") + s(analysis_id, bs = "re")
-    ),
-    nsims      = NSIMS,
-    outFile    = "data/ri_baseline_gam_ncr_5_5.rds"
-  ),
   
-  # Any site different (excluding baseline) in nacre?
   list(
-    filtration = quos(
+    label = "B",
+    desc  = "Is at least one site (excluding baseline) different?",
+    filtration = list(quos(
       which_layer == "ncr",
       which_river == "nobaseline",
+      which_annuli == "all",
       which_agrp  == "transect_most_A"
-    ),
-    test_stat  = make_gam_ts(
+    )),
+    test_stat  = list(make_gam_ts(
       m1_rhs = ~ s(d, bs = "ts") + d*I(annuli == "A")*Z + pd*Z + s(pd, bs = "ts") + s(analysis_id, bs = "re"),
       m2_rhs = ~ s(d, bs = "ts") + d*I(annuli == "A") + pd + s(pd, bs = "ts") + s(analysis_id, bs = "re")
-    ),
-    nsims      = NSIMS,
-    outFile    = "data/ri_anysite_gam_ncr_5_5_nobaseline.rds"
-  )
+    )),
+    nsims      = NSIMS
+  ),
   
-  # Trend in LiTN sites within annuli A in nacre?
-  # list(
-  #   filtration = quo(layer_data == "data_ncrA_5_5_litn"),
-  #   test_stat  = make_gam_ts(
-  #     m1_rhs = ~ s(d, bs = "ts") + d*I(annuli == "A")*Z + pd*Z + s(pd, bs = "ts") + s(analysis_id, bs = "re"),
-  #     m2_rhs = ~ s(d, bs = "ts") + d*I(annuli == "A") + pd + s(pd, bs = "ts") + s(analysis_id, bs = "re")
-  #   ),
-  #   nsims      = NSIMS,
-  #   outFile    = "data/ri_anysite_gam_ncrA_5_5_litn.rds"
-  # )
+  list(
+    label = "C",
+    desc  = "Is the baseline site different from experiment sites?",
+    filtration =  list(quos(
+      which_layer  == "ncr",
+      which_river  == "all",
+      which_annuli == "all",
+      which_agrp   == "transect_most_A"
+    )),
+    test_stat  = list(make_gam_ts(
+      m1_rhs = ~ s(d, bs = "ts") + d*I(annuli == "A")*I(Z == "T1") + pd*I(Z == "T1") + s(pd, bs = "ts") + s(analysis_id, bs = "re"),
+      m2_rhs = ~ s(d, bs = "ts") + d*I(annuli == "A") + pd   + s(pd, bs = "ts") + s(analysis_id, bs = "re")
+    )),
+    nsims      = NSIMS
+  ),
+  
+  list(
+    label = "D",
+    desc  = "Is at least one site (including baseline) different?",
+    filtration =  list(quos(
+      which_layer  == "ncr",
+      which_river  == "all",
+      which_annuli == "notA",
+      which_agrp   == "first_transect_with_AB"
+    )),
+    test_stat  = list(make_gam_ts(
+      m1_rhs = ~ s(d, bs = "ts") + d*Z + pd*Z + s(pd, bs = "ts") + s(analysis_id, bs = "re"),
+      m2_rhs = ~ s(d, bs = "ts") + d + pd     + s(pd, bs = "ts") + s(analysis_id, bs = "re")
+    )),
+    nsims      = NSIMS
+  )
 )
 
-## Prepare data for carrying out inference
+## Prepare analysis data for carrying out inference by creating
+# declaration
 analysis_dt  %>%
   filter(at_least_2_per_arm) %>%
   mutate(
@@ -92,17 +104,62 @@ analysis_dt  %>%
   ) ->
   prepared_for_ri
 
+ri_data <- 
+  RI_ANALYSIS_CONFIG %>%
+  purrr::map_dfr(as_tibble) %>%
+  mutate(
+    outPrefix = sprintf("%s/%s", outDir, label),
+    # not sure why this doesn't work...
+    # data = purrr::map(
+    #   .x = filtration,
+    #   .f = ~  dplyr::filter(prepared_for_ri, !!! .x)
+    # )
+  ) %>%
+  {
+    x <- .
+    x$data <- 
+      purrr::map(
+        .x = x$filtration,
+        .f = ~  dplyr::filter(prepared_for_ri, !!! .x)
+      )
+    x
+  } %>%
+  tidyr::unnest(cols = "data") %>%
+  mutate(
+    outFile = paste(
+      gsub("_ppm_m", "", element),
+      if_else(species == "A. raveneliana", "Arav", "Lfas"),
+      which_layer, which_annuli, which_river, 
+      gsub("_", "-", which_agrp), 
+      inner_buffer, outer_buffer, sep = "_")
+  )
 
-# Perform inference for each setting in analysis config
-purrr::walk(
-  .x = RI_ANALYSIS_CONFIG,
-  .f = function(x) {
-    prepared_for_ri %>% 
-      filter(!!! x$filtration) %>%
-      carryout_inference(x$test_stat, x$nsims) %>%
-      saveRDS(x$outFile)
-  }
+##  Perform inference for each setting in config ####
+
+furrr::future_walk(
+  .x = split(ri_data, f = 1:nrow(ri_data)),
+  .f = ~ .x %>%
+    mutate(
+      ri = purrr::pmap(
+        .l = list(dc = dec, ts = test_stat, dt = data, sm = nsims),
+        .f = function(dc, ts, dt, sm) {
+          ri2::conduct_ri(
+            declaration   = dc,
+            test_function = ts,
+            data          = as.data.frame(dt),
+            sims          = sm)
+          }
+      ),
+      p_value = purrr::map_dbl(ri, ~ tidy(.x)[['p.value']])
+    ) %>%
+    {
+      out <- .
+      ff <- file.path(out[["outPrefix"]][[1]], paste0(out[["outFile"]][[1]], ".rds"))
+      saveRDS(out, file = ff)
+    }
+  
 )
+
 
 # Clean up
 rm(list = ls())
