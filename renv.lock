@@ -65,6 +65,13 @@
       "Repository": "CRAN",
       "Hash": "f3ca785924863b0e4c8cb23b6a5c75a1"
     },
+    "RcppArmadillo": {
+      "Package": "RcppArmadillo",
+      "Version": "0.9.800.3.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "0f1dd78cdd147c72d7c8f652391c61b2"
+    },
     "RcppEigen": {
       "Package": "RcppEigen",
       "Version": "0.3.3.7.0",
@@ -114,19 +121,19 @@
       "Repository": "CRAN",
       "Hash": "0b118d5900596bae6c4d4865374536a6"
     },
-    "cenGAM": {
-      "Package": "cenGAM",
-      "Version": "0.5.3",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "f939ac32eb60845f75b6695a4341fb60"
-    },
     "cli": {
       "Package": "cli",
       "Version": "1.1.0",
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "44036d89d2bbffdbf1a9698cc86d0976"
+    },
+    "codetools": {
+      "Package": "codetools",
+      "Version": "0.2-16",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "89cf4b8207269ccf82fbeb6473fd662b"
     },
     "colorspace": {
       "Package": "colorspace",
@@ -205,6 +212,25 @@
       "Repository": "CRAN",
       "Hash": "cf285837c1587867535424bb608bc1bf"
     },
+    "furrr": {
+      "Package": "furrr",
+      "Version": "0.1.0.9002",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "furrr",
+      "RemoteUsername": "DavisVaughan",
+      "RemoteRef": "master",
+      "RemoteSha": "b4ad6addda5cb2fab4baf51434bdacf7a75a94ad",
+      "Hash": "247f411aff3a9fb3b2bb09c377c48db7"
+    },
+    "future": {
+      "Package": "future",
+      "Version": "1.16.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "20c20385da360f28c07364f2d099a6d7"
+    },
     "generics": {
       "Package": "generics",
       "Version": "0.0.2",
@@ -225,6 +251,13 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "9ac60f09a2f437af8df8638ef3da0288"
+    },
+    "globals": {
+      "Package": "globals",
+      "Version": "0.12.5",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "e9e529fb7a579ad4b4ff65e052e76ed8"
     },
     "glue": {
       "Package": "glue",
@@ -323,6 +356,13 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "dc0e9c03b3635ff433b045ce6bf0612d"
+    },
+    "listenv": {
+      "Package": "listenv",
+      "Version": "0.8.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "0bde42ee282efb18c7c4e63822f5b4f7"
     },
     "lmomco": {
       "Package": "lmomco",
