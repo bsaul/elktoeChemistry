@@ -67,17 +67,15 @@ knitr::include_graphics(here::here("manuscript", "figures", "figure_alignment.pd
 
 ## Chemical data pre-processing
 
-Valves were grouped into seven batches for LA-ICP-MS processing. During each batch process, the lower limit of detection (LOD) was assessed multiple times using the standards described in Section \ref{la-icp-ms}. We censored valve measurements based on the mean LOD within a batch for each element. For analysis, parts-per-million (ppm) values were transformed to $\text{mol/Ca mmol}$ where the $Ca mmol$ was based on Ca\% of ~39.54\% for nacral observations and 40.078\% for all other layers.
+Valves were grouped into seven batches for LA-ICP-MS processing. During each batch process, the lower limit of detection (LOD) was assessed multiple times using the standards described in Section \ref{la-icp-ms}. Concentration values were censored based on the mean LOD within a batch for each element. For analysis, parts-per-million (ppm) values were transformed to $\text{mol/Ca mmol}$ where the $Ca mmol$ was based on Ca\% of ~39.54\% for nacral observations and 40.078\% for all other layers.
 
-## Statistical Analyses
+## Study questions
 
-We graphically summarized morbidity and mortality during the experiment by plotting trends in death and relative weight change at each site. 
+We hypothesized that the distributions of one or more elements accrued in the nacre during the experiment would differ between experimental sites. To examine differential accrual, we posed a series of questions described in Table \ref{hypothesis-table}. The questions are designed to probe the primary research hypothesis by systematically examining both the sources and validity of any observed differences. 
 
-### Study questions
+Question (A) asks if there is difference any of the seven sites (baseline plus 3 experiment sites per river). Though notable, a difference between the baseline site and experimental sites does not improve our understanding of potential differences between the rivers, hence we then asked (B) whether experimental sites, excluding baseline, were different from each other and whether (C) the baseline site differed from the aggregated experimental sites. Questions (A-C) imply contrasts purposefully faithful to the completely randomized experimental design, thus permiting randomization-based inference [@splawa-neyman1990on-the-application; @coppock2019ri2] by permuting assignments to sites. 
 
-We hypothesized that the distributions of elements accrued in the nacre during the experiment may differ between experimental sites. To examine differential accrual, we asked a series of questions described in Table \ref{hypothesis-table} along with the methods we used to address the question. The first question (A) asks if there is difference any of the seven sites (baseline plus 3 experiment sites per river). Though notable, a difference between the baseline site and experimental sites does not address the primary scientific aim, hence we then asked whether experimental sites were different from each other (B) and whether the baseline site differed from the experimental sites in aggregrate (C). Each question implies a set of contrasts which purposefully observe the completely randomized experimental design, thus permiting randomization-based inference [@splawa-neyman1990on-the-application] by permuting assignments to sites. 
-
-If randomization is unbiased instrument for our questions, we would expect only random differences between distributions of elements accrued in the nacre *prior* to the experiment. We address this negative control outcome [@arnold2016negative] in question D. Lastly, in the case at least one experimental site is different in an element, we then explored the trends within a river (E) and assocations with mordibity and mortality in the *A. raveneliana*. In the remaining subsections, the statistical methods are described in more detail.
+If randomization is an unbiased instrument and we adqueately identified and linked elemental data to valve features, we should expect only random differences between nacral elemental distributions accrued *prior* to the experiment. Thus for question (D), we excluded observations from the most recent annuli, using pre-experiment observations as a negative control outcome [@arnold2016negative]. Lastly, in the case at least one experimental site is different in an element, we then explored trends within each river (E) and assocations with mordibity and mortality in the *A. raveneliana*. In the remaining subsections, the statistical methods are described in more detail.
 
 \begin{table}
 \label{hypothesis-table}
@@ -94,25 +92,28 @@ E(a|b) & Is there trend within (Little Tennessee/Tuckasegee)? & All &  & & yes \
 \end{tabular}
 \end{table}
 
+## Statistical Analyses
+
+We graphically summarized morbidity and mortality during the experiment by plotting trends in death and relative weight change at each site. 
+
+### Outliers and sensitivity analyses
+
 ### Randomization-based inference
 
-For questions A-D, we tested for differences between elemental distributions using two related 
+For questions A-D, null hypotheses of no difference between elemental distributions were tested using randomization inference in two ways, each of which make use of available data differently. Our experiment can be viewed as a cluster randomized trial, where the specimens are indepedent replicates and laser transects are clustered within a specimen. Inference was drawn using $m = 700$ simulations from the randomization distribution, using the `ri2` R package [@coppock2019ri2; @rcore2019]. The method can be summarized as follows: (1) compute the observed test statistic ($t_{obs}$) using the observed assignments, (2) permute the assignments by assigning specimens to different sites and re-compute the test statistic, (3) repeat (2) $m$ times. The two-sided p-value is the proportion of times $t_{obs}$ is greater than or equal to the test statistic distribution.
+
+Though randomization inference preserves the nominal type I error level regardless of the chosen test statistic under the null hypothesis, power under various alternative hypotheses varies depending on this choice. We chose two statistics that used the available data in distinct ways with the goal to examine a range of possible diversions between nacral distributions be it in the shape of the trajectories or in distributional mean, variance, or extremes.
+
+DESCRIBE stats:
+
+* A test statistic based on the deviance between two nested GAM models preserved the temporal ordering of the observations.
+* A statistic based on five summary statistics of each specimen's distributions. 
+
+These statistics, the model specifications, and methodology are further described in the Supplementary Material.
 
 
-tested the sharp null hypothesis [@coppock2019ri2] that each specimen would have developed the same elemental trajectory in terms of $\text{log}(\text{mol/Ca mmol})$ regardless of the experimental site to which it was assigned. Our experiment can be viewed as a cluster randomized trial, where the specimens are indepedent replicates and transect are clustered within a specimen. To preserve indepedence of the experimental replicates, we selected one transect per specimen which contain the most observations of the youngest annuli identified as described in \ref{anatomical-alignment}. Transects eligible for analysis also had to include at least 25$\mu$m of nacre. 
 
-Inference was drawn using 1000 draws from the randomization distribution, using the `ri2` R package [@coppock2019ri2; @rcore2019]. The method can be summarized as follows: (1) compute the observed test statistic ($t_{obs}$) using the observed allocation, (2) permute the allocation by assigning specimens to different sites and re-compute the test statistic, (3) repeat (2) $m = 1000$ times. The two-sided p-value is the proportion of times $t_{obs}$ is greater than or equal to the test statistic distribution.
-
-#### Test statistics
-
-GAM:
-
-* modelled: $\text{log}(\text{mol/Ca mmol})$ 
-* doesn't handle censoring (at least in the way we implemented it)
-
-We used a test statistic of the deviance between two nested Generalized Additive Mixed Models (GAMM) [@wood2017gam]. The models were designed to be flexible and account for individual variation as well as the variation in transect lengths with terms for both absolute and relative distance along the transect. The restricted (null) model did not include terms experimental site, while the unrestricted model did.
-
-L-moments
+#### L-moments
 
 For descriptive purposes, we computed the proportion censored, first three probability of censor weighted L-moments ratios[@lmomco2018], and the maximum of observations within each anatomical area of interest for each element. These summary statistics were then plotted to examine trends in the elemental distributions.
 

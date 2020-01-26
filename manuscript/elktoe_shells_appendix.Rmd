@@ -5,6 +5,23 @@ date: "10/7/2019"
 output: pdf_document
 ---
 
+
+#### GAM Test statistic
+
+
+
+tested the sharp null hypothesis that each specimen would have developed the same elemental trajectory in terms of $\text{log}(\text{mol/Ca mmol})$ regardless of the experimental site to which it was assigned. 
+
+To preserve indepedence of the experimental replicates, we selected one transect per specimen which contain the most observations of the youngest annuli identified as described in \ref{anatomical-alignment}. Transects eligible for analysis also had to include at least 25$\mu$m of nacre. 
+
+
+* modelled: $\text{log}(\text{mol/Ca mmol})$ 
+* doesn't handle censoring (at least in the way we implemented it)
+
+We used a test statistic of the deviance between two nested Generalized Additive Mixed Models (GAMM) [@wood2017gam]. The models were designed to be flexible and account for individual variation as well as the variation in transect lengths with terms for both absolute and relative distance along the transect. The restricted (null) model did not include terms experimental site, while the unrestricted model did.
+
+
+
 ### Elements associated with river and/or site
 
 
