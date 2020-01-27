@@ -5,11 +5,15 @@
 # Purpose: Create map of elktoe study
 #-----------------------------------------------------------------------------#
 
-library(ggmap)
-library(maptools)
-library(maps)
-library(sp)
-library(rgdal)
+library(dplyr)
+library(sf)
+
+
+# library(ggmap)
+# library(maptools)
+# library(maps)
+# library(sp)
+# library(rgdal)
 
 # To map
 # extent of watersheds
@@ -21,6 +25,11 @@ library(rgdal)
 # major towns
 # major pollutors
 
+read_sp_data <- function(.dsn, .layer){
+  sf::st_transform(sf::st_read(dsn = .dsn, layer = .layer), 2264)
+}
+
+rivers <- read_sp_data('extdata/ncrivers/ncrivers.shp', 'ncrivers')
 
 sites <- data.frame(
   river = c(rep('Tuck', 3), rep('LiTN', 3) ),
@@ -28,23 +37,47 @@ sites <- data.frame(
   landmark = c("Dillsboro", "Barker's Creek", "Whittier Post Office",
                "Franklin Dam", "Rosecreek Bridge", "Needmore Swinging Bridge"),
   lat  = c(35.347642, 35.381479, 35.435096, 35.220284, 35.271884, 35.322444),
-  lon = c(-83.236917, -83.288928, -83.358732, -83.371543, -83.440744, -83.521481) )
-sites
+  lon = c(-83.236917, -83.288928, -83.358732, -83.371543, -83.440744, -83.521481) 
+) 
+pnts <- st_sfc(geom = st_multipoint(x = cbind(sites$lon, sites$lat)))
+sites$geom <- pnts
+st_crs(sites$geom) <- 4326
+sites$geom <- sites$geom %>% st_transform(2264)
 
-rivers <- spTransform(rgdal::readOGR('inst/extdata/ncrivers/ncrivers.shp'),
-                      CRS("+proj=longlat +datum=WGS84"))
+# st_crs(box) <- 4326
 
-rivers2 <- fortify(rivers)
+box <- st_bbox(sites$geom) %>% st_as_sfc() 
+riv <- st_intersection(st_buffer(box, dist = units::set_units(10, "km")), rivers$geometry) 
 
-here <- get_map(location = c( lon = -83.35, lat = 35.3), source = "osm", zoom = 11)
 
-ggmap(here) +
-  geom_point(aes(x = lon, y = lat), data = sites, color = 'red', size = 3) +
-  geom_line(aes(x = long, y = lat, group = group), data = rivers2, color = 'blue', fill = NA)
 
-# citation('ggmap')
 
-map("county", "North Carolina",  col="black",
-    xlim = c(-83.55, -83.2), ylim = c(35.15, 35.45))
-points(sites$lon, sites$lat, col = 'red')
-plot(rivers, add = TRUE, col = 'blue')
+# Start plotting
+ggplot() +
+  geom_sf(size = .1, fill = "white") +
+  
+  geom_sf(
+    data = riv
+  ) + 
+  geom_sf(
+    data = sites,
+    aes(geometry = geom,
+        color = "black", 
+        shape = river),
+    alpha = 1
+  )
+# 
+# 
+# 
+# 
+# ggmap::register_google("AIzaSyAnrfnmcuV0cNLT8vTKs1oIPIXVXXBLbKE")
+# 
+# 
+# rivers2 <- fortify(rivers)
+# 
+# here <- get_map(location = c( lon = -83.35, lat = 35.3), source = "osm", zoom = 11)
+# 
+# ggmap(here) +
+#   geom_point(aes(x = lon, y = lat), data = sites, color = 'red', size = 3) +
+#   geom_line(aes(x = long, y = lat, group = group), data = rivers2, color = 'blue', fill = NA)
+# 
