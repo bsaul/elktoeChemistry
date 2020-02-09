@@ -39,9 +39,14 @@ mussel_info <-
     final_status  = ifelse(dead, 'Dead', ifelse(moribund, 'Moribund', 'Alive')),
     final_status  = factor(final_status, ordered = TRUE, 
                            levels = c('Alive', 'Moribund', 'Dead')),
-    site_num      = as.integer(if_else(site == "Baseline", "1", substr(site, 6, 6)))
+    site_num      = as.integer(if_else(site == "Baseline", "1", substr(site, 6, 6))),
+    baseline_volume = volume_0,
+    baseline_weight = if_else(species == "A. raveneliana",
+                              buoyant_weight_g_0,
+                              dry_weight_g_0) 
   ) %>%
   dplyr::select(id, site, site_num, river, species, dead,
+                baseline_weight, baseline_volume,
                 prop_weight_lost, moribund, final_status) %>%
   left_join(n_annuli, by = "id")
 

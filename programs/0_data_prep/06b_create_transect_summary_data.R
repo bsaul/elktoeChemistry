@@ -18,7 +18,7 @@ valve_data <- readRDS(inFile1)
 # Find the transect of an id with the longest section of annuli A
 most_A <- valve_data %>%
   select(id, transect, distance) %>%
-  tidyr::unnest() %>%
+  tidyr::unnest(cols = c(distance)) %>%
   group_by(id, transect, layer, annuli) %>%
   summarise(d = n()) %>%
   filter(layer == "ncr", annuli == "A") %>%

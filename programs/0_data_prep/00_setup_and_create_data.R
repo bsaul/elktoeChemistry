@@ -10,7 +10,7 @@ library(dplyr)
 library(stringr)
 library(ggplot2)
 
-source("programs/00a_functions.R")
+source("programs/0_data_prep/00a_functions.R")
 load("data/mussels_wide.rda")
 
 # Files to exclude from analyses
@@ -22,12 +22,12 @@ exclude_files <- c("README",
 )
 
 ###
-files <- list.files(path = "programs",
+files <- list.files(path = "programs/0_data_prep",
            full.names = TRUE,
            recursive = TRUE,
            include.dirs = FALSE)
 
-create_data_Rfiles <- files[grepl("programs/0[1-9].*R$", files)]
+create_data_Rfiles <- files[grepl("programs/0_data_prep/0[1-9].*R$", files)]
 
 for(i in seq_along(create_data_Rfiles)){
   source(file = create_data_Rfiles[i], echo = TRUE)

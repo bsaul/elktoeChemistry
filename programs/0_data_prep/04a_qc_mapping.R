@@ -125,7 +125,7 @@ tm_lgl <- c(purrr::map_lgl(tm, ~ .x$zfa$.outer))
 chem_valve_lengths <- 
   method_tests %>% 
   filter(idref_method != "A") %>%
-  group_by(idref_method, id, transect) %>%
+  group_by(idref_method, id, transect, .drop = TRUE) %>%
   summarise(
     outer_edge_rn = min(which(layer == "opx"), na.rm = TRUE),
     inner_edge_rn = max(which(layer == "ipx"), na.rm = TRUE)
@@ -192,7 +192,7 @@ best_method_by_idt <-
     chem_valve_lengths_A %>% select(idt, A_iedge = inner_edge_rn), 
     by = "idt"
   ) %>%
-  group_by(idt) %>%
+  group_by(idt, .drop = TRUE) %>%
   mutate(
     is_min_rel_diff   = abs(rel_diff) == min(abs(rel_diff), na.rm = TRUE),
     iedge_Adiff       = abs(A_iedge - inner_edge_rn)
@@ -251,7 +251,7 @@ best_grouping <-
 ##
 rel_diff_threshold <- 0.02
 valve_length_compare %>%
-  filter(idref_grouping == best_grouping, abs(rel_diff) > rel_diff_threshold) %>%
+  filter(idref_grouping == best_method, abs(rel_diff) > rel_diff_threshold) %>%
   arrange(desc(abs(rel_diff)))
 
 
