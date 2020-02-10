@@ -21,8 +21,8 @@ RI_ANALYSIS_CONFIG <- list(
       which_agrp   == "transect_most_A"
     )), 
     test_stat  = list(make_gam_ts(
-      m1_rhs = ~ s(d, bs = "ts") + d:Z + s(analysis_id, bs = "re"),
-      m2_rhs = ~ s(d, bs = "ts") + s(analysis_id, bs = "re")
+      m1_rhs = ~ s(d, bs = "ts") + d:Z + baseline_weight + baseline_volume + s(analysis_id, bs = "re"),
+      m2_rhs = ~ s(d, bs = "ts") + + baseline_weight + baseline_volume + s(analysis_id, bs = "re")
     )),
     nsims      = 250
   ),
@@ -37,8 +37,8 @@ RI_ANALYSIS_CONFIG <- list(
       which_agrp   == "transect_most_A"
     )),
     test_stat  = list(make_gam_ts(
-      m1_rhs = ~ s(d, bs = "ts") + d*I(annuli == "A")*Z + pd*Z + s(pd, bs = "ts") + s(analysis_id, bs = "re"),
-      m2_rhs = ~ s(d, bs = "ts") + d*I(annuli == "A") + pd   + s(pd, bs = "ts") + s(analysis_id, bs = "re")
+      m1_rhs = ~ s(d, bs = "ts") + d*I(annuli == "A")*Z + pd*Z + s(pd, bs = "ts") + baseline_weight + baseline_volume + s(analysis_id, bs = "re"),
+      m2_rhs = ~ s(d, bs = "ts") + d*I(annuli == "A") + pd   + s(pd, bs = "ts") + baseline_weight + baseline_volume + s(analysis_id, bs = "re")
     )),
     nsims      = NSIMS
   ),
@@ -54,8 +54,8 @@ RI_ANALYSIS_CONFIG <- list(
       which_agrp  == "transect_most_A"
     )),
     test_stat  = list(make_gam_ts(
-      m1_rhs = ~ s(d, bs = "ts") + d*I(annuli == "A")*Z + pd*Z + s(pd, bs = "ts") + s(analysis_id, bs = "re"),
-      m2_rhs = ~ s(d, bs = "ts") + d*I(annuli == "A") + pd + s(pd, bs = "ts") + s(analysis_id, bs = "re")
+      m1_rhs = ~ s(d, bs = "ts") + d*I(annuli == "A")*Z + pd*Z + s(pd, bs = "ts") + baseline_weight + baseline_volume +  s(analysis_id, bs = "re"),
+      m2_rhs = ~ s(d, bs = "ts") + d*I(annuli == "A") + pd + s(pd, bs = "ts") + baseline_weight + baseline_volume +  s(analysis_id, bs = "re")
     )),
     nsims      = NSIMS
   ),
@@ -70,8 +70,8 @@ RI_ANALYSIS_CONFIG <- list(
       which_agrp   == "transect_most_A"
     )),
     test_stat  = list(make_gam_ts(
-      m1_rhs = ~ s(d, bs = "ts") + d*I(annuli == "A")*I(Z == "T1") + pd*I(Z == "T1") + s(pd, bs = "ts") + s(analysis_id, bs = "re"),
-      m2_rhs = ~ s(d, bs = "ts") + d*I(annuli == "A") + pd   + s(pd, bs = "ts") + s(analysis_id, bs = "re")
+      m1_rhs = ~ s(d, bs = "ts") + d*I(annuli == "A")*I(Z == "T1") + pd*I(Z == "T1") + s(pd, bs = "ts") + baseline_weight + baseline_volume + s(analysis_id, bs = "re"),
+      m2_rhs = ~ s(d, bs = "ts") + d*I(annuli == "A") + pd + s(pd, bs = "ts") + baseline_weight + baseline_volume + s(analysis_id, bs = "re")
     )),
     nsims      = NSIMS
   ),
@@ -86,8 +86,8 @@ RI_ANALYSIS_CONFIG <- list(
       which_agrp   == "first_transect_with_AB"
     )),
     test_stat  = list(make_gam_ts(
-      m1_rhs = ~ s(d, bs = "ts") + d*Z + pd*Z + s(pd, bs = "ts") + s(analysis_id, bs = "re"),
-      m2_rhs = ~ s(d, bs = "ts") + d + pd     + s(pd, bs = "ts") + s(analysis_id, bs = "re")
+      m1_rhs = ~ s(d, bs = "ts") + d*Z + pd*Annuli*Z + s(pd, bs = "ts") + baseline_weight + baseline_volume +  s(analysis_id, bs = "re"),
+      m2_rhs = ~ s(d, bs = "ts") + d + pd*Annuli     + s(pd, bs = "ts") + baseline_weight + baseline_volume +  s(analysis_id, bs = "re")
     )),
     nsims      = NSIMS
   )
