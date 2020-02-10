@@ -22,7 +22,7 @@ filter_options <-
   right_join(
     tibble(
       j = "",
-     .inner_buffer = c(0, 5, 10),
+     .inner_buffer = c(0, 6, 12),
      .outer_buffer = c(0, 0, 0)),
     by = "j") %>%
   mutate(
