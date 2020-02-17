@@ -75,7 +75,7 @@ We hypothesized that the distributions of one or more elements accrued in the na
 
 Question (A) asks if there is difference any of the seven sites (baseline plus 3 experiment sites per river). Though notable, a difference between the baseline site and experimental sites does not improve our understanding of potential differences between the rivers, hence we then asked (B) whether experimental sites, excluding baseline, were different from each other and whether (C) the baseline site differed from the aggregated experimental sites. Questions (A-C) imply contrasts faithful to the completely randomized experimental design, thus permiting randomization-based inference [@splawa-neyman1990on-the-application; @coppock2019ri2] by permuting assignments to sites. 
 
-If randomization is an unbiased instrument and we adqueately identified and linked elemental data to valve features, we should expect only random differences between nacral elemental distributions accrued *prior* to the experiment. Thus for question (D), we excluded observations from the most recent annuli, using pre-experiment observations as a negative control outcome [@arnold2016negative]. Lastly, in the case at least one experimental site is different in an element, we then explored trends within each river (E) and assocations with mordibity and mortality in the *A. raveneliana*. In the remaining subsections, the statistical methods are described in more detail.
+If randomization is an unbiased instrument and we adqueately identified and linked elemental data to valve features, nacral elements accrued *prior* to the experiment should be similar, aftering adjusting for age. Thus for question (D), we excluded observations from the most recent annuli, using pre-experiment observations as a negative control outcome [@arnold2016negative] (TODO: not really a negative control outcome since these accrued before the experiment). Lastly, in the case at least one experimental site is different in an element, we then explored trends within each river (E) and assocations with mordibity and mortality in the *A. raveneliana*. In the remaining subsections, the statistical methods are described in more detail.
 
 \begin{table}
 \label{hypothesis-table}
@@ -94,33 +94,50 @@ E(a|b) & Is there trend within (Little Tennessee/Tuckasegee)? & All &  & & yes \
 
 ## Statistical Analyses
 
+### Demographics and descriptive statistics
+
+We tabulated available descriptive statistics by site, including specimen height, length, width, weight, and the number of annuli counted on the valve section removed for LA-ICP-MS. Morbidity and mortality during the experiment was graphically summarized by plotting pre-to-post experiment weight change among surviving specimens and death at each site. 
+
 ### Randomization-based inference
 
 The experiment can be viewed as a cluster randomized trial, where the specimens are indepedent replicates and LA-ICP-MS transects are clustered within a specimen. For questions A-D, null hypotheses of no difference between elemental distributions were tested using randomization-based inference using $m = 700$ simulations from the experiment's distribution. The basic method can be summarized as follows: (1) compute the observed test statistic ($t_{obs}$) using the observed assignments, (2) permute the assignments by assigning specimens to different sites and re-compute the test statistic, (3) repeat (2) $m$ times. The two-sided p-value is the proportion of times $t_{obs}$ is greater than or equal to the test statistic's distribution. The `ri2` R package was used to carry out inference [@coppock2019ri2; @rcore2019].
 
-Though randomization inference preserves the nominal type I error level under the null hypothesis regardless of the chosen test statistic, power under various alternative hypotheses varies depending on this choice. We chose two statistics that used the available data in distinct ways with the goal to examine a range of possible diversions between nacral distributions be it in the shape of the trajectories or in distributional mean, variance, or extremes.
+Though randomization inference preserves the nominal type I error level under the null hypothesis regardless of the chosen test statistic, power under various alternative hypotheses may vary depending on this choice. We chose two statistics that make distinct assumptions of the available data in order to examine differences between nacral elements. 
 
-The first test statistic is the deviance between two nested GAM models (labelled ri$_{gam}$), one which included terms for experimental site and a nested model which did not. For the ri$_{gam}$ analyses, we used the one transect per specimen which has the most number observations from the most recent annuli. The specification of the GAM models preserved the ordering of the observations along the transect within the nacre. he GAM models did not, however, account for censoring.
+The first test statistic is the deviance between two nested GAM models (labelled ri$_{gam}$), one which included terms for experimental site and a nested model which did not. For the ri$_{gam}$ analyses, we used the one transect per specimen which has the most number observations from the most recent annuli. The specification of the GAM models preserved the ordering of the observations along the transect within the nacre. The GAM models did not, however, account for censoring.
 
-The second set of randomization inference analsyes (ri$_{mom}$) used a test statistic that both explicitly accounted for censoring and used all of the nacral observations for a specimen. This test statistic was based on five summary statistics: the proportion censored, first three probability of censoring weighted L-moments ratios[@lmomco2018], and the maximum of observations within each anatomical area of interest for each element.
+The second set of randomization inference analyses (ri$_{mom}$) used a test statistic that both explicitly accounted for censoring and used all of the nacral observations for a specimen. This test statistic was based on five summary statistics: the proportion censored, first three probability of censoring weighted L-moments ratios [@lmomco2018], and the maximum of observations within each anatomical area of interest for each element.
 
 ### Outliers and sensitivity analyses
 
-### Graphical and exploratory analyses
+Since the point of transition from epoxy to shell was not been identified to exact precision (Section \ref{anatomical-alignment}), we checked the stability of our results to possible misclassification of observation as nacre instead of epoxy by repeating the analysis after trimming 6$\mu$m and 12$\mu$m from the nacral observations.
 
-We graphically summarized morbidity and mortality during the experiment by plotting trends in death and relative weight change at each site. 
+* TODO: outlier truncation
 
-* describe plots of L-moments
-
-These statistics, the model specifications, and methodology are further described in the Supplementary Material.
-
-
+The methodology, test statistics, and the model specifications, and further described in the Supplementary Material.
 
 # Results
 
+## Descriptive stats
+
+TODO: insert a table of baseline stats per site:
+
+* n
+* height, length, width (volume)
+* weight
+* n annuli 
+
+## Morbidity and Mortality
+
+Morbidity and mortality varied across sites and between species (Figure \@ref(fig:mortality)). In both rivers, *A. raveneliana* mortality increased monotonically along the river gradient, and the median relative weight change also tended to decrease. In the Little Tennessee, all but three specimens lost weight or died, whereas no individuals died and few lost weight at Tuckaseegee site 1, the site closest to the baseline site. In constrast to *A. raveneliana*, none of the younger, hatchery-raised *L. fasciola* died and all gained weight.
+
+```{r mortality, echo = FALSE, fig.cap= "TODO"}
+knitr::include_graphics(here::here("manuscript", "figures", "mussel_outcomes_v000.pdf"))
+```
+
 ## Trace element accrual
 
-Figure \@ref(fig:accrualPvals) displays p-values for each hypothesis test described in Table XXXX. In *A. raveneliana*, Manganese shows the most evidence for the differences between sites among the elements. The baseline specimens do not appear different from the experimental specimens in terms of their Manganese trajectories (p = XXXX). Figure \@ref(fig:accrualPvals)B suggests that at least one experimental site is different from the others in terms of its Mn trajectories.
+Figure \@ref(fig:accrualPvals) displays p-values for each hypothesis test described in Table \ref(hypothesis-table). In *A. raveneliana*, Manganese shows the most evidence for the differences between sites among the elements. The baseline specimens do not appear different from the experimental specimens in terms of their Manganese trajectories (p = XXXX). Figure \@ref(fig:accrualPvals)B suggests that at least one experimental site is different from the others in terms of its Mn trajectories.
 
 TODO: 
 
@@ -133,6 +150,8 @@ In *L. fasciola*, Strontium and Barium show evidence of differences between site
 ```{r accrualPvals, echo = FALSE, fig.cap= "TODO"}
 knitr::include_graphics(here::here("figures", "ri_gam_ncr_pvals_v006.pdf"))
 ```
+
+TODO: insert figure of moment summaries
 
 <!--
 \begin{table}
@@ -150,13 +169,7 @@ Pb & xx.xxx & xx.xx & xx.xx & xx.xx \\
 \end{table}
 -->
 
-## Morbidity and Mortality
 
-Morbidity and mortality in *A. raveneliana* varied significantly across sites and between species (Figure \@ref(fig:mortality)). In both rivers, outcomes worsened downstream for *A. raveneliana*. Mortality increased monotonically down the river gradient, and the median relative weight change also tended to decrease. In the Little Tennessee, all but three specimens lost weight or died, whereas no individuals died and few lost weight at Tuckaseegee 1, the closest site to the baseline site. In constrast to *A. raveneliana*, none of the hatchery-raised and younger *L. fasciola* died and all gained weight.
-
-```{r mortality, echo = FALSE, fig.cap= "TODO"}
-knitr::include_graphics(here::here("manuscript", "figures", "mussel_outcomes_v000.pdf"))
-```
 
 
 # Discussion
