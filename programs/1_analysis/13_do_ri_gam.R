@@ -7,25 +7,25 @@
 
 analysis_dt <- readRDS(file = "data/analysis_data.rds")
 outDir <- "data/ri"
-NSIMS <- 700
+NSIMS <- 250
 plan(multicore)
 
 RI_ANALYSIS_CONFIG <- list(
   # Any site different within any layer?
-  list(
-    label = "Z",
-    desc  = "all layers",
-    filtration = list(quos(
-      which_river  == "all",
-      which_annuli == "all",
-      which_agrp   == "transect_most_A"
-    )), 
-    test_stat  = list(make_gam_ts(
-      m1_rhs = ~ s(d, bs = "ts") + d:Z + baseline_weight + baseline_volume + s(analysis_id, bs = "re"),
-      m2_rhs = ~ s(d, bs = "ts") + + baseline_weight + baseline_volume + s(analysis_id, bs = "re")
-    )),
-    nsims      = 250
-  ),
+  # list(
+  #   label = "Z",
+  #   desc  = "all layers",
+  #   filtration = list(quos(
+  #     which_river  == "all",
+  #     which_annuli == "all",
+  #     which_agrp   == "transect_most_A"
+  #   )), 
+  #   test_stat  = list(make_gam_ts(
+  #     m1_rhs = ~ s(d, bs = "ts") + d:Z + baseline_weight + baseline_volume + s(analysis_id, bs = "re"),
+  #     m2_rhs = ~ s(d, bs = "ts") + + baseline_weight + baseline_volume + s(analysis_id, bs = "re")
+  #   )),
+  #   nsims      = 250
+  # ),
   
   list(
     label =  "A",
@@ -108,7 +108,7 @@ ri_data <-
   RI_ANALYSIS_CONFIG %>%
   purrr::map_dfr(as_tibble) %>%
   mutate(
-    outPrefix = sprintf("%s/%s", outDir, label),
+    outPrefix = sprintf("%s", outDir),
     # not sure why this doesn't work...
     # data = purrr::map(
     #   .x = filtration,
@@ -127,6 +127,7 @@ ri_data <-
   tidyr::unnest(cols = "data") %>%
   mutate(
     outFile = paste(
+      label,
       gsub("_ppm_m", "", element),
       if_else(species == "A. raveneliana", "Arav", "Lfas"),
       which_layer, which_annuli, which_river, 
