@@ -7,10 +7,13 @@
 
 library(dplyr)
 library(sf)
-library(ggplot2)
-library(ggmap)
-library(osmdata)
 
+
+# library(ggmap)
+# library(maptools)
+# library(maps)
+# library(sp)
+# library(rgdal)
 
 # To map
 # extent of watersheds
@@ -26,11 +29,7 @@ read_sp_data <- function(.dsn, .layer){
   sf::st_transform(sf::st_read(dsn = .dsn, layer = .layer), 2264)
 }
 
-# streams <- read_sp_data('extdata/ncrivers/ncrivers.shp', 'ncrivers')
-rivers <- read_sp_data('extdata/MajorHydro/MajorHydro.shp', 'MajorHydro')
-munip  <- read_sp_data('extdata/MunicipalBoundary_SHP/MunicipalBoundaries.shp', 
-                       'MunicipalBoundaries') %>%
-  filter(CountyName %in% c("JACKSON", "MACON", "SWAIN"))
+rivers <- read_sp_data('extdata/ncrivers/ncrivers.shp', 'ncrivers')
 
 sites <- data.frame(
   river = c(rep('Tuck', 3), rep('LiTN', 3) ),
@@ -40,7 +39,6 @@ sites <- data.frame(
   lat  = c(35.347642, 35.381479, 35.435096, 35.220284, 35.271884, 35.322444),
   lon = c(-83.236917, -83.288928, -83.358732, -83.371543, -83.440744, -83.521481) 
 ) 
-
 pnts <- st_sfc(geom = st_multipoint(x = cbind(sites$lon, sites$lat)))
 sites$geom <- pnts
 st_crs(sites$geom) <- 4326
@@ -49,45 +47,24 @@ sites$geom <- sites$geom %>% st_transform(2264)
 # st_crs(box) <- 4326
 
 box <- st_bbox(sites$geom) %>% st_as_sfc() 
-bbox <- st_buffer(box, dist = units::set_units(10, "km"))
-riv <- st_intersection(bbox, rivers$geometry) 
-mun <- st_intersection(bbox, munip$geometry)
+riv <- st_intersection(st_buffer(box, dist = units::set_units(10, "km")), rivers$geometry) 
 
 
-riv <- riv %>% st_transform(4326)
-mun <- mun %>% st_transform(4326)
-sites$geom <- sites$geom %>% st_transform(4326)
-f <- get_stamenmap(matrix(attr(riv, "bbox"), ncol = 2), maptype = "terrain")
 
 
 # Start plotting
-# ggplot() +
-ggmap(f) +
+ggplot() +
+  geom_sf(size = .1, fill = "white") +
+  
   geom_sf(
-    data = mun,
-    fill = "grey",
-    inherit.aes = FALSE
-  ) +
-  geom_sf(
-    data = riv,
-    color = "blue",
-    inherit.aes = FALSE
+    data = riv
   ) + 
   geom_sf(
     data = sites,
     aes(geometry = geom,
-        color = "black",
+        color = "black", 
         shape = river),
-    alpha = 1,
-    inherit.aes = FALSE
-  ) +
-  geom_text(
-    data = sites,
-    aes(label = site)
-  ) +
-  guides(
-    color = FALSE,
-    shape = FALSE
+    alpha = 1
   )
 # 
 # 
