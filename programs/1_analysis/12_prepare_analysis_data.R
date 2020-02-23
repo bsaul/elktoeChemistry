@@ -101,7 +101,8 @@ valve_data %>%
     )
   )  %>%
   select(
-    id, transect, drawer, river, species, site, site_num, data
+    id, transect, drawer, river, species, site, site_num, 
+    starts_with("baseline"), data
   ) %>%
   tidyr::unnest(cols = c(data)) %>%
   # Keep LOD information along
@@ -136,9 +137,7 @@ valve_data %>%
     d  = 1:n(),
     pd = d/max(d)
   ) %>%
-  ungroup() -> temp1
-
-temp1 %>%
+  ungroup()  %>%
   
   # # Transect must have at least 12 observations
   # group_by(filtration, element, species, id, transect) %>%
