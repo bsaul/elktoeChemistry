@@ -86,8 +86,8 @@ RI_ANALYSIS_CONFIG <- list(
       which_agrp   == "first_transect_with_AB"
     )),
     test_stat  = list(make_gam_ts(
-      m1_rhs = ~ s(d, bs = "ts") + d*Z + pd*Annuli*Z + s(pd, bs = "ts") + baseline_weight + baseline_volume +  s(analysis_id, bs = "re"),
-      m2_rhs = ~ s(d, bs = "ts") + d + pd*Annuli     + s(pd, bs = "ts") + baseline_weight + baseline_volume +  s(analysis_id, bs = "re")
+      m1_rhs = ~ s(d, bs = "ts") + d*Z + pd*annuli*Z + s(pd, bs = "ts") + baseline_weight + baseline_volume +  s(analysis_id, bs = "re"),
+      m2_rhs = ~ s(d, bs = "ts") + d   + pd*annuli   + s(pd, bs = "ts") + baseline_weight + baseline_volume +  s(analysis_id, bs = "re")
     )),
     nsims      = NSIMS
   )
