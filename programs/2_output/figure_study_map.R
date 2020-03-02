@@ -9,7 +9,7 @@ library(dplyr)
 library(sf)
 library(ggplot2)
 library(ggmap)
-library(osmdata)
+# library(osmdata)
 
 
 # To map
@@ -49,7 +49,7 @@ sites$geom <- sites$geom %>% st_transform(2264)
 # st_crs(box) <- 4326
 
 box <- st_bbox(sites$geom) %>% st_as_sfc() 
-bbox <- st_buffer(box, dist = units::set_units(10, "km"))
+bbox <- st_buffer(box, dist = units::set_units(8, "km"))
 riv <- st_intersection(bbox, rivers$geometry) 
 mun <- st_intersection(bbox, munip$geometry)
 
@@ -57,50 +57,59 @@ mun <- st_intersection(bbox, munip$geometry)
 riv <- riv %>% st_transform(4326)
 mun <- mun %>% st_transform(4326)
 sites$geom <- sites$geom %>% st_transform(4326)
-f <- get_stamenmap(matrix(attr(riv, "bbox"), ncol = 2), maptype = "terrain")
+background <- get_stamenmap(
+  matrix(attr(riv, "bbox"), ncol = 2), 
+  maptype = "terrain-background")
 
+river_label_pos <- tibble(
+  label = c("Tuckasegee", "Little Tennessee"),
+  lat   = c(35.42, 35.29),
+  lon   = c(-83.28, -83.42)
+)
 
-# Start plotting
-# ggplot() +
-ggmap(f) +
+ggmap(background) +
   geom_sf(
     data = mun,
-    fill = "grey",
+    color = "grey20",
+    fill = "grey50",
     inherit.aes = FALSE
   ) +
   geom_sf(
     data = riv,
-    color = "blue",
+    color = "#116966",
+    fill  = "blue",
     inherit.aes = FALSE
   ) + 
   geom_sf(
     data = sites,
     aes(geometry = geom,
-        color = "black",
-        shape = river),
+        shape   = river),
+    color = "#7f2b04",
+    fill  = "white",
+    shape = 25,
     alpha = 1,
     inherit.aes = FALSE
   ) +
   geom_text(
-    data = sites,
+    data = sites %>% mutate(lon = lon - 0.015),
     aes(label = site)
+  ) +
+  geom_text(
+    data = river_label_pos,
+    aes(label = label),
+    angle = 320,
+    color = "black"
   ) +
   guides(
     color = FALSE,
     shape = FALSE
-  )
-# 
-# 
-# 
-# 
-# ggmap::register_google("AIzaSyAnrfnmcuV0cNLT8vTKs1oIPIXVXXBLbKE")
-# 
-# 
-# rivers2 <- fortify(rivers)
-# 
-# here <- get_map(location = c( lon = -83.35, lat = 35.3), source = "osm", zoom = 11)
-# 
-# ggmap(here) +
-#   geom_point(aes(x = lon, y = lat), data = sites, color = 'red', size = 3) +
-#   geom_line(aes(x = long, y = lat, group = group), data = rivers2, color = 'blue', fill = NA)
-# 
+  ) ->
+  p
+
+p 
+
+ggsave(
+  filename = "manuscript/figures/study_map.pdf",
+  plot = p,
+  height = 4, width = 4
+)
