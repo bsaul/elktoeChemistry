@@ -8,15 +8,16 @@
 library(ggplot2)
 library(dplyr)
 
-vers <- "V007"
+vers <- "V008"
 outFile <- sprintf("figures/ri_gam_ncr_pvals_%s.pdf", vers)
 
 dt <- 
-  purrr::map(
-    .x = purrr::set_names(LETTERS[1:4]),
-    .f = ~ dir(sprintf("data/ri/%s", .x), full.names = TRUE)
-  ) %>%
-  unlist() %>%
+  dir("data/ri", full.names = TRUE) %>%
+  # purrr::map(
+  #   .x = purrr::set_names(LETTERS[1:4]),
+  #   .f = ~ dir(sprintf("data/ri/", .x), full.names = TRUE)
+  # ) %>%
+  # unlist() %>%
   purrr::map_dfr(
     .f = readRDS
   )
@@ -30,14 +31,11 @@ plot_dt <-
          inner_buffer, outer_buffer,
          element, species, p_value)
 
-
-
-
 ## Plotting it ####
 
 plot_dt <- 
   plot_dt %>% 
-  filter(inner_buffer == 5) %>%
+  filter(inner_buffer == 6) %>%
   # select(layer_data, element, species, p) %>%
   # group_by(hypothesis, species) %>%
   group_nest(hypothesis) %>%
@@ -67,11 +65,9 @@ plot_dt <-
   ) %>%
   tidyr::unnest(cols = c("data")) %>%
   mutate(
-    hypothesis = factor(
-      hypothesis,
-      levels = c("any site different (incl baseline)",
-                 "any site different (excl baseline)",
-                 "baseline different"),
+    plot_label = factor(
+      label,
+      levels = c("A", "B", "C"),
       labels = c("atop('H'[0]*': All sites (including baseline) equivalent', 'H'[a]*': at least one site different')",
                  "atop('H'[0]*': All sites (excluding baseline) equivalent', 'H'[a]*': at least one site different')",
                  "atop('H'[0]*': baseline site equivalent to experiment sites', 'H'[a]*': baseline site different from experiment sites')"),
@@ -119,7 +115,7 @@ ggplot(
   ) +
   coord_flip() +
   facet_wrap(
-    label ~ .,
+    plot_label ~ .,
     ncol   = 1,
     scales = "free",
     labeller = label_parsed
