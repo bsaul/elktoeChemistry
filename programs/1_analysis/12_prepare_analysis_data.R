@@ -167,9 +167,7 @@ valve_data %>%
           group_nest(which_river) 
       }
     )
-  ) -> temp2
-
-temp2 %>%
+  )  %>%
   # Create the Z (treatment variable) used by the randomization inference 
   # functions
   tidyr::unnest(cols = "data") %>%
@@ -218,7 +216,14 @@ temp2 %>%
       .x = m_per_arm,
       .f = ~ all(.x >= 2)
     )
-  ) ->
+  ) %>%
+  # Add moments data
+  mutate(
+    moments_by_annuli = purrr::map(
+      .x = data, 
+      .f = ~ create_moments_data(.x, quos(river, site, site_num, id, annuli)) %>%
+        select(river, site, site_num, id, annuli, stats))
+  )   ->
   analysis_dt
   
 analysis_dt %>%

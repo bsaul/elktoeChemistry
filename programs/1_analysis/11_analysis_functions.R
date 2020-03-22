@@ -72,6 +72,8 @@ make_transect_filter <- function(ch, di){
   }
 }
 
+
+
 ## Tranformation functions
 
 ppm_to_mmol <- function(ppm, gmol){
@@ -193,6 +195,70 @@ make_gam_ts <- function(m1_rhs, m2_rhs){
               # tobit1(left.threshold = data$lod, right.threshold = Inf))
     anova(m1, m2)[["Deviance"]][2]
   }
+}
+
+#' Compute p-value estimates for each simulation in an ri object
+compute_pvals <- function(ri){
+  
+  # browser()
+  out <- ri[["sims_df"]]
+  nn  <- nrow(out)
+  out[["sim_id"]] <- 1:nn
+  out[["p_obs"]]  <- mean(out[["est_obs"]] >= out[["est_sim"]])
+  out[["p_marg"]] <- numeric(nn)
+  for(i in 1:nn){
+    out[["p_marg"]][i] <- mean(out[["est_sim"]][i] >= out[["est_sim"]])
+  }
+  out
+}
+
+#' Compute pval for single summary statistic
+#' @param statistic_data data for a single summary statistic
+#' @param N the number of permutations
+compute_pval_for_single_statistic <- function(statistic_data, N){
+  
+  # Create the declaration for this set of data
+  ri_dec <-  define_multiarm_cluster_declaration(statistic_data[["Z"]], 
+                                                 statistic_data[["id"]])
+  # Conduct inference for this set of data
+  ri_res <- conduct_inference(statistic_data, ri_dec, 
+                              obtain_permutation_matrix(ri_dec, N))
+  
+  # Compute marginal p-values for each permutation
+  pvals <- compute_pvals(ri_res)
+  pvals
+}
+
+#' 
+#' @param statistic_data
+#' @param N
+#' @param which_statistics
+
+compute_pvals_for_multiple_statistics <- function(statistic_data, N){
+  statistic_data %>%
+    ungroup() %>%
+    group_nest(statistic) %>%
+    mutate(
+      data = purrr::map(.x = data, .f = ~ compute_pval_for_single_statistic(.x, N))
+    )
+}
+
+#' 
+#' @param pval_data
+#' @param .f summarizing function across p-values
+compute_pval_across_multiple_statistics <- function(pval_data, .f = min){
+  
+    pval_data %>%
+    tidyr::unnest(cols = data) %>%
+    group_by(sim_id) %>%
+    summarise(
+      t_p_obs = .f(p_obs[1]),
+      t_p     = .f(p_marg)
+    )  %>%
+    summarise(
+      p = mean(t_p_obs[1] <= t_p)
+    )
+  
 }
 
 
