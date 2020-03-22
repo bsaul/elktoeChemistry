@@ -108,6 +108,8 @@ The first test statistic is the deviance between two nested GAM models (labelled
 
 The second set of randomization inference analyses (ri$_{mom}$) used a test statistic that both explicitly accounted for censoring and used all of the nacral observations for a specimen. This test statistic was based on five summary statistics: the proportion censored, first three probability of censoring weighted L-moments ratios [@lmomco2018], and the maximum of observations within each anatomical area of interest for each element.
 
+* used the omninbus method described in @keele2015randomization
+
 ### Outliers and sensitivity analyses
 
 Since the point of transition from epoxy to shell was not been identified to exact precision (Section \ref{anatomical-alignment}), we checked the stability of our results to possible misclassification of observation as nacre instead of epoxy by repeating the analysis after trimming 6$\mu$m and 12$\mu$m from the nacral observations.
@@ -206,5 +208,9 @@ These explanation point out limitations of our study design and measurements. Th
 
 
 The completely randomized design allows for robust, internally valid inference; however, further analyses with these data are needed to: 1) Examine other observed differences in elemental concentrations; 2) Rule out possible confounding such as seasonal and batch effects; and 3) Explore sources of these elements within the watersheds.
+
+TODO:
+
+* cite stamen maps
 
 # References
