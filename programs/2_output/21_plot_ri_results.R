@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------#
-#   Title: Plot results of inference
+#   Title: Plot results of randomization inference
 #  Author: B Saul
 #    Date: 20191125
 # Purpose: 
@@ -9,7 +9,7 @@ library(ggplot2)
 library(dplyr)
 
 vers <- "V009"
-outFile <- sprintf("figures/ri_gam_ncr_pvals_%s.pdf", vers)
+outFile <- sprintf("figures/ri_ncr_pvals_%s.pdf", vers)
 
 dt <- 
   dir("data/ri", full.names = TRUE) %>%
