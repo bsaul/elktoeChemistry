@@ -1,12 +1,13 @@
 #-----------------------------------------------------------------------------#
 #    Title: Conduct infernce on moments
 #   Author: B Saul
-#     Date: 20190324
+#     Date: 20200301
 #  Purpose:
 #-----------------------------------------------------------------------------#
 
 library(dplyr)
 library(ri2)
+library(furrr)
 
 moments_dt <- readRDS(file = "data/analysis_data.rds")
 outDir <- "data/ri"
@@ -102,9 +103,6 @@ prepare_ri_moments_data <- function(data, ri_setting){
         inner_buffer, outer_buffer, sep = "_")
     )
 }
-
-
-
 
 ri_prepared_data <- purrr::map_dfr(
   .x = RI_MOMENTS_ANALYSIS_CONFIG,

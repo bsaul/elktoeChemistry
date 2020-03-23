@@ -8,25 +8,24 @@
 library(ggplot2)
 library(dplyr)
 
-vers <- "V008"
+vers <- "V009"
 outFile <- sprintf("figures/ri_gam_ncr_pvals_%s.pdf", vers)
 
 dt <- 
   dir("data/ri", full.names = TRUE) %>%
-  # purrr::map(
-  #   .x = purrr::set_names(LETTERS[1:4]),
-  #   .f = ~ dir(sprintf("data/ri/", .x), full.names = TRUE)
-  # ) %>%
-  # unlist() %>%
   purrr::map_dfr(
-    .f = readRDS
+    .f = ~ readRDS(.x) %>%
+      mutate(
+        is_moment_ri = grepl("mom", label),
+        label = if_else(is_moment_ri, substr(label, 1, 1), label),
+        p_value = ifelse(is_moment_ri, unlist(p_value), p_value)
+      )
   )
-
 
 
 plot_dt <-
   dt %>%
-  select(label, hypothesis = desc, nsims,
+  select(label, hypothesis = desc, nsims, is_moment_ri,
          which_layer, which_annuli, which_agrp, which_annuli,
          inner_buffer, outer_buffer,
          element, species, p_value)
@@ -36,6 +35,10 @@ plot_dt <-
 plot_dt <- 
   plot_dt %>% 
   filter(inner_buffer == 6) %>%
+  # filter(label != "D") %>%
+  group_by(element) %>%
+  filter(!all( p_value >= 0.01)) %>%
+  ungroup() %>%
   # select(layer_data, element, species, p) %>%
   # group_by(hypothesis, species) %>%
   group_nest(hypothesis) %>%
@@ -115,8 +118,8 @@ ggplot(
   ) +
   coord_flip() +
   facet_wrap(
-    plot_label ~ .,
-    ncol   = 1,
+    plot_label ~ is_moment_ri,
+    ncol   = 2,
     scales = "free",
     labeller = label_parsed
   ) +
@@ -134,12 +137,42 @@ ggplot(
     axis.ticks.y = element_line(color = "grey10", size = 0.2),
   ) ->
   p
-# p
+p
 
-ggsave(
-  file = outFile,
-  p, width = 4, height = 8
-)
+ggplot(
+  data = plot_dt,
+  aes(x     = label, y = -log10(p_value), 
+      color = is_moment_ri, shape = p_small )
+) + 
+  geom_point() +
+  scale_y_continuous(
+    name   = expression(-log[10]~(p)),
+    limits = -log10(c(1, 0.00045)),
+    breaks =  -log10(c(1, 0.05, 0.01, 0.001)),
+    labels = as.character(c(1, 0.05, 0.01, 0.001)),
+    expand = c(0, 0)
+  ) +
+  coord_flip() + 
+  facet_grid(element2 ~ species) +
+  theme_classic() +
+  theme(
+    strip.background = element_blank(),
+    legend.position = "bottom",
+    
+    panel.grid.major.y = element_line(color = "grey90", size = 0.2),
+    axis.text.x  = element_text(size = 8),
+    axis.line.x  = element_line(color = "grey50"),
+    axis.ticks.x = element_line(color = "grey50"),
+    axis.text.y  = element_text(size = 6),
+    axis.line.y  = element_blank(),
+    axis.ticks.y = element_line(color = "grey10", size = 0.2),
+  ) 
+
+
+# ggsave(
+#   file = outFile,
+#   p, width = 4, height = 8
+# )
 
 
 
