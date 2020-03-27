@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------#
-#    Title: Conduct infernce on moments
+#    Title: Conduct infernce on trends in moments and summary statistics
 #   Author: B Saul
 #     Date: 20200301
 #  Purpose:
@@ -14,63 +14,68 @@ outDir <- "data/ri"
 NSIMS <- 5000
 plan(multicore)
 
-RI_MOMENTS_ANALYSIS_CONFIG <- list(
+RI_MOMENTS_TRENDS_ANALYSIS_CONFIG <- list(
 
   list(
-    label =  "A-mom",
-    desc  = "Is at least one site (including baseline) different in annuli A?",
+    label =  "A",
+    desc  = "Is at least one site (including baseline) different in trend?",
+    test_data = "moment-trend",
     filtration = list(quos(
-      which_layer  == "ncr",
-      which_river  == "all",
-      which_annuli == "A",
-      which_agrp   == "transect_most_A"
-    )),
-    statistics = list(quos(
-      statistic %in% c("p_censored", "max", "L-ratio 1", "L-ratio 2")
-    )),
-    nsims      = NSIMS
-  ),
-  
-  list(
-    label = "B-mom",
-    desc  = "Is at least one site (excluding baseline) different in annuli A?",
-    filtration = list(quos(
-      which_layer == "ncr",
-      which_river == "nobaseline",
-      which_annuli == "A",
-      which_agrp  == "transect_most_A"
-    )),
-    statistics = list(quos(
-      statistic %in% c("p_censored", "max", "L-ratio 1", "L-ratio 2")
-    )),
-    nsims      = NSIMS
-  ),
-  
-  list(
-    label = "C-mom",
-    desc  = "Is the baseline site different from experiment sites?",
-    filtration =  list(quos(
-      which_layer  == "ncr",
-      which_river  == "all",
-      which_annuli == "A",
-      which_agrp   == "transect_most_A",
-    )),
-    statistics = list(quos(
-      statistic %in% c("p_censored", "max", "L-ratio 1", "L-ratio 2")
-    )),
-    nsims      = NSIMS
-  ),
-  
-  list(
-    # Note the extra filtration in the prepare_ri_moments_data function to
-    # annuli A for baseline and annuli B for non-baseline
-    label = "D-mom",
-    desc  = "Is at least one site (including baseline) different?",
-    filtration =  list(quos(
       which_layer  == "ncr",
       which_river  == "all",
       which_annuli == "all",
-      which_agrp   == "first_transect_with_AB"
+      which_agrp   == "all"
+    )),
+    statistics = list(quos(
+      statistic %in% c("p_censored", "max", "L-ratio 1", "L-ratio 2")
+    )),
+    nsims      = NSIMS
+  ),
+  
+  list(
+    label = "B",
+    test_data = "moment-trend",
+    desc  = "Is at least one site (excluding baseline) different in trend?",
+    filtration = list(quos(
+      which_layer == "ncr",
+      which_river == "nobaseline",
+      which_annuli == "all",
+      which_agrp  == "all"
+    )),
+    statistics = list(quos(
+      statistic %in% c("p_censored", "max", "L-ratio 1", "L-ratio 2")
+    )),
+    nsims      = NSIMS
+  ),
+  
+  # TODO this one needs to be fixed
+  # list(
+  #   label = "C",
+  #   test_data = "moment-trend",
+  #   desc  = "Is the baseline site different from experiment sites?",
+  #   filtration =  list(quos(
+  #     which_layer  == "ncr",
+  #     which_river  == "all",
+  #     which_annuli == "all",
+  #     which_agrp   == "all",
+  #   )),
+  #   statistics = list(quos(
+  #     statistic %in% c("p_censored", "max", "L-ratio 1", "L-ratio 2")
+  #   )),
+  #   nsims      = NSIMS
+  # ),
+  
+  list(
+    # Note the extra filtration in the prepare_ri_moments_trend_data function to
+    # remove annuli A
+    label = "D",
+    test_data = "moment-trend",
+    desc  = "Is at least one site (excluding baseline) different (excluding annuli A)?",
+    filtration =  list(quos(
+      which_layer  == "ncr",
+      which_river  == "nobaseline",
+      which_annuli == "all",
+      which_agrp   == "all"
     )),
     statistics = list(quos(
       statistic %in% c("p_censored", "max", "L-ratio 1", "L-ratio 2")
@@ -81,7 +86,7 @@ RI_MOMENTS_ANALYSIS_CONFIG <- list(
 
 
 
-prepare_ri_moments_data <- function(data, ri_setting){
+prepare_ri_moments_trend_data <- function(data, ri_setting){
   data %>%
     select(-data) %>%
     dplyr::filter(at_least_2_per_arm) %>%
@@ -91,6 +96,7 @@ prepare_ri_moments_data <- function(data, ri_setting){
         .l = list(x = moments_by_annuli, y = which_river, z = which_annuli),
         .f = function(x, y, z){
           
+          # browser()
           x %>% 
             tidyr::unnest(cols = stats) %>%
             {
@@ -99,12 +105,11 @@ prepare_ri_moments_data <- function(data, ri_setting){
                 dt %>% 
                   filter(
                     !!! ri_setting$statistics[[1]],
-                    (annuli == "A" & river == "Baseline") |
-                    (annuli == "B" & river != "Baseline")  
+                    !(annuli == "A" & river != "Baseline")  
                   )
               } else {
                 dt %>%
-                  filter(!!! ri_setting$statistics[[1]], annuli %in% z)
+                  filter(!!! ri_setting$statistics[[1]])
               }
             } %>%
             Z_maker(y, .) %>%
@@ -115,17 +120,21 @@ prepare_ri_moments_data <- function(data, ri_setting){
             mutate(Y = if_else(
               is.na(Y) | is.nan(Y) | is.infinite(Y), 
               true  = median(Y, na.rm = TRUE), 
-              false = Y)) 
+              false = Y)) %>%
+            ungroup() %>%
+            compute_moments_linear_trend() 
         }
       )
     ) %>%
     mutate(
       label = ri_setting$label,
       desc  = ri_setting$desc,
+      test_data = ri_setting$test_data,
       nsims = ri_setting$nsims,
       outPrefix = sprintf("%s", outDir),
       outFile = paste(
         label,
+        test_data,
         gsub("_ppm_m", "", element),
         if_else(species == "A. raveneliana", "Arav", "Lfas"),
         which_layer, which_annuli, which_river, 
@@ -134,9 +143,11 @@ prepare_ri_moments_data <- function(data, ri_setting){
     )
 }
 
+# prepare_ri_moments_trend_data(moments_dt, RI_MOMENTS_TRENDS_ANALYSIS_CONFIG[[1]])
+
 ri_prepared_data <- purrr::map_dfr(
-  .x = RI_MOMENTS_ANALYSIS_CONFIG,
-  .f = ~ prepare_ri_moments_data(moments_dt, .x)
+  .x = RI_MOMENTS_TRENDS_ANALYSIS_CONFIG,
+  .f = ~ prepare_ri_moments_trend_data(moments_dt, .x)
 )
 
 ##  Perform inference for each setting in config ####

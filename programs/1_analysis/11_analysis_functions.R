@@ -155,6 +155,16 @@ create_moments_data <- function(data, grouping){
     )
 }
 
+compute_moments_linear_trend <- function(dt){
+  dt %>%
+  # tidyr::unnest(cols = stats) %>%
+    mutate(annuli_ = -1 * match(annuli, LETTERS)) %>%
+    # filter(statistic %in% c("p_censored", "max")) %>%
+    group_by(river, site, site_num, id, statistic) %>%
+    tidyr::nest() %>% 
+    mutate(Y = purrr::map_dbl(data, ~ coef(lm(Y ~ annuli_, data = .x))[2])) %>%
+    select(-data)
+}
 
 ########## Randomization Inference (RI) FUNCTIONS ####
 
