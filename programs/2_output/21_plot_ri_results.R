@@ -8,7 +8,7 @@
 library(ggplot2)
 library(dplyr)
 
-vers <- "V009"
+vers <- "V010"
 outFile <- sprintf("figures/ri_ncr_pvals_%s.pdf", vers)
 
 dt <- 
@@ -36,7 +36,7 @@ plot_dt <-
   plot_dt %>% 
   filter(inner_buffer == 6) %>%
   # filter(label != "D") %>%
-  group_by(element) %>%
+  group_by(species, element) %>%
   filter(!all( p_value >= 0.01)) %>%
   ungroup() %>%
   # select(layer_data, element, species, p) %>%
@@ -79,12 +79,12 @@ plot_dt <-
   ) %>%
   mutate(
     p_small = (p_value < 0.0005),
-    p_value = if_else(p_small, 0.0005, p_value)
+    p_value2 = if_else(p_small, 0.0005, p_value)
   ) 
   
 ggplot(
   data = plot_dt,
-  aes(x = plot_element, y = -log10(p_value), 
+  aes(x = plot_element, y = -log10(p_value2), 
       color = species, shape = p_small )
 ) + 
   geom_hline(
@@ -140,20 +140,22 @@ ggplot(
 p
 
 ggplot(
-  data = plot_dt,
-  aes(x     = label, y = -log10(p_value), 
-      color = is_moment_ri, shape = p_small )
+  data = filter(plot_dt, p_value < 0.01),
+  aes(x     = is_moment_ri, y = -log10(p_value), 
+      color = is_moment_ri )
 ) + 
   geom_point() +
+  geom_label(aes(label = element2),
+             size = 2) +
   scale_y_continuous(
     name   = expression(-log[10]~(p)),
-    limits = -log10(c(1, 0.00045)),
-    breaks =  -log10(c(1, 0.05, 0.01, 0.001)),
-    labels = as.character(c(1, 0.05, 0.01, 0.001)),
+    limits = -log10(c(0.015, 0.000015)),
+    breaks =  -log10(c(0.01, 0.001, 0.0001, 0.00001)),
+    labels = as.character(c(0.01, 0.001, 0.0001, 0.00001)),
     expand = c(0, 0)
   ) +
   coord_flip() + 
-  facet_grid(element2 ~ species) +
+  facet_grid(label ~ species) +
   theme_classic() +
   theme(
     strip.background = element_blank(),
