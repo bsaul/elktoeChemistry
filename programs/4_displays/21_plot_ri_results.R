@@ -8,33 +8,47 @@
 library(ggplot2)
 library(dplyr)
 
+source("programs/4_displays/display_functions.R")
+
 vers <- "V010"
 outFile <- sprintf("figures/ri_ncr_pvals_%s.pdf", vers)
 
 dt <- 
-  dir("data/ri", full.names = TRUE) %>%
-  purrr::map_dfr(
-    .f = ~ readRDS(.x) %>%
-      mutate(
-        is_moment_ri = grepl("mom", label),
-        label = if_else(is_moment_ri, substr(label, 1, 1), label),
-        p_value = ifelse(is_moment_ri, unlist(p_value), p_value)
-      )
+  read_all_ri_data() %>%
+  mutate(
+    species = purrr::map_chr(outFile, ~ strsplit(.x, "-")[[1]][[1]]),
+    signal_filter = purrr::map_chr(outFile, ~ strsplit(.x, "-")[[1]][[2]]),
+    element = purrr::map_chr(outFile, ~ strsplit(.x, "-")[[1]][[3]]),
+    p_value = unlist(p_value)
   )
+
+# %>%
+#   purrr::map_dfr(
+#     .f = ~ readRDS(.x) %>%
+#       mutate(
+#         is_moment_ri = grepl("mom", label),
+#         label = if_else(is_moment_ri, substr(label, 1, 1), label),
+#         p_value = unlist(p_value)
+#         # p_value = ifelse(is_moment_ri, unlist(p_value), p_value)
+#       )
+#   )
 
 
 plot_dt <-
   dt %>%
-  select(label, hypothesis = desc, nsims, is_moment_ri,
-         which_layer, which_annuli, which_agrp, which_annuli,
-         inner_buffer, outer_buffer,
-         element, species, p_value)
+  select(
+    outFile,  species, signal_filter, element,
+    label, contrast, test_data, hypothesis = desc, nsims,
+    which_layer, which_annuli, which_agrp, which_annuli, test_data,
+    inner_buffer, outer_buffer, p_value)
+
+
 
 ## Plotting it ####
 
 plot_dt <- 
   plot_dt %>% 
-  filter(inner_buffer == 6) %>%
+  # filter(inner_buffer == 6) %>%
   # filter(label != "D") %>%
   group_by(species, element) %>%
   filter(!all( p_value >= 0.01)) %>%
@@ -68,6 +82,7 @@ plot_dt <-
   ) %>%
   tidyr::unnest(cols = c("data")) %>%
   mutate(
+    is_moment_ri = grepl("moment", test_data),
     plot_label = factor(
       label,
       levels = c("A", "B", "C"),
@@ -82,6 +97,9 @@ plot_dt <-
     p_value2 = if_else(p_small, 0.0005, p_value)
   ) 
   
+
+
+
 ggplot(
   data = plot_dt,
   aes(x = plot_element, y = -log10(p_value2), 
@@ -140,22 +158,23 @@ ggplot(
 p
 
 ggplot(
-  data = filter(plot_dt, p_value < 0.01),
-  aes(x     = is_moment_ri, y = -log10(p_value), 
+  data = filter(plot_dt, species == "Arav", inner_buffer == "6") ,
+  aes(x     = signal_filter, y = -log10(p_value), 
       color = is_moment_ri )
 ) + 
-  geom_point() +
-  geom_label(aes(label = element2),
+  geom_point(size = 0.1) +
+  geom_text(aes(label = element2),
+            nudge_x = 0.1,
              size = 2) +
   scale_y_continuous(
     name   = expression(-log[10]~(p)),
-    limits = -log10(c(0.015, 0.000015)),
-    breaks =  -log10(c(0.01, 0.001, 0.0001, 0.00001)),
-    labels = as.character(c(0.01, 0.001, 0.0001, 0.00001)),
+    limits = -log10(c(1, 0.000015)),
+    breaks =  -log10(c(1, 0.01, 0.001, 0.0001, 0.00001)),
+    labels = as.character(c(1, 0.01, 0.001, 0.0001, 0.00001)),
     expand = c(0, 0)
   ) +
   coord_flip() + 
-  facet_grid(label ~ species) +
+  facet_grid(test_data ~ label) +
   theme_classic() +
   theme(
     strip.background = element_blank(),
