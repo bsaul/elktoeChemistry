@@ -12,7 +12,7 @@ library(furrr)
 source("programs/2_randomization_inference/ri_functions.R")
 
 outDir <- "data/ri"
-NSIMS <- 1000
+NSIMS <- 700
 plan(multicore)
 
 els <- readRDS("data/element_info.rds")[["element"]]
@@ -24,25 +24,27 @@ specs <- expand.grid(
 )  %>%
   purrr::pmap(make_spec)
 
-
+## Prepare configurations #### 
+stats_ratios <- c("p_censored", "L-ratio 1", "L-ratio 2", "max")
+stats_momnts <- c("p_censored", "L-moment 1", "L-moment 2", "max")
 
 RI_MOMENTS_ANALYSIS_CONFIG <- list(
 
   list(
     label =  "A",
-    test_data = "moment",
+    test_data = "moment_ratios",
     desc  = "Is at least one site (including baseline) different in annuli A?",
     # contrast = "all",
     test_statistic = kw_test_fun,
-    filtration = list(quos(
+    filtration = list(exprs(
       which_layer  == "ncr",
       contrast  == "all",
       which_annuli == "A",
       which_agrp   == "all"
     )),
-    stat_data_filtration = list(quos(
+    stat_data_filtration = list(exprs(
       annuli %in% "A",
-      statistic %in% c("p_censored", "L-ratio 1", "L-ratio 2")
+      statistic %in% !! stats_ratios
     )),
     process_fun = identity,
     nsims      = NSIMS
@@ -50,19 +52,19 @@ RI_MOMENTS_ANALYSIS_CONFIG <- list(
   
   list(
     label = "B",
-    test_data = "moment",
+    test_data = "moment_ratios",
     # contrast = "nobaseline",
     desc  = "Is at least one site (excluding baseline) different in annuli A?",
     test_statistic = kw_test_fun,
-    filtration = list(quos(
+    filtration = list(exprs(
       which_layer == "ncr",
       contrast == "nobaseline",
       which_annuli == "A",
       which_agrp  == "all"
     )),
-    stat_data_filtration = list(quos(
+    stat_data_filtration = list(exprs(
       annuli %in% "A",
-      statistic %in% c("p_censored", "L-ratio 1", "L-ratio 2")
+      statistic %in% !! stats_ratios
     )),
     process_fun = identity,
     nsims      = NSIMS
@@ -70,19 +72,19 @@ RI_MOMENTS_ANALYSIS_CONFIG <- list(
   
   list(
     label = "C",
-    test_data = "moment",
+    test_data = "moment_ratios",
     # contrast = "baseline_v_sites",
     desc  = "Is the baseline site different from experiment sites?",
     test_statistic = kw_test_fun,
-    filtration =  list(quos(
+    filtration =  list(exprs(
       which_layer  == "ncr",
       contrast     == "baseline_v_sites",
       which_annuli == "A",
       which_agrp   == "all"
     )),
-    stat_data_filtration = list(quos(
+    stat_data_filtration = list(exprs(
       annuli %in% "A",
-      statistic %in% c("p_censored", "L-ratio 1", "L-ratio 2")
+      statistic %in% !! stats_ratios
     )),
     process_fun = identity,
     nsims      = NSIMS
@@ -90,19 +92,19 @@ RI_MOMENTS_ANALYSIS_CONFIG <- list(
   
   list(
     label = "D",
-    test_data = "moment",
+    test_data = "moment_ratios",
     # contrast = "all",
     desc  = "Are sites (including baseline) comparable in past?",
     test_statistic = kw_test_fun,
-    filtration =  list(quos(
+    filtration =  list(exprs(
       which_layer  == "ncr",
       contrast     == "all",
       which_annuli == "all",
       which_agrp   == "all"
     )),
-    stat_data_filtration = list(quos(
+    stat_data_filtration = list(exprs(
       (annuli == "A" & river == "Baseline") | (annuli == "B" & river != "Baseline") ,
-      statistic %in% c("p_censored", "L-ratio 1", "L-ratio 2")
+      statistic %in% !! stats_ratios
     )),
     process_fun = identity,
     nsims      = NSIMS
@@ -110,19 +112,19 @@ RI_MOMENTS_ANALYSIS_CONFIG <- list(
   
   list(
     label = "E",
-    test_data = "moment",
+    test_data = "moment_ratios",
     # contrast = "nobaseline",
     desc  = "Are sites (excluding baseline) comparable in past?",
     test_statistic = kw_test_fun,
-    filtration =  list(quos(
+    filtration =  list(exprs(
       which_layer  == "ncr",
       contrast     == "nobaseline",
       which_annuli == "all",
       which_agrp   == "all"
     )),
-    stat_data_filtration = list(quos(
+    stat_data_filtration = list(exprs(
       (annuli == "A" & river == "Baseline") | (annuli == "B" & river != "Baseline")  ,
-      statistic %in% c("p_censored", "L-ratio 1", "L-ratio 2")
+      statistic %in% !! stats_ratios
     )),
     process_fun = identity,
     nsims      = NSIMS
@@ -132,16 +134,16 @@ RI_MOMENTS_ANALYSIS_CONFIG <- list(
     label =  "A",
     desc  = "Is at least one site (including baseline) different in trend?",
     # contrast = "all",
-    test_data = "moment-trend",
+    test_data = "moment_ratios_trend",
     test_statitic = kw_test_fun,
-    filtration = list(quos(
+    filtration = list(exprs(
       which_layer  == "ncr",
       contrast     == "all",
       which_annuli == "all",
       which_agrp   == "all"
     )),
-    stat_data_filtration = list(quos(
-      statistic %in% c("p_censored", "L-ratio 1", "L-ratio 2")
+    stat_data_filtration = list(exprs(
+      statistic %in% !! stats_ratios
     )),
     process_fun = compute_moments_linear_trend,
     nsims      = NSIMS
@@ -149,18 +151,18 @@ RI_MOMENTS_ANALYSIS_CONFIG <- list(
   
   list(
     label = "B",
-    test_data = "moment-trend",
+    test_data = "moment_ratios_trend",
     # contrast = "nobaseline",
     desc  = "Is at least one site (excluding baseline) different in trend?",
     test_statitic = kw_test_fun,
-    filtration = list(quos(
+    filtration = list(exprs(
       which_layer == "ncr",
       contrast == "nobaseline",
       which_annuli == "all",
       which_agrp  == "all"
     )),
-    stat_data_filtration = list(quos(
-      statistic %in% c("p_censored", "L-ratio 1", "L-ratio 2")
+    stat_data_filtration = list(exprs(
+      statistic %in% !! stats_ratios
     )),
     process_fun = compute_moments_linear_trend,
     nsims      = NSIMS
@@ -168,18 +170,18 @@ RI_MOMENTS_ANALYSIS_CONFIG <- list(
   
   list(
     label = "C",
-    test_data = "moment-trend",
+    test_data = "moment_ratios_trend",
     # contrast = "baseline_v_sites",
     desc  = "Is the baseline site different from experiment sites?",
     test_statitic = kw_test_fun,
-    filtration =  list(quos(
+    filtration =  list(exprs(
       which_layer  == "ncr",
       contrast     == "baseline_v_sites",
       which_annuli == "all",
       which_agrp   == "all"
     )),
-    stat_data_filtration = list(quos(
-      statistic %in% c("p_censored", "L-ratio 1", "L-ratio 2")
+    stat_data_filtration = list(exprs(
+      statistic %in% !! stats_ratios
     )),
     process_fun = compute_moments_linear_trend,
     nsims      = NSIMS
@@ -187,44 +189,69 @@ RI_MOMENTS_ANALYSIS_CONFIG <- list(
   
   list(
     label = "D",
-    test_data = "moment-trend",
+    test_data = "moment_ratios_trend",
     # contrast = "all",
     desc  = "Are sites (including baseline) comparable in past?",
     test_statitic = kw_test_fun,
-    filtration =  list(quos(
+    filtration =  list(exprs(
       which_layer  == "ncr",
       contrast     == "all",
       which_annuli == "all",
       which_agrp   == "all"
     )),
-    stat_data_filtration = list(quos(
+    stat_data_filtration = list(exprs(
       !(annuli == "A" & river != "Baseline"),
-      statistic %in% c("p_censored", "L-ratio 1", "L-ratio 2")
+      statistic %in% !! stats_ratios
     )),
     process_fun = compute_moments_linear_trend,
     nsims      = NSIMS
   ),
   list(
     label = "E",
-    test_data = "moment-trend",
+    test_data = "moment_ratios_trend",
     # contrast = "nobaseline",
     desc  = "Are sites (excluding baseline) comparable in past?",
     test_statitic = kw_test_fun,
-    filtration =  list(quos(
+    filtration =  list(exprs(
       which_layer  == "ncr",
       contrast  == "nobaseline",
       which_annuli == "all",
       which_agrp   == "all"
     )),
-    stat_data_filtration = list(quos(
+    stat_data_filtration = list(exprs(
       !(annuli == "A" & river != "Baseline"),
-      statistic %in% c("p_censored", "L-ratio 1", "L-ratio 2")
+      statistic %in% !! stats_ratios
     )),
     process_fun = compute_moments_linear_trend,
     nsims      = NSIMS
   )
 )
 
+# add moments statistic analysis
+RI_MOMENTS_ANALYSIS_CONFIG <-
+  append(
+    RI_MOMENTS_ANALYSIS_CONFIG,
+    purrr::map(
+      .x = RI_MOMENTS_ANALYSIS_CONFIG,
+      .f = ~ modify_at(
+        .x  = .x,
+        .at = c("stat_data_filtration", 1),
+        .f  = function(x){
+          purrr::modify_if(
+            .x = x,
+            .p = ~ grepl("statistic", rlang::expr_text(.x)), 
+            .f = ~ rlang::expr(statistic %in% !! stats_momnts))
+        })) %>%
+      purrr::map(
+        .f = ~ purrr::modify_at(
+          .x = .x,
+          .at = c("test_data"),
+          .f  = ~ gsub("_ratios", "", .x)
+        ))
+
+  )
+
+## Do the analyses ####
 for (spec in specs){
   ri_prepared_data <-
   spec %>%
@@ -271,7 +298,8 @@ for (spec in specs){
         ) %>%
         {
           out <- .
-          ff <- file.path(out[["outPrefix"]][[1]], paste0(out[["outFile"]][[1]], ".rds"))
+          ff <- file.path(out[["outPrefix"]][[1]], 
+                          paste0(out[["outFile"]][[1]],  ".rds"))
           saveRDS(out, file = ff)
         }
       
