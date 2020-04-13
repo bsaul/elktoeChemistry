@@ -36,13 +36,13 @@ RI_MOMENTS_ANALYSIS_CONFIG <- list(
     desc  = "Is at least one site (including baseline) different in annuli A?",
     # contrast = "all",
     test_statistic = kw_test_fun,
-    filtration = list(exprs(
+    filtration = list(rlang::exprs(
       which_layer  == "ncr",
       contrast  == "all",
       which_annuli == "A",
       which_agrp   == "all"
     )),
-    stat_data_filtration = list(exprs(
+    stat_data_filtration = list(rlang::exprs(
       annuli %in% "A",
       statistic %in% !! stats_ratios
     )),
@@ -56,13 +56,13 @@ RI_MOMENTS_ANALYSIS_CONFIG <- list(
     # contrast = "nobaseline",
     desc  = "Is at least one site (excluding baseline) different in annuli A?",
     test_statistic = kw_test_fun,
-    filtration = list(exprs(
+    filtration = list(rlang::exprs(
       which_layer == "ncr",
       contrast == "nobaseline",
       which_annuli == "A",
       which_agrp  == "all"
     )),
-    stat_data_filtration = list(exprs(
+    stat_data_filtration = list(rlang::exprs(
       annuli %in% "A",
       statistic %in% !! stats_ratios
     )),
@@ -76,13 +76,13 @@ RI_MOMENTS_ANALYSIS_CONFIG <- list(
     # contrast = "baseline_v_sites",
     desc  = "Is the baseline site different from experiment sites?",
     test_statistic = kw_test_fun,
-    filtration =  list(exprs(
+    filtration =  list(rlang::exprs(
       which_layer  == "ncr",
       contrast     == "baseline_v_sites",
       which_annuli == "A",
       which_agrp   == "all"
     )),
-    stat_data_filtration = list(exprs(
+    stat_data_filtration = list(rlang::exprs(
       annuli %in% "A",
       statistic %in% !! stats_ratios
     )),
@@ -96,14 +96,15 @@ RI_MOMENTS_ANALYSIS_CONFIG <- list(
     # contrast = "all",
     desc  = "Are sites (including baseline) comparable in past?",
     test_statistic = kw_test_fun,
-    filtration =  list(exprs(
+    filtration =  list(rlang::exprs(
       which_layer  == "ncr",
       contrast     == "all",
       which_annuli == "all",
       which_agrp   == "all"
     )),
-    stat_data_filtration = list(exprs(
-      (annuli == "A" & river == "Baseline") | (annuli == "B" & river != "Baseline") ,
+    stat_data_filtration = list(rlang::exprs(
+      (annuli == "A" & river == "Baseline") | (annuli == "B" & river != "Baseline"),
+      !(annuli %in% c("J")),
       statistic %in% !! stats_ratios
     )),
     process_fun = identity,
@@ -116,13 +117,13 @@ RI_MOMENTS_ANALYSIS_CONFIG <- list(
     # contrast = "nobaseline",
     desc  = "Are sites (excluding baseline) comparable in past?",
     test_statistic = kw_test_fun,
-    filtration =  list(exprs(
+    filtration =  list(rlang::exprs(
       which_layer  == "ncr",
       contrast     == "nobaseline",
       which_annuli == "all",
       which_agrp   == "all"
     )),
-    stat_data_filtration = list(exprs(
+    stat_data_filtration = list(rlang::exprs(
       (annuli == "A" & river == "Baseline") | (annuli == "B" & river != "Baseline")  ,
       statistic %in% !! stats_ratios
     )),
@@ -136,13 +137,13 @@ RI_MOMENTS_ANALYSIS_CONFIG <- list(
     # contrast = "all",
     test_data = "moment_ratios_trend",
     test_statitic = kw_test_fun,
-    filtration = list(exprs(
+    filtration = list(rlang::exprs(
       which_layer  == "ncr",
       contrast     == "all",
       which_annuli == "all",
       which_agrp   == "all"
     )),
-    stat_data_filtration = list(exprs(
+    stat_data_filtration = list(rlang::exprs(
       statistic %in% !! stats_ratios
     )),
     process_fun = compute_moments_linear_trend,
@@ -155,13 +156,13 @@ RI_MOMENTS_ANALYSIS_CONFIG <- list(
     # contrast = "nobaseline",
     desc  = "Is at least one site (excluding baseline) different in trend?",
     test_statitic = kw_test_fun,
-    filtration = list(exprs(
+    filtration = list(rlang::exprs(
       which_layer == "ncr",
       contrast == "nobaseline",
       which_annuli == "all",
       which_agrp  == "all"
     )),
-    stat_data_filtration = list(exprs(
+    stat_data_filtration = list(rlang::exprs(
       statistic %in% !! stats_ratios
     )),
     process_fun = compute_moments_linear_trend,
@@ -174,13 +175,13 @@ RI_MOMENTS_ANALYSIS_CONFIG <- list(
     # contrast = "baseline_v_sites",
     desc  = "Is the baseline site different from experiment sites?",
     test_statitic = kw_test_fun,
-    filtration =  list(exprs(
+    filtration =  list(rlang::exprs(
       which_layer  == "ncr",
       contrast     == "baseline_v_sites",
       which_annuli == "all",
       which_agrp   == "all"
     )),
-    stat_data_filtration = list(exprs(
+    stat_data_filtration = list(rlang::exprs(
       statistic %in% !! stats_ratios
     )),
     process_fun = compute_moments_linear_trend,
@@ -193,13 +194,13 @@ RI_MOMENTS_ANALYSIS_CONFIG <- list(
     # contrast = "all",
     desc  = "Are sites (including baseline) comparable in past?",
     test_statitic = kw_test_fun,
-    filtration =  list(exprs(
+    filtration =  list(rlang::exprs(
       which_layer  == "ncr",
       contrast     == "all",
       which_annuli == "all",
       which_agrp   == "all"
     )),
-    stat_data_filtration = list(exprs(
+    stat_data_filtration = list(rlang::exprs(
       !(annuli == "A" & river != "Baseline"),
       statistic %in% !! stats_ratios
     )),
@@ -212,13 +213,13 @@ RI_MOMENTS_ANALYSIS_CONFIG <- list(
     # contrast = "nobaseline",
     desc  = "Are sites (excluding baseline) comparable in past?",
     test_statitic = kw_test_fun,
-    filtration =  list(exprs(
+    filtration =  list(rlang::exprs(
       which_layer  == "ncr",
       contrast  == "nobaseline",
       which_annuli == "all",
       which_agrp   == "all"
     )),
-    stat_data_filtration = list(exprs(
+    stat_data_filtration = list(rlang::exprs(
       !(annuli == "A" & river != "Baseline"),
       statistic %in% !! stats_ratios
     )),
@@ -232,27 +233,26 @@ RI_MOMENTS_ANALYSIS_CONFIG <-
   append(
     RI_MOMENTS_ANALYSIS_CONFIG,
     purrr::map(
-      .x = RI_MOMENTS_ANALYSIS_CONFIG,
-      .f = ~ modify_at(
-        .x  = .x,
-        .at = c("stat_data_filtration", 1),
-        .f  = function(x){
-          purrr::modify_if(
-            .x = x,
-            .p = ~ grepl("statistic", rlang::expr_text(.x)), 
-            .f = ~ rlang::expr(statistic %in% !! stats_momnts))
-        })) %>%
-      purrr::map(
-        .f = ~ purrr::modify_at(
-          .x = .x,
-          .at = c("test_data"),
-          .f  = ~ gsub("_ratios", "", .x)
-        ))
+      RI_MOMENTS_ANALYSIS_CONFIG,
+      .f = ~ purrr::modify_at(
+        .x = .x,
+        .at = c("test_data"),
+        .f  = ~ gsub("_ratios", "", .x)
+      )))
 
-  )
+RI_MOMENTS_ANALYSIS_CONFIG <- 
+purrr::map(
+  .x = RI_MOMENTS_ANALYSIS_CONFIG,
+  .f = ~   purrr::modify_if(
+    .x = .x[["stat_data_filtration"]][[1]],
+    .p = ~ grepl("statistic", rlang::expr_text(.x)),
+    .f = ~ rlang::expr(statistic %in% !! stats_momnts))
+)
 
+# spec<- specs[[14]]
 ## Do the analyses ####
 for (spec in specs){
+
   ri_prepared_data <-
   spec %>%
     read_analysis_data() %>%
@@ -272,7 +272,8 @@ for (spec in specs){
   ##  Perform inference for each setting in config ####
   # split(ri_prepared_data, f = 1:nrow(ri_prepared_data)) %>%
   ri_prepared_data %>%
-    # .[nrow(ri_prepared_data), ] %>%
+    # .[ri_prepared_data$label == "D" , ] %>%
+    # dplyr::filter(test_data == "moment") %>%
     split(., f = 1:nrow(.)) %>%
     # purrr::walk(
     furrr::future_walk(
@@ -283,23 +284,14 @@ for (spec in specs){
               x = moments_ri_data,
               y = nsims,
               z = test_statistic),
-            .f = function(x, y, z) {
-                suppressWarnings(
-                  # I don't like wuppressing warnings but a warning about data.frame
-                  # row.names appears to be creeping out of ri2
-        
-                  compute_pvals_for_multiple_statistics(
-                    statistics_data = x, N = y, test_fun = z
-                  )
-                ) %>%
-                  compute_pval_across_multiple_statistics()
-            } 
+            .f = function(x, y, z) do_ri_moments(x, y, z)
           )
         ) %>%
         {
           out <- .
-          ff <- file.path(out[["outPrefix"]][[1]], 
-                          paste0(out[["outFile"]][[1]],  ".rds"))
+          ff <- file.path(
+            out[["outPrefix"]][[1]], 
+            paste0(out[["outFile"]][[1]],  ".rds"))
           saveRDS(out, file = ff)
         }
       

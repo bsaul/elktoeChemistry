@@ -259,3 +259,20 @@ create_hypothesis_data <- function(data, fq = NULL, q, nm){
     group_nest() %>%
     mutate(hypothesis = nm)
 }
+
+
+do_ri_moments <- function(x, y, z) {
+  # browser()
+  try({
+    hold <- suppressWarnings(
+      # I don't like wuppressing warnings but a warning about data.frame
+      # row.names appears to be creeping out of ri2
+      compute_pvals_for_multiple_statistics(
+        statistics_data = x, N = y, test_fun = z
+      )
+    )
+    
+    compute_pval_across_multiple_statistics(hold)
+  })
+  
+} 
