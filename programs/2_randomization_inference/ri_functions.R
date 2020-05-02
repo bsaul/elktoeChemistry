@@ -19,6 +19,11 @@ prep_for_summary_stats_ri <- function(dt){
     dplyr::select(-data) # lighten the load a bit
 }
 
+prep_for_gam_ri <- function(dt){
+  dt %>%
+    dplyr::select(-stats_by_annuli) # lighten the load a bit
+}
+
 ## Moments data processing ####
 compute_moments_linear_trend <- function(dt){
   dt %>%
@@ -50,6 +55,17 @@ prepare_ri_moments_data <- function(data, ri_setting, na_handler = handle_na){
         }
       )
     ) 
+}
+
+
+prepare_ri_gam_data <- function(data, ri_setting){
+  data %>%
+    dplyr::filter(!!! ri_setting$filtration[[1]]) %>%
+    dplyr::mutate(
+      dec = purrr::map(
+        .x = data,
+        .f = ~ define_multiarm_cluster_declaration(.x$Z, .x$analysis_id))
+    )
 }
 
 prepare_for_output <- function(dt, ri_setting, inSpec, ...){
@@ -118,9 +134,9 @@ make_gam_ts <- function(m1_rhs, m2_rhs){
   
   function(data){
     dt <- as.data.frame(data)
-    m1 <- gam(f1, data = dt)
+    m1 <- mgcv::gam(f1, data = dt)
               # family = tobit1(left.threshold = data$lod, right.threshold = Inf))
-    m2 <- gam(f2, data = dt)
+    m2 <- mgcv::gam(f2, data = dt)
               # tobit1(left.threshold = data$lod, right.threshold = Inf))
     anova(m1, m2)[["Deviance"]][2]
   }

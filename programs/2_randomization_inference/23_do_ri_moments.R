@@ -24,6 +24,7 @@ specs <- expand.grid(
 )  %>%
   purrr::pmap(make_spec)
 
+# specs <- specs[90:length(specs)]
 ## Prepare configurations #### 
 stats_ratios <- c("p_censored", "L-ratio 1", "L-ratio 2", "max")
 stats_momnts <- c("p_censored", "L-moment 1", "L-moment 2", "max")
@@ -243,10 +244,15 @@ RI_MOMENTS_ANALYSIS_CONFIG <-
 RI_MOMENTS_ANALYSIS_CONFIG <- 
 purrr::map(
   .x = RI_MOMENTS_ANALYSIS_CONFIG,
-  .f = ~   purrr::modify_if(
-    .x = .x[["stat_data_filtration"]][[1]],
-    .p = ~ grepl("statistic", rlang::expr_text(.x)),
-    .f = ~ rlang::expr(statistic %in% !! stats_momnts))
+  .f = ~  {
+    .x[["stat_data_filtration"]][[1]] <- 
+    purrr::modify_if(
+      .x = .x[["stat_data_filtration"]][[1]],
+      .p = ~ grepl("statistic", rlang::expr_text(.x)),
+      .f = ~ rlang::expr(statistic %in% !! stats_momnts))
+    
+    .x
+  }  
 )
 
 # spec<- specs[[14]]
