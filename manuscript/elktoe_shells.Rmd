@@ -1,13 +1,13 @@
 ---
 title: Trace elements accrued in endangered freshwater bivalves in two North Carolina streams
 author:
-- Bradley C. Saul
-- Nathan R. Miller
-- Heather Gunn
-- Michael Walter
-- Scott Salger
-- Mike Gangloff
-- Jay F. Levine
+- Bradley C. Saul^[NoviSci, Inc, Durham, NC]
+- Nathan R. Miller^[Department of Geological Sciences, University of Texas, Austin, TX, 78712-1692]
+- Heather Gunn^[Department of Geological Sciences, University of Texas, Austin, TX, 78712-1692]
+- Michael Walter^[Department of Marine, Earth and Atmospheric Sciences, North Carolina State University, Raleigh, NC, 27695-8208]
+- Scott Salger^[Department of Biology, Barton College, Wilson,  NC, 27893]
+- Mike Gangloff^[Department of Biology, Appalachian State  University, Boone, NC, 28608]
+- Jay F. Levine^[Department of Marine, Earth and Atmospheric Sciences, North Carolina State University, Raleigh, NC, 27695-8208]
 bibliography: elktoe.bib
 toc: false
 output: 
@@ -27,7 +27,7 @@ keywords: TODO
 
 # Introduction 
 
-After major hurricane-related flooding in 2004, the population of Federally endangered Appalachian Elktoe (*Alasmidonta raveneliana*) in North Carolina's Little Tennessee River declined precipitously, but within the same watershed's Tuckasegee River populations appear stable. Reasons for the decline are unclear [@jarvis2011water; @miller2013concentrations; @pandolfi2016effects]. To determine how river-specific factors may be associated with health and physiological outcomes, we conducted a completely randomized experiment by assigning eighty-two *A. raveneliana* along with an equal number of hatchery-raised Wavy-Rayed Lampmussel (*Lampsilis fasciola*) to sites within each river.
+The Appalachian Elktoe (*Alasmidonta raveneliana*) (Bivalvia: Unionidae) is native to the streams of eastern Tennessee and western North Carolina. The elktoe is listed as federally endangered and remaining populations are found in the Nolichucky River in eastern Tennessee and the Upper Tennessee River system in North Carolina. Although once abundant in the Little Tennessee River, NC, precipitous declines were noted in  *A. raveneliana*  populations after major hurricane-related flooding associated with Hurricane Frances in 2004. However, within the same watershed’s  *A. raveneliana*  Tuckasegee River populations appeared stable. Reasons for the decline are unclear [@jarvis2011water; @miller2013concentrations; @pandolfi2016effects]. To determine how river-specific factors may be associated with health and physiological outcomes, we conducted a completely randomized experiment by assigning eighty-two  *A. raveneliana*  along with an equal number of hatchery-raised Wavy-Rayed Lampmussel (*Lampsilis fasciola*) to sites within each river.
 
 Similar to tree rings, bivalve shells archive some aspects of their environmental history and have been used as bioindicators of pollution [@markich2002freshwater; @brown2005freshwater; @shoults2014resolution]. Exposure to certain heavy metals have been shown to increase morbidity and mortality in freshwater bivalves [@naimo1995a-review]. @miller2013concentrations evaluated sediment concentrations of Cu, Cr, Ni, and Zn in the Little Tennessee and Tuckasegee. When considered with the chemical concentrations of *A. raveneliana* shells measured by @jarvis2011water, they found these elements (Cu in particular) unlikely to be the primary culprit in the *A. raveneliana* decline.
 
@@ -41,7 +41,7 @@ The paper is organized as follows. Section \ref{materials-and-methods} outlines 
 
 ## Study Specimens
 
-Eighty-two *A. raveneliana* specimens were drawn from a single location in the Tuckasegee river. Ten were randomly selected and killed for baseline comparisons, and the remaining 72 were randomly assigned to 6 experimental sites (3 on each river) \@ref(fig:studyMap). The same number of *L. faciola* specimens were taken from the NC Wildlife Resources' Marian hatchery and were placed in a separate cage alongside the *A. raveneliana* as control specimens. The specimens were deposited at each site in April 2013. Due to high mortality at some sites, the *A. raveneliana* were pulled six months later. Some of the *L. faciola* were pulled at the same time, while the remaining were extracted the following Spring. 
+Eighty-two *A. raveneliana* specimens were drawn from a single location in the Tuckasegee river. Ten were randomly selected and sacrificed for baseline comparisons, and the remaining 72 were randomly assigned to 6 experimental sites, three each in the Tuckasegee and Little Tennessee Rivers \@ref(fig:studyMap). The same number of young adult *L. faciola* specimens were obtained from the NC Wildlife Resources' Marian hatchery and were placed in a separate cage alongside the *A. raveneliana* as control specimens. The specimens were deposited at each site in April 2013. Due to high mortality at some sites, the remaining *A. raveneliana* were removed six months later. Some of the *L. faciola* were pulled at the same time, while the remaining were extracted from the field sites the following Spring. 
 
 ```{r studyMap, echo = FALSE, fig.cap= "TODO: create a map of experimental sites."}
 knitr::include_graphics(here::here("manuscript", "figures", "study_map.pdf"))
@@ -51,15 +51,15 @@ The mussels were held in plastic mesh cages anchored in the bottom substrate. Al
 
 ## LA-ICP-MS
 
-As youngest growth was of principal interest, we targeted growth parallel transects from the outer margins of valves, away from the umbo. For thicker valves we also analyzed additional offset scans to evaluate reproducibility and include older growth. In most cases, the entire preserved growth history was recorded by making multiple offset traverses (Figure \@ref(fig:alignment)). Along each transect, readings were taken every 2.88$\mu$m. The laser trajectories were drawn perpendicular to annular growth rings in a "step-scanning" approach [@shoults2014resolution], moving from the inner to the outer shell, beginning and ending in epoxy. The scans varied in terms of residing solely with the outer prismatic layer and periostracum, or being compound scans initiating in the nacreous layer. 
+As the most recent growth was of principal interest, we targeted growth parallel transects from the outer margins of valves, away from the umbo. For thicker valves we also analyzed additional offset scans to evaluate reproducibility and include older growth. In most cases, the entire preserved growth history was recorded by making multiple offset traverses (Figure \@ref(fig:alignment)). Along each transect, readings were taken every 2.88$\mu$m. The laser trajectories were drawn perpendicular to annular growth rings in a "step-scanning" approach [@shoults2014resolution], moving from the inner to the outer shell, beginning and ending in epoxy. The scans varied in terms of residing solely with the outer prismatic layer and periostracum, or being compound scans initiating in the nacreous layer. 
 
-Each transect resulted in a chemical time-series for each analyte (concentration vs. distance; a matrix of about 7000 concentration measurements per mm). For data reduction (?) we assumed a stoichiometric CaCO3 composition of 39.547 wt\% Ca in nacreous tissue and 40.0432 wt\% Ca in other tissue and did not adjust for mineralogy (aragonite vs. calcite). We used USGS MACS-3 (synthetic aragonite) as the primary calibration standard, and analyzed NIST 614 (trace elements at ~1 ppm) and NIST 612 (trace elements at ~35 ppm). For drift compensation, each hour of data collection on unknowns was bracketed by analyses of each standard (in duplicate). We surveyed twenty industrial metals and bio-metals: Mg, Ca, Cr, Mn, Fe, Co, Ni, Cu, Zn, As, Se, Kr (for Se interference correction if detected), Sr, Mo, Cd, Sn, Ba, Hg, Pb and U. Analyses were conducted at the University of Texas at Austin using an ESI New Wave Research NWR193 excimer laser coupled to an Agilent 7500ce ICP-MS. 
+Each transect resulted in a chemical time-series for each analyte (concentration vs. distance; a matrix of about 7000 concentration measurements per mm). For data reduction^[Nathan/Heather - can you explain what this means?] we assumed a stoichiometric CaCO3 composition of 39.547 wt\% Ca in nacreous tissue and 40.0432 wt\% Ca in other tissue and did not adjust for mineralogy (aragonite vs. calcite). We used USGS MACS-3 (synthetic aragonite) as the primary calibration standard, and analyzed NIST 614 (trace elements at ~1 ppm) and NIST 612 (trace elements at ~35 ppm). For drift compensation, each hour of data collection on unknowns was bracketed by analyses of each standard (in duplicate). We surveyed twenty industrial metals and bio-metals: Mg, Ca, Cr, Mn, Fe, Co, Ni, Cu, Zn, As, Se, Kr (for Se interference correction if detected), Sr, Mo, Cd, Sn, Ba, Hg, Pb and U. Analyses were conducted at the University of Texas at Austin using an ESI New Wave Research NWR193 excimer laser coupled to an Agilent 7500ce ICP-MS. 
 
 ## Anatomical Alignment
 
 Review and annotation of high resolution cross section images was performed using Adobe Illustrator (Adobe Inc, San Jose CA). Annotations of the initial shell/epoxy boundary, annuli, nacre/prismatic layer boundary and terminal shell/epoxy boundary were made within Adobe Illustrator. Annuli were identified as any linear growth feature which could be traced from its origin in the umbo to its emergence through the prismatic and periostracum layers. Non-continuous linear features along the transect were not annotated and assumed to be “false annuli” caused by environmental disturbances [@veinott1996identification]. 
 
-To align anatomical features with chemistry data, several methods were used to identify valve edges within the chemistry data based on algorithmic detection in mean and variance [@killick2014changepoint; @killick2016changepoint] or the minimum (or maximum) [@borchers2018pracma] of Ca43_CPS, Pb208_CPS, or the ratio of the two. The difference of the distance between these detected edges and the distance between the valves edges measured from high resolution scans was then computed. For each valve, the method that minimized this distance was then used to register the anatomy in the chemical data. Figure \@ref(fig:alignment) shows the process of anatomical alignment.
+Several methods were used to identify valve edges and align anatomical features with chemistry data based on algorithmic detection in mean and variance [@killick2014changepoint; @killick2016changepoint] or the minimum (or maximum) [@borchers2018pracma] of Ca43_CPS, Pb208_CPS, or the ratio of the two (Figure \@ref(fig:alignment)). The difference of the distance between these detected edges and the distance between the valves edges measured from high resolution scans was then computed. For each valve, the method that minimized this distance was then used to locate anatomical locations in the chemical data. 
 
 ```{r alignment, echo = FALSE, fig.cap= "TODO"}
 knitr::include_graphics(here::here("manuscript", "figures", "figure_alignment.pdf"))
@@ -67,30 +67,15 @@ knitr::include_graphics(here::here("manuscript", "figures", "figure_alignment.pd
 
 ## Chemical data pre-processing
 
-Valves were grouped into seven batches for LA-ICP-MS processing. During each batch process, the lower limit of detection (LOD) was assessed multiple times using the standards described in Section \ref{la-icp-ms}. Concentration values were left-censored based on the mean LOD within a batch for each element. For analysis, parts-per-million (ppm) values were rescaled to $\text{mol/Ca mmol}$ where the $Ca mmol$ was based on Ca\% of ~39.54\% for nacral observations and 40.078\% for all other layers.
+Valves were grouped into seven batches for LA-ICP-MS processing. During each batch process, the lower limit of detection (LOD) was assessed multiple times using the standards noted above. Concentration values were left-censored based on the mean LOD within a batch for each element. For analysis, parts-per-million (ppm) values were rescaled to $\text{mol/Ca mmol}$ where $\text{Ca mmol}$ was based on Ca\% of ~39.54\% for nacral observations and 40.078\% for all other layers.
 
 ## Study questions
 
-We hypothesized that the distributions of one or more elements accrued in the nacre during the experiment would differ between experimental sites. To examine differential accrual, we posed a series of questions described in Table \ref{hypothesis-table}. The questions were designed to probe the primary research hypothesis by systematically examining both the sources and validity of any observed differences. 
+We hypothesized that the distributions of one or more elements accrued in the nacre during the experiment would differ between experimental sites. To examine differential accrual, we posed a series of questions designed to probe the primary research hypothesis by systematically examining both the sources and validity of any observed differences. 
 
-Question (A) asks if there is difference any of the seven sites (baseline plus 3 experiment sites per river). Though notable, a difference between the baseline site and experimental sites does not improve our understanding of potential differences between the rivers, hence we then asked (B) whether experimental sites, excluding baseline, were different from each other and whether (C) the baseline site differed from the aggregated experimental sites. Questions (A-C) imply contrasts faithful to the completely randomized experimental design, thus permiting randomization-based inference [@splawa-neyman1990on-the-application; @coppock2019ri2] by permuting assignments to sites. 
+Systematic differences in nacral elements accrued *prior* to the experiment could bias differences accrued during the experiment. Thus, to check that the sources of variation in the experiment were not due pre-experiment differences we first asked if there were differences in elemental concentrations *excluding* nacre accrued during the experiment. We examined this question both with and without baseline specimens which were not exposed to the experiment. 
 
-If randomization is an unbiased instrument and we adqueately identified and linked elemental data to valve features, nacral elements accrued *prior* to the experiment should be similar, aftering adjusting for age. Thus for question (D), we excluded observations from the most recent annuli, using pre-experiment observations as a negative control outcome [@arnold2016negative] (TODO: not really a negative control outcome since these accrued before the experiment). Lastly, in the case at least one experimental site is different in an element, we then explored trends within each river (E) and assocations with mordibity and mortality in the *A. raveneliana*. In the remaining subsections, the statistical methods are described in more detail.
-
-\begin{table}
-\label{hypothesis-table}
-\begin{tabular}{llcccc}
-Label & Question & Annuli included & \multicolumn{3}{c}{Methods} \\
- &   & & ri$_{gam}$ & ri$_{mom}$ & explore \\
-\hline \\
-A & Is at least one site (including baseline) different?  & All & yes & yes & \\
-B & Is at least one site (excluding baseline) different?  & All & yes & yes & \\
-C & Is the baseline site different from experiment sites? & All & yes & yes & \\
-D & Is at least one site (including baseline) different?  & Excluding most recent & yes & yes & \\
-E(a|b) & Is there trend within (Little Tennessee/Tuckasegee)? & All &  & & yes \\
-\hline
-\end{tabular}
-\end{table}
+Provided that pre-experiment systematic differences did not exist or that we could aquequately explain them, we then examined differences in elemental concentrations *including* nacre accrued during the experiment. Questions were posed in such a way to imply contrasts faithful to the completely randomized experimental design, thus permiting randomization-based inference [@splawa-neyman1990on-the-application; @coppock2019ri2] by permuting assignments to sites. 
 
 ## Statistical Analyses
 
@@ -100,21 +85,30 @@ We tabulated available descriptive statistics by site, including specimen height
 
 ### Randomization-based inference
 
-The experiment can be viewed as a cluster randomized trial, where the specimens are indepedent replicates and LA-ICP-MS transects are clustered within a specimen. For questions A-D, null hypotheses of no difference between elemental distributions were tested using randomization-based inference using $m = 700$ simulations from the experiment's distribution. The basic method can be summarized as follows: (1) compute the observed test statistic ($t_{obs}$) using the observed assignments, (2) permute the assignments by assigning specimens to different sites and re-compute the test statistic, (3) repeat (2) $m$ times. The two-sided p-value is the proportion of times $t_{obs}$ is greater than or equal to the test statistic's distribution. The `ri2` R package was used to carry out inference [@coppock2019ri2; @rcore2019].
+The experiment was viewed as a cluster randomized trial, where the specimens were indepedent replicates and LA-ICP-MS transects were clustered within a specimen. Null hypotheses of no difference between elemental distributions were tested using randomization-based inference using $m = 700$ simulations from the experiment's distribution. The basic method can be summarized as follows: (1) compute the observed test statistic ($t_{obs}$) using the observed assignments, (2) permute the assignments by assigning specimens to different sites and re-compute the test statistic, (3) repeat (2) $m$ times. The two-sided p-value is the proportion of times $t_{obs}$ is greater than or equal to the test statistic's distribution. The `ri2` R package was used to carry out inference [@coppock2019ri2; @rcore2019].
 
-Though randomization inference preserves the nominal type I error level under the null hypothesis regardless of the chosen test statistic, power under various alternative hypotheses may vary depending on this choice. We chose two statistics that make distinct assumptions of the available data in order to examine differences between nacral elements. 
+Though randomization inference preserves the nominal type I error level under the null hypothesis regardless of the chosen test statistic, power under various alternative hypotheses may vary depending on this choice. Consquently, we chose three test statistics (Table \ref{test-statistics}) that use the available data in different ways and are able to test different ways in which the distributions of concentrations could change. 
 
-The first test statistic is the deviance between two nested GAM models (labelled ri$_{gam}$), one which included terms for experimental site and a nested model which did not. For the ri$_{gam}$ analyses, we used the one transect per specimen which has the most number observations from the most recent annuli. The specification of the GAM models preserved the ordering of the observations along the transect within the nacre. The GAM models did not, however, account for censoring.
+The first test statistic is the deviance between two nested GAM models (labelled ri$_{gam}$), one which included terms for experimental site and a nested model which did not. For the ri$_{gam}$ analyses, we used the one transect per specimen which has the most number observations from the most recent annuli. The specification of the GAM models preserved the ordering of the observations along the transect within the nacre. The GAM models did not, however, account for censoring for observations below a lower limit of detection.
 
-The second set of randomization inference analyses (ri$_{mom}$) used a test statistic that both explicitly accounted for censoring and used all of the nacral observations for a specimen. This test statistic was based on five summary statistics: the proportion censored, first three probability of censoring weighted L-moments ratios [@lmomco2018], and the maximum of observations within each anatomical area of interest for each element.
+The other two test statistics both explicitly accounted for censoring and used nacral observations available for a specimen across all the LA-ICP-MS transects. Each of these test statistics were based on four summary values within each annuli: the proportion censored, the first two probability of censoring weighted L-moments (or L-moment ratios) [@lmomco2018], and the maximum. To draw inference, a p-value was computed across the summary statitics using the omnibus method described in @keele2015randomization. These moment-based test statistics do account for censoring, but drop any temporal information embedded in transects within an annuli.
 
-* used the omninbus method described in @keele2015randomization
+\begin{table}
+\label{test-statistics}
+\caption{A summary of data and test statistics used for randomization inference.}
+\begin{tabular}{lcccc}
+Label & Transect Data Used & Statistic(s) \\
+\hline \\
+$ri_{\text{GAM}}$ & transect with most annuli A observations & deviance between nested GAM models \\
+$ri_{\text{mom}}$  & all transects with annuli A  & omnibus test statistic from proportion censored, L-moment 1 (mean), L-moment 2 (variance), and maximum \\
+$ri_{\text{mom trend}}$  & all transects and all annuli & omnibus test statistic derived from slope across annuli for each of proportion censored, L-moment 1, L-moment 2, and maximum \\
+\hline
+\end{tabular}
+\end{table}
 
 ### Outliers and sensitivity analyses
 
-Since the point of transition from epoxy to shell was not been identified to exact precision (Section \ref{anatomical-alignment}), we checked the stability of our results to possible misclassification of observation as nacre instead of epoxy by repeating the analysis after trimming 6$\mu$m and 12$\mu$m from the nacral observations.
-
-* TODO: outlier truncation
+The point of transition from epoxy to shell was possibly identified with error (Section \ref{anatomical-alignment}), we thus checked the stability of our results to possible misclassification of nacral observations as epoxy by repeating the analysis after trimming 6$\mu$m and 12$\mu$m from the nacral observations. Also, though L-moments were chosen as a summary statistic to be robust to outliers, we also repeated analyses after preprocessing each transect using moving average filters (@signal2014).
 
 The methodology, test statistics, and the model specifications, and further described in the Supplementary Material.
 
@@ -139,50 +133,48 @@ knitr::include_graphics(here::here("manuscript", "figures", "mussel_outcomes_v00
 
 ## Trace element accrual
 
-Figure \@ref(fig:accrualPvals) displays p-values for each hypothesis test described in Table \ref(hypothesis-table). In *A. raveneliana*, Manganese shows the most evidence for the differences between sites among the elements. The baseline specimens do not appear different from the experimental specimens in terms of their Manganese trajectories (p = XXXX). Figure \@ref(fig:accrualPvals)B suggests that at least one experimental site is different from the others in terms of its Mn trajectories.
+## Comparability of specimens
+
+Figure \@ref(fig:hypothesis_DE) displays p-values testing the null hypothesis of no difference between sites when examining the elements accrued prior to the experiment. 
+
+TODO:
+
+* discuss differences
+* problems with baseline specimens?
+
+```{r hypothesis_DE, echo = FALSE, fig.cap = "Are sites comparable in pre-experiment elemental concentrations. Smaller p-values suggest a larger discrepancy (i.e. less comparability) between sites under a null hypothesis of no difference between sites."}
+knitr::include_graphics(here::here("manuscript", "figures", "ri_ncr_hypothesis_DE_v001.pdf"))
+```
+
+## Experimental Accrual
+
+In *A. raveneliana*, Manganese shows evidence of a difference between sites using both $ri_{\text{gam}} and $ri_{\text{mom}}$ test statistics. 
+
 
 TODO: 
 
 * discuss Pb
-* discuss negative control outcome
-* discuss trends (maybe?) seen in distributional summaries
+* dicuss *L. fasciola*,
+* add plot showing differences in Mn by visualizing the 3 test statistics.
 
-In *L. fasciola*, Strontium and Barium show evidence of differences between sites. However, small p-value in Strontium appears to be driven by a difference between the baseline specimens and the specimens in experimental sites. This is in constrast to Barium, where the difference appears to be driven by difference among the experimental sites.
 
-```{r accrualPvals, echo = FALSE, fig.cap= "TODO"}
-knitr::include_graphics(here::here("figures", "ri_gam_ncr_pvals_v006.pdf"))
+```{r hypothesis_B, echo = FALSE, fig.cap = "Differences between experimental sites (excluding baseline). Smaller p-values suggest difference between sites in elemental accrual during the experiment."}
+knitr::include_graphics(here::here("manuscript", "figures", "ri_ncr_hypothesis_B_v001.pdf"))
 ```
 
 TODO: insert figure of moment summaries
-
-<!--
-\begin{table}
-\label{results-table}
-\caption{TODO: figure out how to display hypotheses}
-\begin{tabular}{lcccc}
-Element & \multicolumn{4}{c}{Species} \\
- & \multicolumn{2}{c}{A. raveneliana} & \multicolumn{2}{c}{L. fasciola} \\
- &  ri$_{gam}$ & ri$_{mom}$ &  ri$_{gam}$ & ri$_{mom}$ \\
-\hline \\
-As & xx.xxx & xx.xx & xx.xx & xx.xx \\
-Pb & xx.xxx & xx.xx & xx.xx & xx.xx \\
-\hline
-\end{tabular}
-\end{table}
--->
-
 
 
 
 # Discussion
 
-Based on current understanding of bivalve shell growth [@checa2000a-new-model], the laser transects that crossed the nacre should have captured the accretion that occurred during the experiment. By careful alignment of anatomic imaging and chemical data obtained by LA-ICP-MS, we were able to extract and analyze elemental concentrations from the nacre, including the locations of annuli within the nacre. We hypothesized that some elements would differentially accrue within the nacre across experimental assignments and could be detected from LA-ICP-MS data. @jackson2003laser, for example, experimentally fed contaminated fish to banded water snakes and showed LA-ICP-MS used on tail tissue was able to differentiate between treatments.
+Based on the current understanding of bivalve shell growth [@checa2000a-new-model], the laser transects that crossed the nacre should have captured the accretion that occurred during the experiment. By careful alignment of anatomic imaging and chemical data obtained by LA-ICP-MS, we were able to extract and analyze elemental concentrations from the nacre, including the locations of annuli within the nacre. We hypothesized that some elements would differentially accrue within the nacre across experimental assignments and could be detected from LA-ICP-MS data. @jackson2003laser, for example, experimentally fed contaminated fish to banded water snakes and showed LA-ICP-MS used on tail tissue was able to differentiate between treatments.
 
 Our analysis shows differences between the experimental sites in Mn concentrations accumulated during the study period. Manganese is an essential trace element with important roles in numerous enzymatic pathways that could have harmful effects on freshwater bivalves. We suggest two, possibly overlapping explanations for the Mn result. 
 
 First, the differences in Manganese accumulation could have resulted from differences in survival times at the sites. @shoults2014resolution shows that Manganese concentrations naturally vary cyclically within the prismatic layer. The reasons for the seasonal variation in shell Mn are unknown. If Manganese also naturally cycles within the nacre, then shorter survival times would have resulted in different accrual patterns. Those that survived longer would have kept accumulating Mn for later in the season.
 
-A second explanation for the Mn pattern is that the trajectories reflect differences in the water and/or substrate chemistries at the sites unrelated to seasonal variation. Interestingly, surviving valves from the Little Tennessee had microscopic crystal-like substance on their gill tissues, which upon mass spectrometry analysis consisted largely of Mn.
+A second explanation for the Mn pattern is that the trajectories reflect differences in the water and/or substrate chemistries at the sites unrelated to seasonal variation. Interestingly, surviving valves from the Little Tennessee had films on the gills that were apparent by scanning electron microscopy, which upon x-ray diffraction analysis consisted largely of Mn.
 
 Other notes on Mn:
 
@@ -212,5 +204,14 @@ The completely randomized design allows for robust, internally valid inference; 
 TODO:
 
 * cite stamen maps
+
+# Fundning
+
+This work was supported by funds provided by the North Carolina Department of Transportation [NCDOT Project 2013-2012-37]; and the US Fish and Wildlife Service [F18AC00237].
+
+# Acknowledgment
+
+The authors thank [TODO]
+
 
 # References
