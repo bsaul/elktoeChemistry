@@ -81,7 +81,7 @@ Provided that pre-experiment systematic differences did not exist or that we cou
 
 ### Demographics and descriptive statistics
 
-We tabulated available descriptive statistics by site, including specimen height, length, width, weight, and the number of annuli counted on the valve section removed for LA-ICP-MS. Morbidity and mortality during the experiment was graphically summarized by plotting pre-to-post experiment weight change among surviving specimens and death at each site. 
+We tabulated available descriptive statistics by site, including specimen height, length, width, weight, and the number of annuli counted on the valve section removed for LA-ICP-MS. 
 
 ### Randomization-based inference
 
@@ -95,11 +95,11 @@ The other two test statistics both explicitly accounted for censoring and used n
 
 \begin{table}
 \label{test-statistics}
-\caption{A summary of data and test statistics used for randomization inference.}
-\begin{tabular}{lcccc}
+\caption{Data and test statistics used for randomization inference}
+\begin{tabular}{lp{5cm}p{7cm}}
 Label & Transect Data Used & Statistic(s) \\
 \hline \\
-$ri_{\text{GAM}}$ & transect with most annuli A observations & deviance between nested GAM models \\
+$ri_{\text{gam}}$ & transect with most annuli A observations & deviance between nested GAM models \\
 $ri_{\text{mom}}$  & all transects with annuli A  & omnibus test statistic from proportion censored, L-moment 1 (mean), L-moment 2 (variance), and maximum \\
 $ri_{\text{mom trend}}$  & all transects and all annuli & omnibus test statistic derived from slope across annuli for each of proportion censored, L-moment 1, L-moment 2, and maximum \\
 \hline
@@ -114,56 +114,28 @@ The methodology, test statistics, and the model specifications, and further desc
 
 # Results
 
-## Descriptive stats
-
 TODO: insert a table of baseline stats per site:
 
-* n
+* n (overall and by test statistic)
 * height, length, width (volume)
 * weight
 * n annuli 
 
-## Morbidity and Mortality
+In both species, more elements showed differences in nacre accrued prior to experiment when including baseline specimens versus including baseline specimens (Figure \@ref(fig:rires)A vs. \@ref(fig:rires)B). Upon inspection, all of the baseline specimens were analyzed in the same LA-ICP-MS batch. We could not rule out the possibility of batch effects; hence, we excluded baseline specimens from further analysis and focused on comparisons between experimental sites.
 
-Morbidity and mortality varied across sites and between species (Figure \@ref(fig:mortality)). In both rivers, *A. raveneliana* mortality increased monotonically along the river gradient, and the median relative weight change also tended to decrease. In the Little Tennessee, all but three specimens lost weight or died, whereas no individuals died and few lost weight at Tuckaseegee site 1, the site closest to the baseline site. In constrast to *A. raveneliana*, none of the younger, hatchery-raised *L. fasciola* died and all gained weight.
+When excluding baseline specimens, *A. raveneliana* have few differences in pre-experiment nacre (all p-values $> 0.01$ for all test statistics) (Figure \@ref(fig:rires)B). In the same figure, however, *L. fasciola* appear to have strong evidence for differences in Barium using the $ri_{gam}$ statistic. 
 
-```{r mortality, echo = FALSE, fig.cap= "TODO"}
-knitr::include_graphics(here::here("manuscript", "figures", "mussel_outcomes_v000.pdf"))
+In *A. raveneliana*, Manganese shows evidence of a difference accrued during the experiment between sites using both $ri_{\text{gam}}$ (p = XXX) and $ri_{\text{mom}}$ (p = XXX) test statistics.
+
+
+```{r rires, echo = FALSE, fig.cap = "Points are p-values (log$_{10}$ scale) testing the null hypothesis of no difference in each element accrued prior to the experiment between (A) sites including baselines excluding most recent annuli, (B) sites excluding baseline excluding most recent annuli, (C) sites excluding baseline including most recent annuli,. Smaller p-values suggest a larger discrepancy between sites under a null hypothesis of no difference between sites. P-values $<0.1$ are labelled by element."}
+knitr::include_graphics(here::here("manuscript", "figures", "ri_ncr_hypothesis_v001.pdf"))
 ```
-
-## Trace element accrual
-
-## Comparability of specimens
-
-Figure \@ref(fig:hypothesis_DE) displays p-values testing the null hypothesis of no difference between sites when examining the elements accrued prior to the experiment. 
-
-TODO:
-
-* discuss differences
-* problems with baseline specimens?
-
-```{r hypothesis_DE, echo = FALSE, fig.cap = "Are sites comparable in pre-experiment elemental concentrations. Smaller p-values suggest a larger discrepancy (i.e. less comparability) between sites under a null hypothesis of no difference between sites."}
-knitr::include_graphics(here::here("manuscript", "figures", "ri_ncr_hypothesis_DE_v001.pdf"))
-```
-
-## Experimental Accrual
-
-In *A. raveneliana*, Manganese shows evidence of a difference between sites using both $ri_{\text{gam}} and $ri_{\text{mom}}$ test statistics. 
-
 
 TODO: 
 
 * discuss Pb
-* dicuss *L. fasciola*,
 * add plot showing differences in Mn by visualizing the 3 test statistics.
-
-
-```{r hypothesis_B, echo = FALSE, fig.cap = "Differences between experimental sites (excluding baseline). Smaller p-values suggest difference between sites in elemental accrual during the experiment."}
-knitr::include_graphics(here::here("manuscript", "figures", "ri_ncr_hypothesis_B_v001.pdf"))
-```
-
-TODO: insert figure of moment summaries
-
 
 
 # Discussion
