@@ -7,11 +7,13 @@
 
 library(ggplot2)
 library(dplyr)
+library(grid)
+library(gridExtra)
 
 source("programs/4_displays/display_functions.R")
 
 vers    <- "V001"
-outFile <- sprintf("manuscript/figures/ri_ncr_hypothesis_DE_%s.pdf", vers)
+outFile <- sprintf("manuscript/figures/ri_ncr_hypothesis_%s.pdf", vers)
 
 dt <- 
   read_all_ri_data() %>%
@@ -29,60 +31,53 @@ plot_dt <-
     which_layer, which_annuli, which_agrp, which_annuli, test_data,
     inner_buffer, outer_buffer, p_value)  %>%
   filter(
-    label %in% c("D", "E"),
+    label %in% c("D", "E", "B"),
     !(grepl("_ratio", test_data)),
-    signal_filter == "none"
+    signal_filter == "none",
+    inner_buffer  == "6"
   ) %>%
   mutate(
     element2 = case_when(
-      stringr::str_detect(element, "^(Zn|Cu|Mg)") ~ paste0(stringr::str_replace(element, "_ppm_m", "("), ")"),
-      TRUE ~ stringr::str_remove(element, "_ppm_m.*")),
-      p_flag  = p_value < 0.1,
-      p_small = (p_value < 0.0001),
-      p_value2 = if_else(p_small, 0.0001, p_value)
+      stringr::str_detect(element, "^(Zn|Cu|Mg)") ~ paste0(stringr::str_replace(element, "_ppm_m", "["), "]"),
+      TRUE ~ stringr::str_remove(element, "_ppm_m.*")
+    ),
+    p_flag  = p_value < 0.1,
+    p_small = (p_value < 0.0001),
+    p_value2 = if_else(p_small, 0.0001, p_value)
   )
 
 
 ## Plotting it ####
-ggplot(
-  data = filter(plot_dt, inner_buffer == "6") ,
-  aes(x = test_data, y = -log10(p_value2))
-) + 
-  geom_point(size = 0.1) +
-  geom_text(
-    data = filter(plot_dt, inner_buffer == "6", p_flag == TRUE),
-    aes(label = element2),
-    size = 2,
-    nudge_x = 0.1) +
-  scale_y_continuous(
-    name   = expression(-log[10]~(p)),
-    limits = -log10(c(1, 0.00005)),
-    breaks =  -log10(c(1, 0.1, 0.01, 0.001, 0.0001)),
-    labels = c("1", "0.1", "0.01", "0.001", "<0.0001"),
-    expand = c(0, 0)
-  ) +
-  coord_flip() + 
-  facet_grid(species ~ hypothesis) +
-  theme_classic() +
-  theme(
-    strip.background = element_blank(),
-    legend.position = "bottom",
-    panel.grid.major.x = element_line(color = "grey90", size = 0.2, linetype = "dotted"),
-    panel.grid.major.y = element_line(color = "grey90", size = 0.2),
-    axis.text.x  = element_text(size = 8),
-    axis.line.x  = element_line(color = "grey50"),
-    axis.ticks.x = element_line(color = "grey50"),
-    axis.text.y  = element_text(size = 6),
-    axis.line.y  = element_blank(),
-    axis.ticks.y = element_line(color = "grey10", size = 0.2),
-  ) ->
-  p
+
+p1 <- single_ri_plot(filter(plot_dt, label == "D"))
+p2 <- single_ri_plot(filter(plot_dt, label == "E"))
+p3 <- single_ri_plot(filter(plot_dt, label == "B"))
+p <- 
+grid.arrange(
+  textGrob(
+    "A",
+    hjust = 0,
+    x = 0),
+  p1,
+  textGrob(
+    "B",
+    hjust = 0,
+    x = 0),
+  p2,
+  textGrob(
+    "C",
+    hjust = 0,
+    x = 0),
+  p3,
+  ncol = 1,
+  heights = rep(c(0.2, 2), 3)
+)
 
 
 
 ggsave(
   file = outFile,
-  p, width = 4, height = 8
+  p, width = 3, height = 6.6
 )
 
 
