@@ -7,118 +7,186 @@
 # TODO: add more documentation  
 #-----------------------------------------------------------------------------#
 
-make_spec <- function(species, signal_filter, element){
-  paste(species, signal_filter, element, sep = "-")
-}
-read_analysis_data <- function(spec){
-  readRDS(file = paste0("data/analysis_data-", spec, ".rds"))
-}
-
-prep_for_summary_stats_ri <- function(dt){
-  dt %>%
-    dplyr::select(-data) # lighten the load a bit
-}
-
-prep_for_gam_ri <- function(dt){
-  dt %>%
-    dplyr::select(-stats_by_annuli) # lighten the load a bit
+# make_spec <- function(species, signal_filter, element){
+#   paste(species, signal_filter, element, sep = "-")
+# }
+# read_analysis_data <- function(spec){
+#   readRDS(file = paste0("data/analysis_data-", spec, ".rds"))
+# }
+# 
+# prep_for_summary_stats_ri <- function(dt){
+#   dt %>%
+#     dplyr::select(-data) # lighten the load a bit
+# }
+# 
+prep_for_gam_ri <- function(data){
+  data %>%
+    dplyr::group_by(analysis_id) %>%
+    dplyr::mutate(
+      d  = 1:n(),
+      pd = d/max(d)
+    ) %>%
+    ungroup()
 }
 
 ## Moments data processing ####
-compute_moments_linear_trend <- function(dt){
-  dt %>%
-  # tidyr::unnest(cols = stats) %>%
-    mutate(annuli_ = -1 * match(annuli, LETTERS)) %>%
-    # filter(statistic %in% c("p_censored", "max")) %>%
-    group_by(river, site, site_num, Z, id, statistic) %>%
-    tidyr::nest() %>% 
-    mutate(Y = purrr::map_dbl(data, ~ coef(lm(Y ~ annuli_, data = .x))[2])) %>%
-    select(-data) %>%
-    dplyr::filter(!is.na(Y))
-}
-
-prepare_ri_moments_data <- function(data, ri_setting, na_handler = handle_na){
-  data %>%
-    dplyr::filter(!!! ri_setting$filtration[[1]]) %>%
-    mutate(
-      moments_ri_data = purrr::map(
-        .x = stats_by_annuli,
-        .f = {
-          ~ .x %>% 
-            tidyr::unnest(cols = stats) %>%
-            dplyr::filter(!!! ri_setting$stat_data_filtration[[1]]) %>%
-            select(Y = value, everything()) %>%
-            ungroup() %>%
-            na_handler() %>%
-            ungroup() %>%
-            ri_setting$process_fun()
-        }
-      )
-    ) 
-}
-
-
-prepare_ri_gam_data <- function(data, ri_setting){
-  data %>%
-    dplyr::filter(!!! ri_setting$filtration[[1]]) %>%
-    dplyr::mutate(
-      dec = purrr::map(
-        .x = data,
-        .f = ~ define_multiarm_cluster_declaration(.x$Z, .x$analysis_id))
-    )
-}
-
-prepare_for_output <- function(dt, ri_setting, inSpec, ...){
-  
-  dots <- list(...)
-  
-  dt %>%
-    mutate(
-      !!! dots,
-      label     = ri_setting$label,
-      desc      = ri_setting$desc,
-      nsims     = ri_setting$nsims,
-      test_data = ri_setting$test_data,
-      test_statistic  = list(ri_setting$test_statistic),
-      outPrefix = sprintf("%s", outDir),
-      outFile   = paste(
-        inSpec,
-        label, test_data,
-        which_layer, which_annuli, contrast, 
-        which_agrp,
-        # gsub("_", "-", which_agrp), 
-        inner_buffer, outer_buffer, sep = "-")
-    )
-}
-
-
 handle_na <- function(dt) {
   dt %>%
-    group_by(annuli, statistic) %>%
-    mutate(Y = if_else(
-      is.na(Y) | is.nan(Y) | is.infinite(Y), 
-      true  = median(Y, na.rm = TRUE), 
-      false = Y)) 
+    dplyr::group_by(annuli, statistic) %>%
+    dplyr::mutate(value = if_else(
+      is.na(value) | is.nan(value) | is.infinite(value), 
+      true  = median(value, na.rm = TRUE), 
+      false = value)) 
 }
+
+#' Creates a dataset of summary stats 
+create_summary_stats_data <- function(data, group_by_annuli = TRUE){
+  
+  
+  `if`(
+    group_by_annuli,
+    data,
+    mutate(data, annuli = "zzz") # create a dummy annuli
+  ) %>%
+    dplyr::group_nest(annuli) %>%
+    dplyr::mutate(
+      lod = purrr::map_dbl(data, ~ .x[["lod"]][1]),
+      pwm = purrr::map2(
+        .x = data,
+        .y = lod,
+        .f = ~ lmomco::pwmLC(x = .x$value, threshold = .y, nmom=4, sort=TRUE)),
+      nbelow = purrr::map_dbl(pwm, ~.x$numbelowthreshold),
+      nobs   = purrr::map_dbl(pwm, ~.x$samplesize),
+      prop_censored = nbelow/nobs,
+      max    = purrr::map_dbl(data, ~ max(.x$value)),
+      lmomA = purrr::map(
+        .x = pwm,
+        .f = ~ lmomco::pwm2lmom(.x$Aprimebetas)),
+      lmomB = purrr::map(
+        .x = pwm,
+        .f = ~ lmomco::pwm2lmom(.x$Bprimebetas)),
+      stats = purrr::pmap(
+        .l = list(x = lmomA, y = prop_censored, z = max),
+        .f = function(x, y, z){
+          tibble::tibble(
+            statistic = c("p_censored",
+                          paste0("L-moment ", 1:3),
+                          "max"),
+            value     = c(y, x$lambdas[1:3], z)
+          )
+        }
+      )
+    )  %>%
+    dplyr::select(annuli, stats) %>%
+    tidyr::unnest(cols = "stats")
+  # %>%
+  #   dplyr::select(-stats)
+  # %>%
+  #   handle_na()
+}
+
+create_summary_stats_data_A_mom <- function(data){
+ create_summary_stats_data(data, group_by_annuli = FALSE) %>%
+      `if`(nrow(.) == 0,
+           NULL,
+           .)
+# 
+#   
+#   if (!("statistic" %in% names(out))){
+#     browser()
+#   }
+#   out  %>%
+#     dplyr::select(statistic, value)
+}
+
+# compute_moments_linear_trend <- function(dt){
+#   dt %>%
+#   # tidyr::unnest(cols = stats) %>%
+#     mutate(annuli_ = -1 * match(annuli, LETTERS)) %>%
+#     # filter(statistic %in% c("p_censored", "max")) %>%
+#     group_by(river, site, site_num, Z, id, statistic) %>%
+#     tidyr::nest() %>% 
+#     mutate(Y = purrr::map_dbl(data, ~ coef(lm(Y ~ annuli_, data = .x))[2])) %>%
+#     select(-data) %>%
+#     dplyr::filter(!is.na(Y))
+# }
+
+# prepare_ri_moments_data <- function(data, ri_setting, na_handler = handle_na){
+#   data %>%
+#     dplyr::filter(!!! ri_setting$filtration[[1]]) %>%
+#     mutate(
+#       moments_ri_data = purrr::map(
+#         .x = stats_by_annuli,
+#         .f = {
+#           ~ .x %>% 
+#             tidyr::unnest(cols = stats) %>%
+#             dplyr::filter(!!! ri_setting$stat_data_filtration[[1]]) %>%
+#             select(Y = value, everything()) %>%
+#             ungroup() %>%
+#             na_handler() %>%
+#             ungroup() %>%
+#             ri_setting$process_fun()
+#         }
+#       )
+#     ) 
+# }
+
+
+# prepare_ri_gam_data <- function(data, ri_setting){
+#   data %>%
+#     dplyr::filter(!!! ri_setting$filtration[[1]]) %>%
+#     dplyr::mutate(
+#       dec = purrr::map(
+#         .x = data,
+#         .f = ~ define_multiarm_cluster_declaration(.x$Z, .x$analysis_id))
+#     )
+# }
+# 
+# prepare_for_output <- function(dt, ri_setting, inSpec, ...){
+#   
+#   dots <- list(...)
+#   
+#   dt %>%
+#     mutate(
+#       !!! dots,
+#       label     = ri_setting$label,
+#       desc      = ri_setting$desc,
+#       nsims     = ri_setting$nsims,
+#       test_data = ri_setting$test_data,
+#       test_statistic  = list(ri_setting$test_statistic),
+#       outPrefix = sprintf("%s", outDir),
+#       outFile   = paste(
+#         inSpec,
+#         label, test_data,
+#         which_layer, which_annuli, contrast, 
+#         which_agrp,
+#         # gsub("_", "-", which_agrp), 
+#         inner_buffer, outer_buffer, sep = "-")
+#     )
+# }
+
+
+
 
 ########## Randomization Inference (RI) FUNCTIONS ####
 
 ## Declarations ###
-define_simple_declaration <- function(Z){
-  N <- length(Z)
-  m <- sum(Z == 1)
+define_simple_declaration <- function(data){
+  N <- length(data$Z)
+  m <- sum(data$Z == 1)
   randomizr::declare_ra(N = N, m= m)
 }
 
-define_multiarm_declaration <- function(Z){
-  N <- length(Z)
-  m <- as.integer(table(Z))
+define_multiarm_declaration <- function(data){
+  N <- length(data$Z)
+  m <- as.integer(table(data$Z))
   randomizr::declare_ra(N = N, m_each = m)
 }
 
-define_multiarm_cluster_declaration <- function(Z, id){
+define_multiarm_cluster_declaration <- function(data){
+  id <- data$analysis_id
   N <- length(unique(id))
-  m <- tapply(id, Z, function(x) length(unique(x)))
+  m <- tapply(id, data$Z, function(x) length(unique(x)))
   randomizr::declare_ra(N = N, clusters = id, m_each = m)
 }
 
@@ -135,9 +203,7 @@ make_gam_ts <- function(m1_rhs, m2_rhs){
   function(data){
     dt <- as.data.frame(data)
     m1 <- mgcv::gam(f1, data = dt)
-              # family = tobit1(left.threshold = data$lod, right.threshold = Inf))
     m2 <- mgcv::gam(f2, data = dt)
-              # tobit1(left.threshold = data$lod, right.threshold = Inf))
     anova(m1, m2)[["Deviance"]][2]
   }
 }
@@ -261,21 +327,28 @@ conduct_multiarm_inference <- function(data, dec, Zmat){
   )
 }
 
-create_hypothesis_data <- function(data, fq = NULL, q, nm){
-  data %>% 
-    dplyr::filter(!!! fq) %>%
-    ungroup() %>%
-    mutate(
-      Z = !! q
-    ) %>%
-    select(
-      Z, Y = value, everything()
-    ) %>%
-    group_by(stats, species, element, layer_data, statistic) %>%
-    group_nest() %>%
-    mutate(hypothesis = nm)
-}
+# create_hypothesis_data <- function(data, fq = NULL, q, nm){
+#   data %>% 
+#     dplyr::filter(!!! fq) %>%
+#     ungroup() %>%
+#     mutate(
+#       Z = !! q
+#     ) %>%
+#     select(
+#       Z, Y = value, everything()
+#     ) %>%
+#     group_by(stats, species, element, layer_data, statistic) %>%
+#     group_nest() %>%
+#     mutate(hypothesis = nm)
+# }
 
+do_ri_gam <- function(dec, data, testFUN, nsims){
+  ri2::conduct_ri(
+    declaration   = dec,
+    test_function = testFUN,
+    data          = as.data.frame(data),
+    sims          = nsims)
+}
 
 do_ri_moments <- function(x, y, z) {
   # browser()
@@ -292,3 +365,35 @@ do_ri_moments <- function(x, y, z) {
   })
   
 } 
+
+
+do_ri <- function(config, analysis_data){
+  
+  data <- 
+    do.call(analysis_data, 
+            args = c(config$filters, test_data_FUN = config$test_data_FUN))
+  
+  config[["filters"]] <-
+    config[["filters"]][-match(c("elements", "signals"), names(config[["filters"]]))]
+  data %>%
+    dplyr::mutate(
+      sha  = purrr::pmap_chr(
+        .l = list(species, element, signal, data),
+        .f = function(...){
+          digest::sha1(c(config, ...))
+        }
+      ),
+      data = purrr::map(
+        .x = data,
+        .f = ~ config$prep_FUN(.x)),
+      dec = purrr::map(
+        .x = data,
+        .f = ~ config$dec_FUN(.x)),
+      # ri = purrr::map2(
+      #   .x = dec,
+      #   .y = data,
+      #   .f = ~ config$ri_FUN(.x, .y, config$test_statistic_FUN, config$nsims)
+      # ),
+      config = list(config)
+    ) 
+}
