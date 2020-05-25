@@ -176,7 +176,7 @@ create_analysis_data_preparer <- function(prepared_analysis_data,
       data %>% 
       dplyr::select(-transect, -distance, -chemistry) %>% 
       dplyr::group_by(id) %>% 
-      dplyr::summarise_all(.funs = list(first))
+      dplyr::summarise_all(.funs = list(dplyr::first))
     
     chem_ds_data <- 
       data %>%
@@ -237,7 +237,7 @@ create_analysis_data_preparer <- function(prepared_analysis_data,
                   .f = ~ {
                     res <- dplyr::bind_cols(ds, value = .x, lod = .lod) %>%
                       test_data_FUN()
-                    tibble(data = list(res))
+                    tibble::tibble(data = list(res))
                   }
                 )
               }
@@ -247,7 +247,7 @@ create_analysis_data_preparer <- function(prepared_analysis_data,
       ) %>%
       dplyr::group_by(species) %>%
       dplyr::mutate(
-        analysis_id = 1L:n()
+        analysis_id = 1L:(dplyr::n())
       ) %>%
       dplyr::ungroup() %>%
       dplyr::select(
