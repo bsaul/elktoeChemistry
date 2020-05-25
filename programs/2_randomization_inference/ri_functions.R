@@ -23,10 +23,10 @@ prep_for_gam_ri <- function(data){
   data %>%
     dplyr::group_by(analysis_id) %>%
     dplyr::mutate(
-      d  = 1:n(),
+      d  = 1:(dplyr::n()),
       pd = d/max(d)
     ) %>%
-    ungroup()
+    dplyr::ungroup()
 }
 
 ## Moments data processing ####
@@ -42,11 +42,10 @@ handle_na <- function(dt) {
 #' Creates a dataset of summary stats 
 create_summary_stats_data <- function(data, group_by_annuli = TRUE){
   
-  
   `if`(
     group_by_annuli,
     data,
-    mutate(data, annuli = "zzz") # create a dummy annuli
+    dplyr::mutate(data, annuli = paste(unique(data[["annuli"]]), collapse = "")) # create a dummy annuli
   ) %>%
     dplyr::group_nest(annuli) %>%
     dplyr::mutate(
@@ -72,7 +71,7 @@ create_summary_stats_data <- function(data, group_by_annuli = TRUE){
             statistic = c("p_censored",
                           paste0("L-moment ", 1:3),
                           "max"),
-            value     = c(y, x$lambdas[1:3], z)
+            Y  = c(y, x$lambdas[1:3], z)
           )
         }
       )
@@ -87,9 +86,7 @@ create_summary_stats_data <- function(data, group_by_annuli = TRUE){
 
 create_summary_stats_data_A_mom <- function(data){
  create_summary_stats_data(data, group_by_annuli = FALSE) %>%
-      `if`(nrow(.) == 0,
-           NULL,
-           .)
+      `if`(nrow(.) == 0, NULL, .)
 # 
 #   
 #   if (!("statistic" %in% names(out))){
@@ -178,6 +175,7 @@ define_simple_declaration <- function(data){
 }
 
 define_multiarm_declaration <- function(data){
+  data <- dplyr::distinct(data, analysis_id, Z)
   N <- length(data$Z)
   m <- as.integer(table(data$Z))
   randomizr::declare_ra(N = N, m_each = m)
@@ -191,9 +189,6 @@ define_multiarm_cluster_declaration <- function(data){
 }
 
 ## Test statistics ####
-# ks_test_stat  <- function(data) ks.test(data[data$Z == 0, "Y", drop = TRUE], data[data$Z == 1, "Y", drop = TRUE])$statistic
-# med_test_stat <- function(data) median(data[data$Z == 0, "Y", drop = TRUE]) - median(data[data$Z == 1, "Y", drop = TRUE])
-
 make_gam_ts <- function(m1_rhs, m2_rhs){
   
   fptype <- log(value) ~ .
@@ -214,9 +209,9 @@ kw_test_fun <- function(data){
 }
 
 #' Wilcoxon test stat
-wx_test_fun <- function(data){
-  wilcox.test(Y ~ Z, data = data)[["statistic"]]
-}
+# wx_test_fun <- function(data){
+#   wilcox.test(Y ~ Z, data = data)[["statistic"]]
+# }
 
 #' Compute p-value estimates for each simulation in an ri object
 compute_pvals <- function(ri){
@@ -236,18 +231,14 @@ compute_pvals <- function(ri){
 #' Compute pval for single summary statistic
 #' @param statistic_data data for a single summary statistic
 #' @param N the number of permutations
+
 compute_pval_for_single_statistic <- function(statistic_data, ri_dec, Zmat, test_fun = NULL){
-  
-  # Create the declaration for this set of data
-  # ri_dec <-  define_multiarm_declaration(
-  #   statistic_data[["Z"]])
   
   # Conduct inference for this set of data
   ri_res <- conduct_inference(
     statistic_data, 
     .dec = ri_dec, 
     .Zmat = Zmat,
-    # obtain_permutation_matrix(ri_dec, N),
     .test_fun = test_fun)
   
   # Compute marginal p-values for each permutation
@@ -259,31 +250,25 @@ compute_pval_for_single_statistic <- function(statistic_data, ri_dec, Zmat, test
 #' @param N
 #' @param which_statistics
 
-compute_pvals_for_multiple_statistics <- function(statistics_data, N, test_fun = NULL){
+compute_pvals_for_multiple_statistics <- function(dec, data, testFUN, nsims){
   
-  # Create the declaration for this set of data
-  stat_names <- unique(statistics_data[["statistic"]])
-  Z <- dplyr::filter(statistics_data, statistic == stat_names[[1]])[["Z"]]
-  ri_dec <- define_multiarm_declaration(Z)
-  Zmat   <- randomizr::obtain_permutation_matrix(ri_dec, N)
-  
-  statistics_data %>%
+  Zmat   <- randomizr::obtain_permutation_matrix(dec, nsims)
+  data %>%
     dplyr::ungroup() %>%
     dplyr::group_nest(statistic) %>%
     dplyr::mutate(
       data = purrr::map(
-        .x = data, 
+        .x = data,
         .f = ~ compute_pval_for_single_statistic(
-          statistic_data = .x, ri_dec = ri_dec, Zmat = Zmat, test_fun = test_fun))
+          statistic_data = .x, ri_dec = dec, Zmat = Zmat, test_fun = testFUN))
     )
 }
+
 
 #' 
 #' @param pval_data
 #' @param .f summarizing function across p-values
 compute_pval_across_multiple_statistics <- function(pval_data, .f = prod){
-
-  
   pval_data %>%
   tidyr::unnest(cols = data) %>%
   # filter(sim_id %in% 1:3) %>%
@@ -295,69 +280,29 @@ compute_pval_across_multiple_statistics <- function(pval_data, .f = prod){
   dplyr::summarise(
     p = mean(t_p_obs[1] <= t_p)
   )
-  
 }
 
 
 ## Conducting inference ###
-conduct_inference <- function(.data, .dec, .Zmat, .test_fun){
-  # browser()
-  # An inelegant solution to switching to multiarm ...
-  # if(length(unique(data$Z)) > 2){
-  #   return(conduct_multiarm_inference(data, dec, Zmat))
-  # }
-  
-  ri2::conduct_ri(
-    formula            = Y ~ Z,
-    declaration        = .dec,
-    # sharp_hypothesis   = 0,
-    test_function      = .test_fun,
-    permutation_matrix = .Zmat,
-    data               = .data
-  )
-}
-
-conduct_multiarm_inference <- function(data, dec, Zmat){
-  ri2::conduct_ri(
-    model_1            = Y ~ 1,
-    model_2            = Y ~ Z,
-    declaration        = dec,
-    permutation_matrix = Zmat,
-    data               = as.data.frame(data)
-  )
-}
-
-# create_hypothesis_data <- function(data, fq = NULL, q, nm){
-#   data %>% 
-#     dplyr::filter(!!! fq) %>%
-#     ungroup() %>%
-#     mutate(
-#       Z = !! q
-#     ) %>%
-#     select(
-#       Z, Y = value, everything()
-#     ) %>%
-#     group_by(stats, species, element, layer_data, statistic) %>%
-#     group_nest() %>%
-#     mutate(hypothesis = nm)
-# }
-
 do_ri_gam <- function(dec, data, testFUN, nsims){
   ri2::conduct_ri(
     declaration   = dec,
     test_function = testFUN,
     data          = as.data.frame(data),
-    sims          = nsims)
+    sims          = nsims)  %>% 
+    summary() %>% 
+    tibble::as_tibble() %>% 
+    dplyr::select(p = two_tailed_p_value)
 }
 
-do_ri_moments <- function(x, y, z) {
+do_ri_summary_stats <- function(dec, data, testFUN, nsims) {
   # browser()
   try({
     hold <- suppressWarnings(
       # I don't like wuppressing warnings but a warning about data.frame
       # row.names appears to be creeping out of ri2
       compute_pvals_for_multiple_statistics(
-        statistics_data = x, N = y, test_fun = z
+        dec = dec, data = data, testFUN = testFUN, nsims = nsims
       )
     )
     
@@ -374,7 +319,9 @@ do_ri <- function(config, analysis_data){
             args = c(config$filters, test_data_FUN = config$test_data_FUN))
   
   config[["filters"]] <-
-    config[["filters"]][-match(c("elements", "signals"), names(config[["filters"]]))]
+    config[["filters"]][-match(c("elements", "signals"), 
+                               names(config[["filters"]]))]
+  
   data %>%
     dplyr::mutate(
       sha  = purrr::pmap_chr(
@@ -389,11 +336,11 @@ do_ri <- function(config, analysis_data){
       dec = purrr::map(
         .x = data,
         .f = ~ config$dec_FUN(.x)),
-      # ri = purrr::map2(
-      #   .x = dec,
-      #   .y = data,
-      #   .f = ~ config$ri_FUN(.x, .y, config$test_statistic_FUN, config$nsims)
-      # ),
+      p_val = purrr::map2(
+        .x = dec,
+        .y = data,
+        .f = ~ config$ri_FUN(.x, .y, config$test_statistic_FUN, config$nsims)
+      ),
       config = list(config)
     ) 
 }
