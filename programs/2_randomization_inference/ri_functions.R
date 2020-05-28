@@ -7,18 +7,7 @@
 # TODO: add more documentation  
 #-----------------------------------------------------------------------------#
 
-# make_spec <- function(species, signal_filter, element){
-#   paste(species, signal_filter, element, sep = "-")
-# }
-# read_analysis_data <- function(spec){
-#   readRDS(file = paste0("data/analysis_data-", spec, ".rds"))
-# }
-# 
-# prep_for_summary_stats_ri <- function(dt){
-#   dt %>%
-#     dplyr::select(-data) # lighten the load a bit
-# }
-# 
+#'
 prep_for_gam_ri <- function(data){
   data %>%
     dplyr::group_by(analysis_id) %>%
@@ -30,13 +19,15 @@ prep_for_gam_ri <- function(data){
 }
 
 ## Moments data processing ####
-handle_na <- function(dt) {
+#'
+replace_na_median <- function(dt) {
   dt %>%
-    dplyr::group_by(annuli, statistic) %>%
-    dplyr::mutate(value = if_else(
-      is.na(value) | is.nan(value) | is.infinite(value), 
-      true  = median(value, na.rm = TRUE), 
-      false = value)) 
+    dplyr::group_by(statistic) %>%
+    dplyr::mutate(Y = dplyr::if_else(
+      is.na(Y) | is.nan(Y) | is.infinite(Y), 
+      true  = median(Y, na.rm = TRUE), 
+      false = Y)) %>%
+    dplyr::ungroup()
 }
 
 #' Creates a dataset of summary stats 
@@ -78,91 +69,42 @@ create_summary_stats_data <- function(data, group_by_annuli = TRUE){
     )  %>%
     dplyr::select(annuli, stats) %>%
     tidyr::unnest(cols = "stats")
-  # %>%
-  #   dplyr::select(-stats)
-  # %>%
-  #   handle_na()
 }
 
-create_summary_stats_data_A_mom <- function(data){
+#'
+create_summary_stats_data__mom <- function(data){
  create_summary_stats_data(data, group_by_annuli = FALSE) %>%
       `if`(nrow(.) == 0, NULL, .)
-# 
-#   
-#   if (!("statistic" %in% names(out))){
-#     browser()
-#   }
-#   out  %>%
-#     dplyr::select(statistic, value)
 }
 
-# compute_moments_linear_trend <- function(dt){
-#   dt %>%
-#   # tidyr::unnest(cols = stats) %>%
-#     mutate(annuli_ = -1 * match(annuli, LETTERS)) %>%
-#     # filter(statistic %in% c("p_censored", "max")) %>%
-#     group_by(river, site, site_num, Z, id, statistic) %>%
-#     tidyr::nest() %>% 
-#     mutate(Y = purrr::map_dbl(data, ~ coef(lm(Y ~ annuli_, data = .x))[2])) %>%
-#     select(-data) %>%
-#     dplyr::filter(!is.na(Y))
-# }
+#'
+create_summary_stats_data_mom_diff <- function(data, first_annuli){
+  
+  if (length(unique(data[["annuli"]])) == 1 || !(first_annuli %in% data[["annuli"]])){
+    return(NULL)
+  }
+  
+  data %>%
+    dplyr::mutate(
+      annuli = dplyr::if_else(annuli == first_annuli, "new", "old")
+    ) %>%
+    create_summary_stats_data(group_by_annuli = TRUE) %>%
+    `if`(nrow(.) == 0, NULL, .) %>%
+    dplyr::ungroup() %>%
+    dplyr::group_by(statistic) %>%
+    dplyr::summarise(
+      Y = Y[annuli == "new"] - Y[annuli == "old"]
+    )
+    
+}
 
-# prepare_ri_moments_data <- function(data, ri_setting, na_handler = handle_na){
-#   data %>%
-#     dplyr::filter(!!! ri_setting$filtration[[1]]) %>%
-#     mutate(
-#       moments_ri_data = purrr::map(
-#         .x = stats_by_annuli,
-#         .f = {
-#           ~ .x %>% 
-#             tidyr::unnest(cols = stats) %>%
-#             dplyr::filter(!!! ri_setting$stat_data_filtration[[1]]) %>%
-#             select(Y = value, everything()) %>%
-#             ungroup() %>%
-#             na_handler() %>%
-#             ungroup() %>%
-#             ri_setting$process_fun()
-#         }
-#       )
-#     ) 
-# }
+create_summary_stats_data_A_mom_diff <- function(data){
+    create_summary_stats_data_mom_diff(data, first_annuli = "B")
+}
 
-
-# prepare_ri_gam_data <- function(data, ri_setting){
-#   data %>%
-#     dplyr::filter(!!! ri_setting$filtration[[1]]) %>%
-#     dplyr::mutate(
-#       dec = purrr::map(
-#         .x = data,
-#         .f = ~ define_multiarm_cluster_declaration(.x$Z, .x$analysis_id))
-#     )
-# }
-# 
-# prepare_for_output <- function(dt, ri_setting, inSpec, ...){
-#   
-#   dots <- list(...)
-#   
-#   dt %>%
-#     mutate(
-#       !!! dots,
-#       label     = ri_setting$label,
-#       desc      = ri_setting$desc,
-#       nsims     = ri_setting$nsims,
-#       test_data = ri_setting$test_data,
-#       test_statistic  = list(ri_setting$test_statistic),
-#       outPrefix = sprintf("%s", outDir),
-#       outFile   = paste(
-#         inSpec,
-#         label, test_data,
-#         which_layer, which_annuli, contrast, 
-#         which_agrp,
-#         # gsub("_", "-", which_agrp), 
-#         inner_buffer, outer_buffer, sep = "-")
-#     )
-# }
-
-
+create_summary_stats_data_C_mom_diff <- function(data){
+  create_summary_stats_data_mom_diff(data, first_annuli = "A")
+}
 
 
 ########## Randomization Inference (RI) FUNCTIONS ####
@@ -232,14 +174,15 @@ compute_pvals <- function(ri){
 #' @param statistic_data data for a single summary statistic
 #' @param N the number of permutations
 
-compute_pval_for_single_statistic <- function(statistic_data, ri_dec, Zmat, test_fun = NULL){
-  
+compute_pval_for_single_statistic <- function(statistic_data, ri_dec, Zmat, 
+                                              test_fun = NULL){
   # Conduct inference for this set of data
-  ri_res <- conduct_inference(
-    statistic_data, 
-    .dec = ri_dec, 
-    .Zmat = Zmat,
-    .test_fun = test_fun)
+  ri_res <- ri2::conduct_ri(
+    formula            = Y ~ Z,
+    data               = statistic_data, 
+    declaration        = ri_dec, 
+    permutation_matrix = Zmat,
+    test_function      = test_fun)
   
   # Compute marginal p-values for each permutation
   compute_pvals(ri_res)
@@ -271,7 +214,6 @@ compute_pvals_for_multiple_statistics <- function(dec, data, testFUN, nsims){
 compute_pval_across_multiple_statistics <- function(pval_data, .f = prod){
   pval_data %>%
   tidyr::unnest(cols = data) %>%
-  # filter(sim_id %in% 1:3) %>%
   dplyr::group_by(sim_id) %>%
   dplyr::summarise(
     t_p_obs = .f(p_obs),
@@ -279,11 +221,14 @@ compute_pval_across_multiple_statistics <- function(pval_data, .f = prod){
   )  %>%
   dplyr::summarise(
     p = mean(t_p_obs[1] <= t_p)
-  )
+  ) %>%
+  dplyr::pull(p)
 }
 
 
 ## Conducting inference ###
+#' 
+#' 
 do_ri_gam <- function(dec, data, testFUN, nsims){
   ri2::conduct_ri(
     declaration   = dec,
@@ -292,11 +237,13 @@ do_ri_gam <- function(dec, data, testFUN, nsims){
     sims          = nsims)  %>% 
     summary() %>% 
     tibble::as_tibble() %>% 
-    dplyr::select(p = two_tailed_p_value)
+    dplyr::select(p = two_tailed_p_value) %>%
+    dplyr::pull(p)
 }
 
+#' 
+#' 
 do_ri_summary_stats <- function(dec, data, testFUN, nsims) {
-  # browser()
   try({
     hold <- suppressWarnings(
       # I don't like wuppressing warnings but a warning about data.frame
@@ -311,10 +258,19 @@ do_ri_summary_stats <- function(dec, data, testFUN, nsims) {
   
 } 
 
+#'
+digest_checker <- function(.dir = "data/ri"){
+  fls <- gsub("\\.rds$", "", dir(.dir))
+  function(x){
+    x %in% fls
+  }
+}
 
-do_ri <- function(config, analysis_data){
+#' 
+#' 
+do_ri <- function(config, analysis_data, check_digests = digest_checker()){
   
-  data <- 
+  analysis_data <- 
     do.call(analysis_data, 
             args = c(config$filters, test_data_FUN = config$test_data_FUN))
   
@@ -322,21 +278,28 @@ do_ri <- function(config, analysis_data){
     config[["filters"]][-match(c("elements", "signals"), 
                                names(config[["filters"]]))]
   
-  data %>%
+  hold <-
+  analysis_data %>%
     dplyr::mutate(
       sha  = purrr::pmap_chr(
         .l = list(species, element, signal, data),
         .f = function(...){
           digest::sha1(c(config, ...))
         }
-      ),
+      ))
+  
+  # Do not run if file with same sha exists
+  run_bool <- !(check_digests(hold[["sha"]]))
+  
+  hold[run_bool, ] %>%
+    dplyr::mutate(
       data = purrr::map(
         .x = data,
         .f = ~ config$prep_FUN(.x)),
       dec = purrr::map(
         .x = data,
         .f = ~ config$dec_FUN(.x)),
-      p_val = purrr::map2(
+      p_value = purrr::map2_dbl(
         .x = dec,
         .y = data,
         .f = ~ config$ri_FUN(.x, .y, config$test_statistic_FUN, config$nsims)
