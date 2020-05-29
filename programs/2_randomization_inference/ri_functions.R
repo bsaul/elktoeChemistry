@@ -72,7 +72,7 @@ create_summary_stats_data <- function(data, group_by_annuli = TRUE){
 }
 
 #'
-create_summary_stats_data__mom <- function(data){
+create_summary_stats_data_A_mom <- function(data){
  create_summary_stats_data(data, group_by_annuli = FALSE) %>%
       `if`(nrow(.) == 0, NULL, .)
 }
@@ -267,8 +267,18 @@ digest_checker <- function(.dir = "data/ri"){
 }
 
 #' 
+write_results <- function(.dir = "data/ri"){
+  function(obj, name){
+    saveRDS(obj, file = sprintf("%s/%s.rds", .dir, name))
+  }
+}
+
 #' 
-do_ri <- function(config, analysis_data, check_digests = digest_checker()){
+#' 
+do_ri <- function(config, analysis_data,
+                  check_digests = digest_checker(),
+                  mapper = purrr::walk,
+                  writer = write_results()){
   
   analysis_data <- 
     do.call(analysis_data, 
@@ -278,6 +288,7 @@ do_ri <- function(config, analysis_data, check_digests = digest_checker()){
     config[["filters"]][-match(c("elements", "signals"), 
                                names(config[["filters"]]))]
   
+  # browser()
   hold <-
   analysis_data %>%
     dplyr::mutate(
@@ -291,19 +302,30 @@ do_ri <- function(config, analysis_data, check_digests = digest_checker()){
   # Do not run if file with same sha exists
   run_bool <- !(check_digests(hold[["sha"]]))
   
+  if(all(!run_bool)) return(invisible(NULL))
+  
   hold[run_bool, ] %>%
-    dplyr::mutate(
-      data = purrr::map(
-        .x = data,
-        .f = ~ config$prep_FUN(.x)),
-      dec = purrr::map(
-        .x = data,
-        .f = ~ config$dec_FUN(.x)),
-      p_value = purrr::map2_dbl(
-        .x = dec,
-        .y = data,
-        .f = ~ config$ri_FUN(.x, .y, config$test_statistic_FUN, config$nsims)
-      ),
-      config = list(config)
-    ) 
+    split(1:nrow(.)) %>%
+    mapper(
+      .x = .,
+      .f = ~ {
+        .x %>%
+        dplyr::mutate(
+          data = purrr::map(
+            .x = data,
+            .f = ~ config$prep_FUN(.x)),
+          dec = purrr::map(
+            .x = data,
+            .f = ~ config$dec_FUN(.x)),
+          p_value = purrr::map2_dbl(
+            .x = dec,
+            .y = data,
+            .f = ~ config$ri_FUN(.x, .y, config$test_statistic_FUN, config$nsims)
+          ),
+          config = list(config)
+         ) %>%
+        writer(name = .[["sha"]])
+      }
+    )
+  return(invisible(NULL))
 }

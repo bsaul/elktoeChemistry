@@ -4,8 +4,9 @@
 # Purpose: 
 #-----------------------------------------------------------------------------#
 
-NSIMS = 1000
-.elements <- "all"
+NSIMS = 10
+.elements <- c("Pb_ppm_m209", "U_ppm_m238")
+# .elements <- "all"
 
 RI_CONFIG <- list(
   
@@ -183,7 +184,7 @@ RI_CONFIG <- list(
     desc      = "Are sites (excluding baseline) different?",
     filters   = list(
       contrast  = "nobaseline",
-      agrp      = "agrp_first_transect_with_A",
+      agrp      = "agrp_transect_most_A",
       elements  = .elements,
       signals   = c("base", "avg5_trunc_3sd"),
       group_by_valve = FALSE,
