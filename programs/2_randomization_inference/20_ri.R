@@ -4,17 +4,18 @@
 # Purpose: 
 #-----------------------------------------------------------------------------#
 
-# TODO:
-# * parallelize
-# * set target directory
-
 library(magrittr)
+library(furrr)
+plan(multisession)
+
 analysis_data_FUN <- readRDS('data/analysis_data.rds')
 source(here::here("programs", "2_randomization_inference", "ri_functions.R"))
 source(here::here("programs", "2_randomization_inference", "ri_settings.R"))
 
+# xx <- do_ri(RI_CONFIG[[1]], analysis_data_FUN)
+# xx
 
-# yy <- do_ri(RI_CONFIG[[4]], analysis_data_FUN)
+do_ri(RI_CONFIG[[5]], analysis_data_FUN, mapper = furrr::future_walk)
 # zz <- do_ri(RI_CONFIG[[5]], analysis_data_FUN)
 # 
 # xx <- do_ri(RI_CONFIG[[7]], analysis_data_FUN)
@@ -23,5 +24,8 @@ source(here::here("programs", "2_randomization_inference", "ri_settings.R"))
 
 purrr::walk(
   .x = RI_CONFIG,
-  .f = ~ do_ri(.x, analysis_data_FUN)
+  .f = ~ do_ri(.x, analysis_data_FUN, 
+               mapper = purrr::walk
+               # mapper = furrr::future_walk
+               )
 )

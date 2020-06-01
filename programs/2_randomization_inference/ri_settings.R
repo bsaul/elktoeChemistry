@@ -4,9 +4,9 @@
 # Purpose: 
 #-----------------------------------------------------------------------------#
 
-NSIMS = 10
-.elements <- c("Pb_ppm_m209", "U_ppm_m238")
-# .elements <- "all"
+NSIMS = 1000
+# .elements <- c("Pb_ppm_m209", "U_ppm_m238")
+.elements <- "all"
 
 RI_CONFIG <- list(
   
