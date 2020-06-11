@@ -31,11 +31,9 @@ The Appalachian Elktoe (*Alasmidonta raveneliana*) (Bivalvia: Unionidae) is nati
 
 Similar to tree rings, bivalve shells archive some aspects of their environmental history and have been used as bioindicators of pollution [@markich2002freshwater; @brown2005freshwater; @shoults2014resolution]. Exposure to certain heavy metals have been shown to increase morbidity and mortality in freshwater bivalves [@naimo1995a-review]. @miller2013concentrations evaluated sediment concentrations of Cu, Cr, Ni, and Zn in the Little Tennessee and Tuckasegee. When considered with the chemical concentrations of *A. raveneliana* shells measured by @jarvis2011water, they found these elements (Cu in particular) unlikely to be the primary culprit in the *A. raveneliana* decline.
 
-In this paper, we ask whether and to what degree the exposure to the experimental sites modified the accretion of twenty trace elements in specimens’ valves. We demonstrate how chemical trajectories obtained by laser ablation inductively coupled plasma mass spectrometry (LA-ICP-MS) transects [@pozebon2014review] can be aligned with anatomical features of the valves, thus making comparisons of specific valve layers and time periods possible. We hypothesized that trajectories in the nacral growth that accumulated during the experiment for some elements would be associated with the experimental sites. The assignment to sites was completely randomized, hence we use the randomization distribution [@coppock2019ri2] to draw inference from generalized additive mixed models [@wood2017gam] of the elemental trajectories. 
+In this paper, we ask whether exposure to the experimental sites modified the accretion of twenty trace elements in specimens’ valves. We demonstrate how chemical trajectories obtained by laser ablation inductively coupled plasma mass spectrometry (LA-ICP-MS) transects [@pozebon2014review] can be aligned with anatomical features of the valves, thus making comparisons of specific valve layers and time periods possible. We using several statistical measures to probe distributions of elements in the nacre that accumulated both before and during the experiment in order to determine if any of the elements showed a differential accretion. As assignment to sites was completely randomized, we use the randomization distribution [@coppock2019ri2] to draw inference to changes in the elemental distributions. 
 
-TODO: one more paragraph with contributions of this paper
-
-The paper is organized as follows. Section \ref{materials-and-methods} outlines the experimental design, data collection, anatomy/chemical alignment procedures, and the statistical methods. Results are presented in Section \ref{results}. In Section \ref{discussion}, we discuss the implications of our results, hypothesize on causes of the *A. raveneliana* decline, and suggest future research. Data and code are available at the study website (TODO: ADD LINK). 
+We find no clear differences in nacral elemental distributions between sites or rivers in our experiment. Data and code are available at the study website (TODO: ADD LINK). 
 
 # Materials and methods
 
@@ -71,27 +69,23 @@ Valves were grouped into seven batches for LA-ICP-MS processing. During each bat
 
 ## Study questions
 
-We hypothesized that the distributions of one or more elements accrued in the nacre during the experiment would differ between experimental sites. To examine differential accrual, we posed a series of questions designed to probe the primary research hypothesis by systematically examining both the sources and validity of any observed differences. 
+We hypothesized that the distributions of one or more elements accrued in the nacre during the experiment would differ between experimental sites. To examine differential accrual, we posed a series of questions designed to probe the primary research hypothesis by systematically examining both the sources and validity of any observed differences. Questions were posed in such a way to imply contrasts faithful to the completely randomized experimental design, thus permiting randomization-based inference [@splawa-neyman1990on-the-application; @coppock2019ri2] by permuting assignments to sites. 
 
-Systematic differences in nacral elements accrued *prior* to the experiment could bias differences accrued during the experiment. Thus, to check that the sources of variation in the experiment were not due pre-experiment differences we first asked if there were differences in elemental concentrations *excluding* nacre accrued during the experiment. We examined this question both with and without baseline specimens which were not exposed to the experiment. 
-
-Provided that pre-experiment systematic differences did not exist or that we could aquequately explain them, we then examined differences in elemental concentrations *including* nacre accrued during the experiment. Questions were posed in such a way to imply contrasts faithful to the completely randomized experimental design, thus permiting randomization-based inference [@splawa-neyman1990on-the-application; @coppock2019ri2] by permuting assignments to sites. 
+Systematic differences in nacral elements accrued *prior* to the experiment could bias differences accrued during the experiment. Thus, to check that the sources of variation in the experiment were not due pre-experiment differences we first asked if there were differences in elemental concentrations *excluding* nacre accrued during the experiment. We examined this question both with and without baseline specimens which were not exposed to the experiment. Provided that pre-experiment systematic differences did not exist or that we could aquequately explain them, we then looked at differences in elemental concentrations *including* nacre accrued during the experiment. 
 
 ## Statistical Analyses
 
-### Demographics and descriptive statistics
-
-We tabulated available descriptive statistics by site, including specimen height, length, width, weight, and the number of annuli counted on the valve section removed for LA-ICP-MS. 
-
 ### Randomization-based inference
 
-The experiment was viewed as a cluster randomized trial, where the specimens were indepedent replicates and LA-ICP-MS transects were clustered within a specimen. Null hypotheses of no difference between elemental distributions were tested using randomization-based inference using $m = 700$ simulations from the experiment's distribution. The basic method can be summarized as follows: (1) compute the observed test statistic ($t_{obs}$) using the observed assignments, (2) permute the assignments by assigning specimens to different sites and re-compute the test statistic, (3) repeat (2) $m$ times. The two-sided p-value is the proportion of times $t_{obs}$ is greater than or equal to the test statistic's distribution. The `ri2` R package was used to carry out inference [@coppock2019ri2; @rcore2019].
+The experiment was viewed as a cluster randomized trial, where the specimens were indepedent replicates and LA-ICP-MS transects were clustered within a specimen. Null hypotheses of no difference between elemental distributions were tested using randomization-based inference using $m = 1000$ simulations from the experiment's distribution. The basic method can be summarized as follows: (1) compute the observed test statistic ($t_{obs}$) using the observed assignments, (2) permute the assignments by assigning specimens to different sites and re-compute the test statistic, (3) repeat (2) $m$ times. The two-sided p-value is the proportion of times $t_{obs}$ is greater than or equal to the test statistic's distribution. The `ri2` R package was used to carry out inference [@coppock2019ri2; @rcore2019].
 
-Though randomization inference preserves the nominal type I error level under the null hypothesis regardless of the chosen test statistic, power under various alternative hypotheses may vary depending on this choice. Consquently, we chose three test statistics (Table \ref{test-statistics}) that use the available data in different ways and are able to test different ways in which the distributions of concentrations could change. 
+Though randomization inference preserves the nominal type I error level under the null hypothesis regardless of the chosen test statistic, power under various alternative hypotheses may vary depending on this choice. Consquently, we chose two test statistics (Table \ref{test-statistics}) that use the available data in different ways and are able to test different ways in which the distributions of concentrations could change. 
 
-The first test statistic is the deviance between two nested GAM models (labelled ri$_{gam}$), one which included terms for experimental site and a nested model which did not. For the ri$_{gam}$ analyses, we used the one transect per specimen which has the most number observations from the most recent annuli. The specification of the GAM models preserved the ordering of the observations along the transect within the nacre. The GAM models did not, however, account for censoring for observations below a lower limit of detection.
+The first test statistic is the deviance between two nested GAM models (labelled ri$_{gam}$), one which included terms for experimental sites and a nested model which did not. For the ri$_{gam}$ analyses, we used the one transect per specimen which has the most number observations from the most recent annuli. The specification of the GAM models preserved the ordering of the observations along the transect within the nacre. The GAM models did not, however, account for censoring for observations below a lower limit of detection.
 
-The other two test statistics both explicitly accounted for censoring and used nacral observations available for a specimen across all the LA-ICP-MS transects. Each of these test statistics were based on four summary values within each annuli: the proportion censored, the first two probability of censoring weighted L-moments (or L-moment ratios) [@lmomco2018], and the maximum. To draw inference, a p-value was computed across the summary statitics using the omnibus method described in @keele2015randomization. These moment-based test statistics do account for censoring, but drop any temporal information embedded in transects within an annuli.
+The second test statistic (ri$_{wls}$) is an $F$-statistic comparing two nested weighted least squares regressions. Similar to ri$_{gam}$, the nested model did not include terms for experiment sites. The dependent variables are each specien's mean element concentration from observations from the youngest annuli for a given question. For example, for questions (Section \ref{study-questions}) involving the experimental period the youngest of all annuli was used; however, for questions regarding the pre-experiment time, the second youngest annuli was used. Weights in the regression are the sample variance taken over the same observations used to compute the mean.
+
+All the models used in ri$_{gam}$ and ri$_{wls}$ included terms for a specimen's volume (height $\times$ width $\times$ length) measured at baseline and its LA-ICP-MS batch.
 
 \begin{table}
 \label{test-statistics}
@@ -99,27 +93,19 @@ The other two test statistics both explicitly accounted for censoring and used n
 \begin{tabular}{lp{5cm}p{7cm}}
 Label & Transect Data Used & Statistic(s) \\
 \hline \\
-$ri_{\text{gam}}$ & transect with most annuli A observations & deviance between nested GAM models \\
-$ri_{\text{mom}}$  & all transects with annuli A  & omnibus test statistic from proportion censored, L-moment 1 (mean), L-moment 2 (variance), and maximum \\
-$ri_{\text{mom trend}}$  & all transects and all annuli & omnibus test statistic derived from slope across annuli for each of proportion censored, L-moment 1, L-moment 2, and maximum \\
+$ri_{\text{gam}}$ & transect with the most observations from the youngest annuli & deviance between nested GAM models \\
+$ri_{\text{wls}}$  & all transects with any youngest annuli observations  & $F$-statistic between nested WLS models \\
 \hline
 \end{tabular}
 \end{table}
 
 ### Outliers and sensitivity analyses
 
-The point of transition from epoxy to shell was possibly identified with error (Section \ref{anatomical-alignment}), we thus checked the stability of our results to possible misclassification of nacral observations as epoxy by repeating the analysis after trimming 6$\mu$m and 12$\mu$m from the nacral observations. Also, though L-moments were chosen as a summary statistic to be robust to outliers, we also repeated analyses after preprocessing each transect using moving average filters (@signal2014).
+The point of transition from epoxy to shell was possibly identified with error (Section \ref{anatomical-alignment}), we thus checked the stability of our results to possible misclassification of nacral observations as epoxy by repeating the analysis after trimming 6$\mu$m and 12$\mu$m from the nacral observations. Also, though L-moments were chosen as a summary statistic to be robust to outliers, we repeated analyses after preprocessing transects by truncating values to 3 standard deviations from a moving average filter [@signal2014].
 
-The methodology, test statistics, and the model specifications, and further described in the Supplementary Material.
+The methodology, test statistics, and the model specifications are further described in the Supplementary Material.
 
 # Results
-
-TODO: insert a table of baseline stats per site:
-
-* n (overall and by test statistic)
-* height, length, width (volume)
-* weight
-* n annuli 
 
 In both species, more elements showed differences in nacre accrued prior to experiment when including baseline specimens versus including baseline specimens (Figure \@ref(fig:rires)A vs. \@ref(fig:rires)B). Upon inspection, all of the baseline specimens were analyzed in the same LA-ICP-MS batch. We could not rule out the possibility of batch effects; hence, we excluded baseline specimens from further analysis and focused on comparisons between experimental sites.
 
@@ -128,15 +114,14 @@ When excluding baseline specimens, *A. raveneliana* have few differences in pre-
 In *A. raveneliana*, Manganese shows evidence of a difference accrued during the experiment between sites using both $ri_{\text{gam}}$ (p = XXX) and $ri_{\text{mom}}$ (p = XXX) test statistics.
 
 
-```{r rires, echo = FALSE, fig.cap = "Points are p-values (log$_{10}$ scale) testing the null hypothesis of no difference in each element accrued prior to the experiment between (A) sites including baselines excluding most recent annuli, (B) sites excluding baseline excluding most recent annuli, (C) sites excluding baseline including most recent annuli,. Smaller p-values suggest a larger discrepancy between sites under a null hypothesis of no difference between sites. P-values $<0.1$ are labelled by element."}
+```{r rires, echo = FALSE, fig.cap = "Points are p-values (log$_{10}$ scale) testing the null hypothesis of no difference in each element accrued prior to the experiment between (A) sites including baselines excluding most recent annuli, (B) sites excluding baseline excluding most recent annuli, (C) sites excluding baseline including most recent annuli. Smaller p-values suggest a larger discrepancy between sites under a null hypothesis of no difference between sites. P-values $<0.1$ are labelled by element."}
 knitr::include_graphics(here::here("manuscript", "figures", "ri_ncr_hypothesis_v001.pdf"))
 ```
 
-TODO: 
 
-* discuss Pb
-* add plot showing differences in Mn by visualizing the 3 test statistics.
-
+```{r risummary, echo = FALSE, fig.cap = "Plots examine test statistics in cases where both $ri_{wls}$ and $ri_{gam}$ had p-values $<0.1$ in testing the hypothesis of differences among sites accrued during the experiment. (A) Point are predicted inverse-variance weighted mean concenrations in the youngest annuli. (B) Lines are GAM smoothed estimates of the nacral elemental trajectories by site, showing the first 200 $\\mu$m starting from the innder edge of the nacre."}
+knitr::include_graphics(here::here("manuscript", "figures", "ri_ncr_summary_v001.pdf"))
+```
 
 # Discussion
 
@@ -173,11 +158,14 @@ These explanation point out limitations of our study design and measurements. Th
 
 The completely randomized design allows for robust, internally valid inference; however, further analyses with these data are needed to: 1) Examine other observed differences in elemental concentrations; 2) Rule out possible confounding such as seasonal and batch effects; and 3) Explore sources of these elements within the watersheds.
 
+
+
 TODO:
 
+* discuss using fly transect instead of scanning transect
 * cite stamen maps
 
-# Fundning
+# Funding
 
 This work was supported by funds provided by the North Carolina Department of Transportation [NCDOT Project 2013-2012-37]; and the US Fish and Wildlife Service [F18AC00237].
 

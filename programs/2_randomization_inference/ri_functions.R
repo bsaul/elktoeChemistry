@@ -18,6 +18,9 @@ prep_for_gam_ri <- function(data){
     dplyr::ungroup()
 }
 
+#'
+
+
 ## Moments data processing ####
 #'
 replace_na_median <- function(dt) {
@@ -28,6 +31,37 @@ replace_na_median <- function(dt) {
       true  = median(Y, na.rm = TRUE), 
       false = Y)) %>%
     dplyr::ungroup()
+}
+
+#' 
+create_wls_data <- function(data){
+  if (nrow(data) == 0) return(NULL)
+  if (all(data$value == data$value[1])) return(NULL)
+  data %>%
+    dplyr::summarize(
+      Y = mean(value),
+      v = var(value)
+    ) %>%
+    dplyr::ungroup()
+}
+
+#' Creates a dataset of "naive" summary stats 
+create_naive_summary_stats_data <- function(data, group_by_annuli = TRUE){
+
+
+  if (nrow(data) == 0) return(NULL)
+  `if`(
+    group_by_annuli,
+    data,
+    dplyr::mutate(data, annuli = paste(unique(data[["annuli"]]), collapse = "")) # create a dummy annuli
+  ) %>%
+    dplyr::group_nest(annuli) %>%
+    dplyr::mutate(
+      Y = purrr::map_dbl(data, ~ mean(.x[["value"]]))
+    )  %>%
+    dplyr::select(annuli, Y) 
+  # %>%
+  #   tidyr::unnest(cols = "Y")
 }
 
 #' Creates a dataset of summary stats 
@@ -145,9 +179,29 @@ make_gam_ts <- function(m1_rhs, m2_rhs){
   }
 }
 
+
+make_wls_ts <- function(m1_rhs, m2_rhs){
+  
+  fptype <- Y ~ .
+  f1 <- update(fptype, new = m1_rhs)
+  f2 <- update(fptype, new = m2_rhs)
+  
+  function(data){
+    v <- data[["v"]]
+    m1 <- lm(f1, weights = 1/v, data = data)
+    m2 <- lm(f2, weights = 1/v, data = data)
+    anova(m1, m2)[["F"]][2]
+  }
+}
+
 #' Kruskal-wallis test stat
 kw_test_fun <- function(data){
   kruskal.test(Y ~ Z, data = data)[["statistic"]]
+}
+
+#' t test stat
+t_test_fun <- function(data){
+ t.test(Y ~ Z, data = data)[["statistic"]]
 }
 
 #' Wilcoxon test stat
@@ -176,6 +230,12 @@ compute_pvals <- function(ri){
 
 compute_pval_for_single_statistic <- function(statistic_data, ri_dec, Zmat, 
                                               test_fun = NULL){
+  
+  # Remove statistic if data is constant
+  if (all(statistic_data[["Y"]] == statistic_data[["Y"]][1])){
+    return(NULL)
+  }
+  
   # Conduct inference for this set of data
   ri_res <- ri2::conduct_ri(
     formula            = Y ~ Z,
@@ -259,6 +319,19 @@ do_ri_summary_stats <- function(dec, data, testFUN, nsims) {
 } 
 
 #'
+do_ri_naive_stats <- function(dec, data, testFUN, nsims) {
+  ri2::conduct_ri(
+    declaration   = dec,
+    test_function = testFUN,
+    data          = as.data.frame(data),
+    sims          = nsims)  %>% 
+    summary() %>% 
+    tibble::as_tibble() %>% 
+    dplyr::select(p = two_tailed_p_value) %>%
+    dplyr::pull(p)
+} 
+
+#'
 digest_checker <- function(.dir = "data/ri"){
   fls <- gsub("\\.rds$", "", dir(.dir))
   function(x){
@@ -301,6 +374,8 @@ do_ri <- function(config, analysis_data,
   
   # Do not run if file with same sha exists
   run_bool <- !(check_digests(hold[["sha"]]))
+  
+  # browser()
   
   if(all(!run_bool)) return(invisible(NULL))
   

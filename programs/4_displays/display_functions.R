@@ -4,10 +4,7 @@ read_all_ri_data <- function(data_dir = "data/ri"){
   files <- dir(data_dir, full.names = TRUE)
   purrr::map_dfr(
     .x = files,
-    .f = ~ readRDS(.x) %>% 
-      dplyr::mutate(
-        p_value = purrr::map_dbl(p_value, ~ .x[[1]])
-      )
+    .f = ~ readRDS(.x) 
   )
 }
 
@@ -74,13 +71,14 @@ single_ri_plot <- function(plot_dt, .title){
       color = "grey50"
     ) + 
     scale_x_discrete(
-      labels = parse(text = c(gam = "ri[gam]", moment = "ri[mom]", moment_trend = "ri[mom~trend]"))
+      labels = parse(text = unique(plot_dt$test_data))
+      # labels = parse(text = c(gam = "ri[gam]", moment = "ri[mom]", moment_trend = "ri[mom~trend]"))
     ) + 
     scale_y_continuous(
       name   = expression(-log[10]~(p)),
-      limits = -log10(c(1.1, 0.00005)),
-      breaks =  -log10(c(1, 0.1, 0.05, 0.01, 0.001, 0.0001)),
-      labels = c("1", "0.1", "", "0.01", "0.001", "<0.0001"),
+      limits = -log10(c(1.1, 0.0005)),
+      breaks =  -log10(c(1, 0.1, 0.05, 0.01, 0.001)),
+      labels = c("1", "0.1", "", "0.01", "<0.001"),
       expand = c(0, 0)
     ) +
     coord_flip() + 

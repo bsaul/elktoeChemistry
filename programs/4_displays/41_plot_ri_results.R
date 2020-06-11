@@ -18,23 +18,29 @@ outFile <- sprintf("manuscript/figures/ri_ncr_hypothesis_%s.pdf", vers)
 dt <- 
   read_all_ri_data() %>%
   mutate(
-    species = purrr::map_chr(outFile, ~ strsplit(.x, "-")[[1]][[1]]),
-    signal_filter = purrr::map_chr(outFile, ~ strsplit(.x, "-")[[1]][[2]]),
-    element = purrr::map_chr(outFile, ~ strsplit(.x, "-")[[1]][[3]])
+    label    = purrr::map_chr(config, "label"),
+    sublabel = purrr::map_chr(config, "sublabel"),
+    desc     = purrr::map_chr(config, "desc"),
+    contrast = purrr::map_chr(config, ~ purrr::chuck(.x, "filters", "contrast"))
   )
 
 plot_dt <-
   dt %>%
   select(
-    outFile,  species, signal_filter, element,
-    label, contrast, test_data, hypothesis = desc, nsims,
-    which_layer, which_annuli, which_agrp, which_annuli, test_data,
-    inner_buffer, outer_buffer, p_value)  %>%
+    species, signal, element,
+    label, contrast, test_data = sublabel, sublabel, hypothesis = desc,
+    # nsims,
+    # which_layer, which_annuli, which_agrp, which_annuli, test_data,
+    # inner_buffer, outer_buffer, 
+    p_value)  %>%
   filter(
-    label %in% c("D", "E", "B"),
-    !(grepl("_ratio", test_data)),
-    signal_filter == "none",
-    inner_buffer  == "6"
+    test_data %in% c("ri[wls]", "ri[gam]"),
+    # label %in% c("D", "E", "B"),
+    # !(grepl("_ratio", test_data)),
+    # signal == "base"
+    signal == "avg5_trunc_3sd"
+    # ,
+    # inner_buffer  == "6"
   ) %>%
   mutate(
     element2 = case_when(
@@ -42,16 +48,19 @@ plot_dt <-
       TRUE ~ stringr::str_remove(element, "_ppm_m.*")
     ),
     p_flag  = p_value < 0.1,
-    p_small = (p_value < 0.0001),
-    p_value2 = if_else(p_small, 0.0001, p_value)
+    p_small = (p_value < 0.001),
+    p_value2 = if_else(p_small, 0.001, p_value)
   )
 
 
 ## Plotting it ####
 
-p1 <- single_ri_plot(filter(plot_dt, label == "D"))
-p2 <- single_ri_plot(filter(plot_dt, label == "E"))
-p3 <- single_ri_plot(filter(plot_dt, label == "B"))
+p1 <- single_ri_plot(filter(plot_dt, label == "A"))
+p2 <- single_ri_plot(filter(plot_dt, label == "B"))
+p3 <- single_ri_plot(filter(plot_dt, label == "C"))
+# p4 <- single_ri_plot(filter(plot_dt, label == "D"))
+# p5 <- single_ri_plot(filter(plot_dt, label == "E"))
+
 p <- 
 grid.arrange(
   textGrob(

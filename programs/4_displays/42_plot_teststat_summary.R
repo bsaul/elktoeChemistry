@@ -1,175 +1,196 @@
 #-----------------------------------------------------------------------------#
-# Purpose: moment summaries
+#   Title: Plot summary stats
 #  Author: B Saul
-#    Date: 20191125
+#    Date: 20200609
+# Purpose: 
 #-----------------------------------------------------------------------------#
-
 library(ggplot2)
 library(dplyr)
 library(grid)
+library(ggbeeswarm)
 library(gridExtra)
 
 source("programs/4_displays/display_functions.R")
 
 vers    <- "V001"
-outFile <- sprintf("manuscript/figures/test_stat_summary_%s.pdf", vers)
+outFile <- sprintf("manuscript/figures/ri_ncr_summary_%s.pdf", vers)
 
 dt <- 
   read_all_ri_data() %>%
   mutate(
-    species = purrr::map_chr(outFile, ~ strsplit(.x, "-")[[1]][[1]]),
-    signal_filter = purrr::map_chr(outFile, ~ strsplit(.x, "-")[[1]][[2]]),
-    element = purrr::map_chr(outFile, ~ strsplit(.x, "-")[[1]][[3]])
+    label    = purrr::map_chr(config, "label"),
+    sublabel = purrr::map_chr(config, "sublabel"),
+    desc     = purrr::map_chr(config, "desc"),
+    contrast = purrr::map_chr(config, ~ purrr::chuck(.x, "filters", "contrast"))
   )
 
-
-stat_dt <- 
+examine <- 
   dt %>%
-  filter(
-    label == "B", 
-    # grepl("moment", test_data),
-    !(grepl("_ratio", test_data)),
-    signal_filter == "none",
-    inner_buffer == "6"
-  ) %>%
-  select(
-    outFile,  species, signal_filter, element,
-    label, contrast, test_data, hypothesis = desc, nsims,
-    which_layer, which_annuli, which_agrp, which_annuli, test_data,
-    inner_buffer, outer_buffer, data, moments_ri_data )
+  filter(label == "C", signal == "base") %>%
+  filter(sublabel %in% c("ri[wls]", "ri[gam]")) %>%
+  group_by(species, element) %>%
+  filter(all(p_value < 0.1)) 
 
-hold <- 
-  stat_dt %>%
-  filter(grepl("Mn", element)) 
-
-hold1 <- 
-  hold[3, ] %>% 
-  filter(grepl("moment", test_data)) %>%
-  select(-data) %>%
-  tidyr::unnest(cols = moments_ri_data) %>%
+examine %>%
   mutate(
-    value = if_else(statistic == "p_censored",
-                    Y, log(Y)),
-    stat_label = case_when(
-      statistic == "L-moment 1" ~ "L[1]",
-      statistic == "L-moment 2" ~ "L[2]",
-      statistic == "max"        ~ "m",
-      statistic == "p_censored" ~ "p",
-    ),
-    river = gsub("\\s", "~", river)
-  )
+    data = purrr::map(data, ~ filter(.x, !is.na(baseline_volume))),
+    m = purrr::map2(
+      .x = data,
+      .y = sublabel,
+      .f = ~ {
+        `if`(
+          .y == "ri[wls]",
+          lm(Y ~ site + I(baseline_volume/1000) + factor(drawer),
+             weights = 1/.x$v,
+             data = .x),
+          mgcv::gam(log(value) ~ s(d, bs = "ts") + d*Z + pd*annuli*Z + s(pd, bs = "ts") +
+                I(baseline_volume/1000) + factor(drawer) +  s(analysis_id, bs = "re"),
+              data = as.data.frame(.x))
+        )
 
-ggplot(
-  hold1,
-  aes(x = factor(site_num), y = value)
-) + 
-  geom_jitter(
-    shape = 1,
-    size = 0.5,
-    # position = "jitter",
-    width = 0.05,
-    height = 0
+      } 
+    ),
+    data = purrr::map2(
+      .x = data,
+      .y = m,
+      .f = ~ { .x$yhat <- predict(.y); .x }
+    )
+  ) %>%
+  select(species, sublabel, element, data, p_value) %>%
+  tidyr::unnest(cols = data) %>%
+  group_by(sublabel) %>%
+  tidyr::nest()->
+  plot_dt
+
+river_cols <- c(`Little Tennessee` = "#08519c", `Tuckasegee` = "#a50f15")
+
+
+p1 <-
+plot_dt %>%
+  filter(sublabel == "ri[wls]") %>%
+  pull(data) %>%
+  purrr::pluck(1) %>%
+  mutate(
+    species_element = paste(species, element)
+  ) %>%
+  ggplot(
+    aes(x = site, y = yhat, color = river)
   ) + 
-  facet_grid(
-    stat_label ~ river,
-    scales =  "free_y",
-    switch = "both",
-    labeller = label_parsed
+  geom_beeswarm(
+    shape = 1
+  ) + 
+  scale_color_manual(
+    values = river_cols,
+    guide = FALSE
+  ) + 
+  facet_wrap(
+    ncol = 1,
+    species_element ~ ., scales = "free_y"
   ) +
   theme_classic() +
   theme(
-    strip.background = element_blank(),
-    strip.placement =  "outside",
-    strip.text.x    = element_text(size = 6), 
-    strip.text.y    = element_text(size = 6, angle = 180), 
-    legend.position = "bottom",
-    panel.grid.major.x = element_line(color = "grey90", size = 0.2,
-                                      linetype = "dotted"),
-    panel.grid.major.y = element_line(color = "grey90", size = 0.2),
-    axis.text.x  = element_text(size = 8),
-    axis.line.x  = element_line(color = "grey50"),
-    axis.ticks.x = element_line(color = "grey50"),
-    axis.title.x = element_blank(),
+    axis.text.x = element_text(size = 6),
+    axis.ticks.x = element_line(color = "grey50", size = 0.2),
+    axis.ticks.y = element_line(color = "grey50", size = 0.2),
+    axis.line.x = element_line(color = "grey50"),
+    axis.line.y = element_line(color = "grey50"),
     axis.text.y = element_blank(),
-    # axis.text.y  = element_text(size = 6),
-    axis.line.y  = element_blank(),
+    axis.title.x = element_blank(),
     axis.title.y = element_blank(),
-    axis.ticks.y = element_blank()
+    strip.background = element_blank()
   )
+p1
+
+site_cols <- c(
+  `LiTN 1` = "#9ecae1",
+  `LiTN 2` = "#4292c6",
+  `LiTN 3` = "#08519c",
+  `Tuck 1` = "#fb6a4a",
+  `Tuck 2` = "#ef3b2c",
+  `Tuck 3` = "#cb181d")
+
+#9ecae1
+#6baed6
+
+#2171b5
 
 
-hold2 <- 
-  hold[1, ] %>% 
-  select(-moments_ri_data) %>%
-  tidyr::unnest(cols = data) %>%
-  group_by(analysis_id) %>%
-  filter(n() > 10) %>%
+p2 <- 
+plot_dt %>%
+  filter(sublabel == "ri[gam]") %>%
+  pull(data) %>%
+  purrr::pluck(1) %>%
   mutate(
-    y2 = signal::fftfilt(rep(1, 10)/10, value),
-    flag = value/y2 > 3,
-    d  = max(d) - d,
-    pd = 1 -pd,
-    flag2 = (value > (mean(value) + 2*sd(value))) 
+    species_element = paste(species, element)
   ) %>%
-  filter(!flag2) %>%
-  ungroup()
-
-library(mgcv)
-m <- gamm(
-  log(value) ~ s(d, bs = "ts") + s(pd, bs = "ts") + d*Z + baseline_volume + factor(drawer),
-  random = list(analysis_id = ~ 1 + d),
-  data = hold2,
-  method = "REML"
-)
-
-summary(m[[1]])
-summary(m[[2]])
-predict(m[[2]])
-hold2 <- 
-  hold2 %>% 
-  filter(!is.na(baseline_volume)) %>%
+  arrange(species, element, id, d) %>%
+  group_by(species, id) %>%
+  filter(transect == min(transect)) %>%
+  group_by(
+    species, element, id
+  ) %>%
   mutate(
-    yhat = predict(m[[2]]),
-    e = log(value) - yhat
-  )
-
-
-
-ggplot(
-  data = hold2,
-  aes(x = d, y = yhat, group = analysis_id,
-      color = factor(site))
-) + 
-
-  # geom_line(
-  #   data = hold2,
-  #   aes(x = pd, y = log(value), group = analysis_id,
-  #       color = factor(site)),
-  #   size = 0.1
-  # ) + 
-  geom_line(
-    size = 0.1
+    yh = cummean(yhat)
+  ) %>%
+  ggplot(
+    aes(x = d, y = yhat, group = id, color = site)
   ) + 
-  facet_grid(
-     ~ river
+  geom_smooth(
+    aes(group = site),
+    se = FALSE,
+    size = 0.5
+  ) +
+  scale_color_manual(
+    name = "",
+    values = site_cols
+  ) + 
+  scale_x_continuous(
+    name = "Distance from epoxy/nacre edge"
+  ) +
+  coord_cartesian(xlim = c(0, 200)) + 
+  facet_wrap(
+    ncol = 1,
+    species_element ~ ., scales = "free_y"
   ) + 
   theme_classic() +
   theme(
-    strip.background = element_blank(),
-    strip.placement =  "outside",
-    strip.text.x    = element_text(size = 6), 
-    strip.text.y    = element_text(size = 6, angle = 180), 
-    legend.position = "bottom",
-    panel.grid.major.x = element_line(color = "grey90", size = 0.2,
-                                      linetype = "dotted"),
-    panel.grid.major.y = element_line(color = "grey90", size = 0.2),
-    axis.text.x  = element_text(size = 8),
-    axis.line.x  = element_line(color = "grey50"),
-    axis.ticks.x = element_line(color = "grey50"),
-    axis.title.x = element_blank(),
     axis.text.y = element_blank(),
-    # axis.text.y  = element_text(size = 6),
-    axis.line.y  = element_blank(),
+    axis.text.x = element_text(size = 6),
+    axis.title.x = element_text(size = 8, color = "grey50"),
+    # axis.title.x = element_blank(),
     axis.title.y = element_blank(),
-    axis.ticks.y = element_blank()
+    axis.ticks.x = element_line(color = "grey50", size = 0.2),
+    axis.ticks.y = element_line(color = "grey50", size = 0.2),
+    axis.line.x = element_line(color = "grey50"),
+    axis.line.y = element_line(color = "grey50"),
+    strip.background = element_blank(),
+    legend.position = c(.55, .95),
+    legend.direction = "horizontal",
+    legend.background = element_blank(),
+    legend.key.width = unit(3, "mm"),
+    legend.text = element_text(size = 6)
   )
+ 
+grid.newpage()
+p <- 
+  grid.arrange(
+    textGrob(
+      "A",
+      hjust = 0,
+      x = 0),
+    textGrob(
+      "B",
+      hjust = 0,
+      x = 0),
+    p1,
+    p2,
+    ncol = 2,
+    nrow = 2,
+    heights = c(0.2, 6)
+  )
+
+
+ggsave(
+  file = outFile,
+  p, width = 4, height = 6.6
+)
