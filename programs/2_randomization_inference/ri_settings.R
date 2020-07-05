@@ -7,9 +7,6 @@
 NSIMS = 1000
 # .elements <- c("Pb_ppm_m209", "U_ppm_m238")
  .elements <- "all"
-# .elements <- c("Co_ppm_m59", "Fe_ppm_m57", "Hg_ppm_m202", "Cr_ppm_m53", "Mn_ppm_m55",
-#                "Mo_ppm_m95", "Sr_ppm_m88")
-# .elements <- "Fe_ppm_m57"
 RI_CONFIG <- list(
   
   # # A : Are sites (including baseline) comparable in past?
@@ -44,9 +41,9 @@ RI_CONFIG <- list(
   A_wls = list(
     label     = "A",
     sublabel  = "ri[wls]",
-    desc      = "Are sites (including baseline) comparable in past?",
+    desc      = "Are experimental specimens similar to baseline specimens in past?",
     filters   = list(
-      contrast  = "all",
+      contrast  = "baseline_v_sites",
       agrp      = "all",
       elements  = .elements,
       signals   = c("base", "avg5_trunc_3sd"),
@@ -62,65 +59,13 @@ RI_CONFIG <- list(
     dec_FUN       = define_multiarm_cluster_declaration,
     test_data_FUN = create_wls_data,
     test_statistic_FUN  = make_wls_ts(
-      m1_rhs = ~ Z + factor(drawer) ,
-      m2_rhs = ~     factor(drawer)
+      m1_rhs = ~ Z + factor(drawer) + I(baseline_volume/1000),
+      m2_rhs = ~     factor(drawer) + I(baseline_volume/1000)
     ),
     ri_FUN = do_ri_gam,
-    nsims      = NSIMS
+    nsims  = NSIMS
   ),
-  # A_mom = list(
-  #   label     = "A",
-  #   sublabel  = "ri[mom]",
-  #   desc      = "Are sites (including baseline) comparable in past?",
-  #   filters   = list(
-  #     contrast  = "all",
-  #     agrp      = "all",
-  #     elements  = .elements,
-  #     signals   = c("base", "avg5_trunc_3sd"),
-  #     group_by_valve = TRUE,
-  #     transect_opts  = list(
-  #       .layers    = "ncr",
-  #       .annuli    = LETTERS[2:14], # B-N
-  #       .min_n_obs = 5L
-  #     )
-  #   ),
-  #   
-  #   # RI functions
-  #   test_data_FUN = create_summary_stats_data_A_mom,
-  #   prep_FUN      = replace_na_median,
-  #   dec_FUN       = define_multiarm_declaration,
-  #   test_statistic_FUN = kw_test_fun,
-  #   ri_FUN = do_ri_summary_stats,
-  #   nsims      = NSIMS
-  # ),
-  # 
-  # A_momd = list(
-  #   label     = "A",
-  #   sublabel  = "ri[momd]",
-  #   desc      = "Are sites (including baseline) comparable in past?",
-  #   filters   = list(
-  #     contrast  = "all",
-  #     agrp      = "all",
-  #     elements  = .elements,
-  #     signals   = c("base", "avg5_trunc_3sd"),
-  #     group_by_valve = TRUE,
-  #     transect_opts  = list(
-  #       .layers    = "ncr",
-  #       .annuli    = LETTERS[2:14], # B-N
-  #       .min_n_obs = 5L
-  #     )
-  #   ),
-  #   
-  #   # RI functions
-  #   test_data_FUN = create_summary_stats_data_A_mom_diff,
-  #   prep_FUN      = replace_na_median,
-  #   dec_FUN       = define_multiarm_declaration,
-  #   test_statistic_FUN = kw_test_fun,
-  #   ri_FUN      = do_ri_summary_stats,
-  #   nsims       = NSIMS
-  # ),
-  # 
-  # 
+
   # # B: Are sites (excluding baseline) comparable in past?
   # 
   # B_gam = list(
@@ -171,67 +116,14 @@ RI_CONFIG <- list(
     dec_FUN       = define_multiarm_cluster_declaration,
     test_data_FUN = create_wls_data,
     test_statistic_FUN  = make_wls_ts(
-      m1_rhs = ~ Z + factor(drawer),
-      m2_rhs = ~     factor(drawer)
+      m1_rhs = ~ Z + factor(drawer) + I(baseline_volume/1000),
+      m2_rhs = ~     factor(drawer) + I(baseline_volume/1000)
     ),
     ri_FUN = do_ri_gam,
-    nsims      = NSIMS
+    nsims  = NSIMS
   ),
-  # B_mom = list(
-  #   label     = "B",
-  #   sublabel  = "ri[mom]",
-  #   desc      = "Are sites (excluding baseline) comparable in past?",
-  #   filters   = list(
-  #     contrast  = "nobaseline",
-  #     agrp      = "all",
-  #     elements  = .elements,
-  #     signals   = c("base", "avg5_trunc_3sd"),
-  #     group_by_valve = TRUE,
-  #     transect_opts  = list(
-  #       .layers    = "ncr",
-  #       .annuli    = LETTERS[2:14], # B-N
-  #       .min_n_obs = 5L
-  #     )
-  #   ),
-  #   
-  #   # RI functions
-  #   test_data_FUN = create_summary_stats_data_A_mom,
-  #   prep_FUN      = replace_na_median,
-  #   dec_FUN       = define_multiarm_declaration,
-  #   test_statistic_FUN = kw_test_fun,
-  #   ri_FUN = do_ri_summary_stats,
-  #   nsims      = NSIMS
-  # ),
-  # 
-  # B_momd = list(
-  #   label     = "B",
-  #   sublabel  = "ri[momd]",
-  #   desc      = "Are sites (excluding baseline) comparable in past?",
-  #   filters   = list(
-  #     contrast  = "nobaseline",
-  #     agrp      = "all",
-  #     elements  = .elements,
-  #     signals   = c("base", "avg5_trunc_3sd"),
-  #     group_by_valve = TRUE,
-  #     transect_opts  = list(
-  #       .layers    = "ncr",
-  #       .annuli    = LETTERS[2:14], # A-N
-  #       .min_n_obs = 5L
-  #     )
-  #   ),
-  #   
-  #   # RI functions
-  #   test_data_FUN = create_summary_stats_data_A_mom_diff,
-  #   prep_FUN      = replace_na_median,
-  #   dec_FUN       = define_multiarm_declaration,
-  #   test_statistic_FUN = kw_test_fun,
-  #   ri_FUN      = do_ri_summary_stats,
-  #   nsims       = NSIMS
-  # ),
-  # 
-  # 
+
   # # C: Are sites (excluding baseline) different?
-  # 
   
   #####
   # C_gam = list(
@@ -287,196 +179,61 @@ RI_CONFIG <- list(
       m2_rhs = ~     factor(drawer) + I(baseline_volume/1000)
     ),
     ri_FUN = do_ri_gam,
-    nsims      = NSIMS
+    nsims  = NSIMS
+  ),
+  
+  
+  D_wls = list(
+    label     = "D",
+    sublabel  = "ri[wls]",
+    desc      = "Are sites (excluding baseline) different in pio?",
+    filters   = list(
+      contrast  = "nobaseline",
+      agrp      = "all",
+      elements  = .elements,
+      signals   = c("base", "avg5_trunc_3sd"),
+      group_by_valve = TRUE,
+      transect_opts  = list(
+        .layers    = "pio",
+        .min_n_obs = 5L
+      )
+    ),
+    # RI functions
+    prep_FUN      = identity,
+    dec_FUN       = define_multiarm_cluster_declaration,
+    test_data_FUN = create_wls_data,
+    test_statistic_FUN  = make_wls_ts(
+      m1_rhs = ~ Z + factor(drawer) + I(baseline_volume/1000),
+      m2_rhs = ~     factor(drawer) + I(baseline_volume/1000)
+    ),
+    ri_FUN = do_ri_gam,
+    nsims  = NSIMS
+  ),
+    
+  E_wls = list(
+    label     = "E",
+    sublabel  = "ri[wls]",
+    desc      = "Are sites (excluding baseline) different in psm?",
+    filters   = list(
+      contrast  = "nobaseline",
+      agrp      = "all",
+      elements  = .elements,
+      signals   = c("base", "avg5_trunc_3sd"),
+      group_by_valve = TRUE,
+      transect_opts  = list(
+        .layers    = "psm",
+        .min_n_obs = 5L
+      )
+    ),
+    # RI functions
+    prep_FUN      = identity,
+    dec_FUN       = define_multiarm_cluster_declaration,
+    test_data_FUN = create_wls_data,
+    test_statistic_FUN  = make_wls_ts(
+      m1_rhs = ~ Z + factor(drawer) + I(baseline_volume/1000),
+      m2_rhs = ~     factor(drawer) + I(baseline_volume/1000)
+    ),
+    ri_FUN = do_ri_gam,
+    nsims  = NSIMS
   )
-  ######
-# 
-#   C_mom = list(
-#     label     = "C",
-#     sublabel  = "ri[mom]",
-#     desc      = "Are sites (excluding baseline) different?",
-#     filters   = list(
-#       contrast  = "nobaseline",
-#       agrp      = "all",
-#       elements  = .elements,
-#       signals   = c("base", "avg5_trunc_3sd"),
-#       group_by_valve = TRUE,
-#       transect_opts  = list(
-#         .layers    = "ncr",
-#         .annuli    = LETTERS[1],
-#         .min_n_obs = 5L
-#       )
-#     ),
-# 
-#     # RI functions
-#     test_data_FUN = create_summary_stats_data_A_mom,
-#     prep_FUN      = replace_na_median,
-#     dec_FUN       = define_multiarm_declaration,
-#     test_statistic_FUN = kw_test_fun,
-#     ri_FUN = do_ri_summary_stats,
-#     nsims      = NSIMS
-#   ),
-  # 
-  # C_momd = list(
-  #   label     = "C",
-  #   sublabel  = "ri[momd]",
-  #   desc      = "Are sites (excluding baseline) different?",
-  #   filters   = list(
-  #     contrast  = "nobaseline",
-  #     agrp      = "all",
-  #     elements  = .elements,
-  #     signals   = c("base", "avg5_trunc_3sd"),
-  #     group_by_valve = TRUE,
-  #     transect_opts  = list(
-  #       .layers    = "ncr",
-  #       .annuli    = LETTERS[1:14], # A-N
-  #       .min_n_obs = 5L
-  #     )
-  #   ),
-  #   
-  #   # RI functions
-  #   test_data_FUN = create_summary_stats_data_C_mom_diff,
-  #   prep_FUN      = replace_na_median,
-  #   dec_FUN       = define_multiarm_declaration,
-  #   test_statistic_FUN = kw_test_fun,
-  #   ri_FUN      = do_ri_summary_stats,
-  #   nsims       = NSIMS
-  # ) ,
-  
-  # D: Are rivers different?
-  
-  # D_gam = list(
-  #   label     = "C",
-  #   sublabel  = "ri[gam]",
-  #   desc      = "Are sites (excluding baseline) different?",
-  #   filters   = list(
-  #     contrast  = "nobaseline",
-  #     agrp      = "agrp_transect_most_A",
-  #     elements  = .elements,
-  #     signals   = c("base", "avg5_trunc_3sd"),
-  #     group_by_valve = FALSE,
-  #     transect_opts  = list(
-  #       .layers    = "ncr",
-  #       .annuli    = LETTERS[c(1:14)], # A-N
-  #       .min_n_obs = 10L
-  #     )
-  #   ),
-  #   # RI functions
-  #   prep_FUN      = prep_for_gam_ri,
-  #   dec_FUN       = define_multiarm_cluster_declaration,
-  #   test_data_FUN = identity,
-  #   test_statistic_FUN  = make_gam_ts(
-  #     m1_rhs = ~ s(d, bs = "ts") + d*Z + pd*annuli*Z + s(pd, bs = "ts") + factor(drawer) + baseline_volume + s(analysis_id, bs = "re"),
-  #     m2_rhs = ~ s(d, bs = "ts") + d   + pd*annuli   + s(pd, bs = "ts") + factor(drawer) + baseline_volume + s(analysis_id, bs = "re")
-  #   ),
-  #   ri_FUN = do_ri_gam,
-  #   nsims      = NSIMS
-  # ),
-  # 
-  # D_mom = list(
-  #   label     = "D",
-  #   sublabel  = "ri[mom]",
-  #   desc      = "Are rivers different?",
-  #   filters   = list(
-  #     contrast  = "sites",
-  #     agrp      = "all",
-  #     elements  = .elements,
-  #     signals   = c("base", "avg5_trunc_3sd"),
-  #     group_by_valve = TRUE,
-  #     transect_opts  = list(
-  #       .layers    = "ncr",
-  #       .annuli    = LETTERS[1:14], 
-  #       .min_n_obs = 5L
-  #     )
-  #   ),
-  #   
-  #   # RI functions
-  #   test_data_FUN = create_summary_stats_data_A_mom,
-  #   prep_FUN      = replace_na_median,
-  #   dec_FUN       = define_multiarm_declaration,
-  #   test_statistic_FUN = kw_test_fun,
-  #   ri_FUN = do_ri_summary_stats,
-  #   nsims      = NSIMS
-  # ),
-  # 
-  # D_momd = list(
-  #   label     = "D",
-  #   sublabel  = "ri[momd]",
-  #   desc      = "Are rivers different?",
-  #   filters   = list(
-  #     contrast  = "sites",
-  #     agrp      = "all",
-  #     elements  = .elements,
-  #     signals   = c("base", "avg5_trunc_3sd"),
-  #     group_by_valve = TRUE,
-  #     transect_opts  = list(
-  #       .layers    = "ncr",
-  #       .annuli    = LETTERS[1:14], # A-N
-  #       .min_n_obs = 5L
-  #     )
-  #   ),
-  #   
-  #   # RI functions
-  #   test_data_FUN = create_summary_stats_data_C_mom_diff,
-  #   prep_FUN      = replace_na_median,
-  #   dec_FUN       = define_multiarm_declaration,
-  #   test_statistic_FUN = kw_test_fun,
-  #   ri_FUN      = do_ri_summary_stats,
-  #   nsims       = NSIMS
-  # )
-  
-  # E: 
-  
-  # E_mom = list(
-  #   label     = "E",
-  #   sublabel  = "ri[mom]",
-  #   desc      = "Are rivers different?",
-  #   filters   = list(
-  #     contrast  = "sites",
-  #     agrp      = "all",
-  #     elements  = .elements,
-  #     signals   = c("base", "avg5_trunc_3sd"),
-  #     group_by_valve = TRUE,
-  #     transect_opts  = list(
-  #       .layers    = "ncr",
-  #       .annuli    = LETTERS[1],
-  #       .min_n_obs = 5L
-  #     )
-  #   ),
-  # 
-  #   # RI functions
-  #   test_data_FUN = create_naive_summary_stats_data,
-  #   prep_FUN      = identity,
-  #   dec_FUN       = define_multiarm_declaration,
-  #   test_statistic_FUN = t_test_fun,
-  #   ri_FUN     = do_ri_naive_stats,
-  #   nsims      = NSIMS
-  # )
-  # ,
-  
-  # E_momd = list(
-  #   label     = "E",
-  #   sublabel  = "ri[momd]",
-  #   desc      = "Are rivers different?",
-  #   filters   = list(
-  #     contrast  = "nobaseline",
-  #     agrp      = "all",
-  #     elements  = .elements,
-  #     signals   = c("base", "avg5_trunc_3sd"),
-  #     group_by_valve = TRUE,
-  #     transect_opts  = list(
-  #       .layers    = "ncr",
-  #       .annuli    = LETTERS[1:14],
-  #       .min_n_obs = 5L
-  #     )
-  #   ),
-  #   
-  #   # RI functions
-  #   test_data_FUN = create_naive_summary_stats_data,
-  #   prep_FUN      = identity,
-  #   dec_FUN       = define_multiarm_declaration,
-  #   test_statistic_FUN = t_test_fun,
-  #   ri_FUN     = do_ri_summary_stats,
-  #   nsims      = NSIMS
-  # ),
 )
