@@ -13,6 +13,34 @@ library(ggplot2)
 source("programs/0_data_prep/00a_functions.R")
 load("data/mussels_wide.rda")
 
+# data on baseline specimens provided by S. Salger 20200705
+baseline_specimens <- 
+  read_xlsx("extdata/Mussel Metrics Data - Baseline.xlsx",
+          skip = 1L,
+          col_names = c("id", "weight_g_0", 
+                        "length_mm_0", "width_mm_0", "height_mm_0", 
+                        "gravid", "species")) %>%
+  filter(!is.na(id)) %>%
+  mutate_at(2:5, as.numeric) %>%
+  mutate(
+    buoyant_weight_g_0 = if_else(species == "A. rav.",
+                                 weight_g_0,
+                                 NA_real_),
+    dry_weight_g_0 = if_else(species == "L. fas.",
+                             weight_g_0,
+                             NA_real_),
+    volume_0 = length_mm_0 * width_mm_0 * height_mm_0,
+    species = if_else(species == "A. rav.",
+                      "A. raveneliana",
+                      "L. fasciola")
+  ) %>%
+  select(-weight_g_0, -gravid)
+
+mussels_wide <-
+  mussels_wide %>%
+  bind_rows(baseline_specimens)
+  
+
 # Files to exclude from analyses
 exclude_files <- c("README", 
                    "2-A4-4", "8-C474-5", "27-C531-2", # Horizontal transects
