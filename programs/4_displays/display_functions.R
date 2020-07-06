@@ -25,7 +25,8 @@ single_ri_plot <- function(plot_dt, .title){
     plot_dt %>%
     filter(!is.na(p_value2)) %>%
     mutate(
-      label_y = as.numeric(as.factor(test_data)) 
+      label_y = as.numeric(as.factor(species)) 
+      # label_y = as.numeric(as.factor(test_data)) 
     ) %>%
     group_by(species, test_data) %>%
     arrange(p_value, .by_group = TRUE) %>%
@@ -53,7 +54,7 @@ single_ri_plot <- function(plot_dt, .title){
   
   ggplot(
     data = plot_dt,
-    aes(x = as.factor(test_data), y = p_value_log)
+    aes(x = as.factor(species), y = p_value_log)
   ) + 
     geom_point(size = 0.1) +
     geom_text(
@@ -65,13 +66,14 @@ single_ri_plot <- function(plot_dt, .title){
     ) +
     geom_segment(
       data = filter(plot_dt, p_flag == TRUE),
-      aes(x = label_y - 0.01, xend = as.numeric(as.factor(test_data)) + 0.05, 
+      aes(x = label_y - 0.01, xend = as.numeric(as.factor(species)) + 0.05, 
           y = label_x, yend = p_value_log),
       size = 0.25,
       color = "grey50"
     ) + 
     scale_x_discrete(
-      labels = parse(text = unique(plot_dt$test_data))
+      labels = parse(text = unique(plot_dt$species))
+      # labels = parse(text = unique(plot_dt$test_data))
       # labels = parse(text = c(gam = "ri[gam]", moment = "ri[mom]", moment_trend = "ri[mom~trend]"))
     ) + 
     scale_y_continuous(
@@ -82,7 +84,7 @@ single_ri_plot <- function(plot_dt, .title){
       expand = c(0, 0)
     ) +
     coord_flip() + 
-    facet_grid(species ~ .) +
+    # facet_grid(species ~ .) +
     theme_classic() +
     theme(
       strip.background = element_blank(),

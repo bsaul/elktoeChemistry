@@ -61,78 +61,69 @@ Several methods were used to identify valve edges and align anatomical features 
 knitr::include_graphics(here::here("manuscript", "figures", "figure_alignment.pdf"))
 ```
 
-## Chemical data pre-processing
+## Chemical data pre-processing and de-noising
 
 Valves were grouped into seven batches for LA-ICP-MS processing. During each batch process, the lower limit of detection (LOD) was assessed multiple times using the standards noted above. Concentration values were left-censored based on the mean LOD within a batch for each element. For analysis, parts-per-million (ppm) values were rescaled to $\text{mol/Ca mmol}$ where $\text{Ca mmol}$ was based on Ca\% of ~39.54\% for nacral observations and 40.078\% for all other layers.
 
+To denoise the chemical signals, a Generalized Additive Model [@wood2017gam] was fit separately for each transect and each element with a tensor spline term for transect distance and term for anatomical layer. Fitted values from these models were used in subsequent analyses. 
+
 ## Study questions
 
-Several statistical measures were used to probe distributions of elements in the nacre that accumulated both before and during the experiment to determine if any of the elements showed a differential accretion. As assignment to sites was completely randomized, we used the randomization distribution [@coppock2019ri2] to draw inference to changes in the elemental distributions. We hypothesized that the distributions of one or more elements accrued in the nacre during the experiment would differ between experimental sites. To examine differential accrual, we probed the primary research hypothesis by systematically examining both the sources and validity of any observed differences in shell composition in manner that was faithful to the completely randomized experimental design, thus permiting randomization-based inference [@splawa-neyman1990on-the-application; @coppock2019ri2] by permuting assignments to sites. 
+We hypothesized that the distributions of one or more elements accrued in either the nacre or prismatic layer would differ between experimental sites. To examine differential accrual, we probed the research hypotheses by systematically examining both the sources and validity of any observed differences in shell composition in manner that was faithful to the completely randomized experimental design, thus permiting randomization-based inference [@splawa-neyman1990on-the-application; @coppock2019ri2] by permuting assignments to sites. 
 
-Systematic differences in nacral elements accrued *prior* to the experiment could bias differences accrued during the experiment. Thus, to check that the sources of variation in the experiment were not due pre-experiment differences we first asked if there were differences in elemental concentrations *excluding* nacre accrued during the experiment. We examined this question both with (Q1) and without (Q2) baseline specimens which were not exposed to the experiment. Our primary focus was on whether nacre accrued during the experiment showed differences in elemental concentrations among and between experimental sites (Q3). 
+Systematic differences in nacral elements accrued *prior* to the experiment could bias differences accrued during the experiment. Thus, to check that the sources of variation in the experiment were not due pre-experiment differences we first asked if there were differences in elemental concentrations *excluding* nacre accrued during the experiment. We examined this question both with (A) and without (B) baseline specimens which were not exposed to the experiment. Our primary focus was on whether nacre accrued during the experiment showed differences in elemental concentrations among and between experimental sites (C).
+
+Laser transects did not always cross the prismatic layer in the region of most growth. However, we still tested the hypothesis of no difference between prismatic layer concentrations (D).
 
 ## Statistical Analyses
 
-The experiment was viewed as a cluster randomized trial, where the specimens were indepedent replicates and LA-ICP-MS transects were clustered within a specimen. Null hypotheses of no difference between elemental distributions were tested using randomization-based inference using $m = 1000$ simulations from the experiment's distribution. Each analysis was conducted in the following series of steps: (1) the observed test statistic ($t_{obs}$) was computed using the observed assignments, (2) assignments were permuting by assigning specimens to different sites and test statistics re-computed, (3) repeat (2) $m$ times. The two-sided p-value was the proportion of times $t_{obs}$ was greater than or equal to the test statistic's distribution. The `ri2` R package was used to carry out inference [@coppock2019ri2; @rcore2019].
+Null hypotheses of no difference between elemental distributions were tested using randomization-based inference using $m = 1000$ simulations from the experiment's distribution. Each analysis was conducted in the following series of steps: (1) the observed test statistic ($t_{obs}$) was computed using the observed assignments, (2) assignments were permuting by assigning specimens to different sites and test statistics re-computed, (3) repeat (2) $m$ times. The two-sided p-value was the proportion of times $t_{obs}$ was greater than or equal to the test statistic's distribution. The `ri2` R package was used to carry out inference [@coppock2019ri2; @rcore2019].
 
-Though randomization inference preserves the nominal type I error level under the null hypothesis regardless of the chosen test statistic, power under various alternative hypotheses may vary depending on this choice. Consquently, we chose two test statistics (Table \ref{test-statistics}) that use the available data in different ways and are able to test different ways in which the distributions of concentrations may have changed. 
-
-The first test statistic was the deviance between two nested GAM models (labelled ri$_{gam}$), one which included terms for experimental sites and a nested model which did not. For the ri$_{gam}$ analyses, we used the one transect per specimen which had the most number observations from the most recent annuli. The specification of the GAM models preserved the ordering of the observations along the transect within the nacre. The GAM models did not, however, account for censoring for observations below a lower limit of detection.
-
-The second test statistic (ri$_{wls}$) was an $F$-statistic comparing two nested weighted least squares regressions. Similar to ri$_{gam}$, the nested model did not include terms for the experimental sites. The dependent variables were each specimen's mean element concentration from observations from the youngest annuli for a given question. For example, for questions (Section \ref{study-questions}) involving the experimental period the youngest of all annuli was used; however, for questions regarding the pre-experiment time, the second youngest annuli was used. Weights in the regression were the sample variance taken over the same observations used to compute the mean.
-
-All the models used in ri$_{gam}$ and ri$_{wls}$ included terms for a specimen's volume (height $\times$ width $\times$ length) measured at baseline and its LA-ICP-MS batch.
+The test statistic (ri$_{ls}$) was an $F$-statistic comparing two least squares regressions, one including terms for experimental sites and  nested model which did not include terms. The dependent variables were each specimen's mean element concentration from observations in the region of interest. For example, for questions (Table \ref{test-questions}) involving the experimental period the youngest of all annuli was used; however, for questions regarding the pre-experiment time, the second youngest annuli was used. Weights in the regression were the sample variance taken over the same observations used to compute the mean. The models used included terms for a specimen's volume (height $\times$ width $\times$ length) measured at baseline and its LA-ICP-MS batch.
 
 \begin{table}
-\label{test-statistics}
+\label{test-questions}
 \caption{Data and test statistics used for randomization inference}
 \begin{tabular}{lp{5cm}p{7cm}}
-Label & Transect Data Used & Statistic(s) \\
+Label & Contrast & Transect Data Used  \\
 \hline \\
-$ri_{\text{gam}}$ & transect with the most observations from the youngest annuli & deviance between nested GAM models \\
-$ri_{\text{wls}}$  & all transects with any youngest annuli observations  & $F$-statistic between nested WLS models \\
+A & Baseline vs. Sites & All nacre in baseline specimens and nacre excluding most recent growth in site specimens \\
+B & Sites & nacre excluding most recent growth \\
+C & Sites & only nacre of most recent growth \\
+D & Sites & prismatic layer \\
 \hline
 \end{tabular}
 \end{table}
 
-### Sensitivity analyses
-
-The point of transition from epoxy to shell was a potential source of error (Section \ref{anatomical-alignment}), thus we checked the stability of our results for possible misclassification of nacral observations as epoxy by repeating the analysis after trimming 6$\mu$m and 12$\mu$m from the nacral observations. We also repeated analyses after preprocessing transects by truncating values to 3 standard deviations from a moving average filter [@signal2014].
 
 The methodology, test statistics, and the model specifications are further described in the Supplementary Material.
 
 # Results
 
-The experimental p-values corresponding to hypothesis tests for Q1-Q3 for each element are shown in Figure \@ref(fig:rires). Barium in *L. fasciola* is the only element with p-values suggesting strong significant differences based on both test statistics. However, since the differences appear for Q1 and Q2 (Figure \@ref(fig:rires)A-B), the result for Q3 (Figure \@ref(fig:rires)C) is likely due to pre-existing differences.
+The experimental p-values corresponding to hypothesis tests for Q1-Q4 for each element are shown in Figure \@ref(fig:rires). Only *L. fasciola* had any results with p-values $<0.01$: Barium (B, C, D), Strontium (A, B), and Manganese (D). 
 
-```{r rires, echo = FALSE, fig.cap = "Points are p-values (log$_{10}$ scale) testing the null hypothesis of no difference in each element accrued prior to the experiment between (A) sites including baselines excluding most recent annuli, (B) sites excluding baseline excluding most recent annuli, (C) sites excluding baseline including most recent annuli. Smaller p-values suggest a larger discrepancy between sites under a null hypothesis of no difference between sites. P-values $<0.1$ are labelled by element."}
-knitr::include_graphics(here::here("manuscript", "figures", "ri_ncr_hypothesis_v001.pdf"))
+```{r rires, echo = FALSE, fig.cap = "Points are p-values (log$_{10}$ scale) testing the null hypothesis of no difference in each element accrued prior to the experiment in (A) nacre for sites versus baseline specimens excluding most recent annuli in non-baseline specimens, (B) nacre for between experiment sites excluding baseline excluding most recent annuli, (C) nacre between experiment sites excluding baseline including most recent annuli, and (D) prismatic layer between experiment sites. Smaller p-values suggest a larger discrepancy between sites under a null hypothesis of no difference between sites. P-values $<0.1$ are labelled by element."}
+knitr::include_graphics(here::here("manuscript", "figures", "ri_ncr_hypothesis_v002.pdf"))
 ```
 
-Figure \@ref(fig:risummary) shows test statistic summaries for elements where both test statistic p-values are $<0.1$ for the main study question (Q3). In *A. raveneliana*, this includes elements Co, Cu, and Mn; in *L. fasciola*, this includes Ba. Figure \@ref(fig:risummary) reveals that the differences in *L. fasciola* Ba concentrations are due to low concentrations among specimens from the first Little Tennessee site. Differences in *A. raveneliana* Mn concentration are due to lower values in the first Tuckasegee site. 
+Figure \@ref(fig:risummary) shows mean values from each specimen in the regions of interest for questions C and D where at least one p-value was $<0.01$ for either species. Figure \@ref(fig:risummary) reveals that the differences in *L. fasciola* Ba concentrations are due to low concentrations among specimens from the first Little Tennessee site in both the nacre and prismatic layer. Similarly, differences in *L. fasciola* Mn concentration appear to be due to higher prismatic layer concentrations at the first Little Tennessee site. 
 
-```{r risummary, echo = FALSE, fig.cap = "Plots examine test statistics in cases where both $ri_{wls}$ and $ri_{gam}$ had p-values $<0.1$ in testing the hypothesis of differences among sites accrued during the experiment. (A) Point are predicted inverse-variance weighted mean concenrations in the youngest annuli. (B) Lines are GAM smoothed estimates of the nacral elemental trajectories by site, showing the first 200 $\\mu$m starting from the innder edge of the nacre."}
-knitr::include_graphics(here::here("manuscript", "figures", "ri_ncr_summary_v001.pdf"))
+```{r risummary, echo = FALSE, fig.cap = "Open points are mean concentrations in a valve region of interest for each specimen. The diamond is the mean of the specimen means within a site."}
+knitr::include_graphics(here::here("manuscript", "figures", "ri_ncr_summary_v002.pdf"))
 ```
 
 # Discussion
 
 Based on current understanding of bivalve shell growth [@checa2000a-new-model], the laser transects that crossed the nacre should have captured the accretion that occurred during the experiment. By careful alignment of anatomic imaging and chemical data obtained by LA-ICP-MS, we were able to extract and analyze elemental concentrations from the nacre, including the locations of annuli within the nacre. We hypothesized that some elements would differentially accrue within the nacre across experimental assignments and could be detected from LA-ICP-MS data. @jackson2003laser, for example, experimentally fed contaminated fish to banded water snakes and showed LA-ICP-MS used on tail tissue was able to differentiate between treatments.
 
-Our analysis revealed no clear cut differences between sites that could be easily explained by the experiment itself. The lower concentrations of Barium in Little Tennesse Site 1 *L fasciola* specimen has no obvious reason, for example. All *L fasciola* specimens were hatchery raised in the same conditions. The shells for the experimental sites were randomly distributed in the LA-ICP-MS sequence. 
+Our analysis revealed no clear cut differences between sites that could be easily explained by the experiment itself. The lower concentrations of Barium in Little Tennesse Site 1 *L. fasciola* specimen has no obvious explanation, for example. All *L. fasciola* specimens were hatchery raised in the same conditions. The shells for the experimental sites were randomly distributed in the LA-ICP-MS sequence, suggesting the result is not an artifact of LA-ICP-MS processing. Moreover, *A. raveneliana* specimens do show a similar pattern in the nacre. Since *A. raveneliana* were much older than *L. fasciola*, comparing prismatic layer difference across species may not be relevant, as the laser transect in general crossed older prismatic layer sections in *A. raveneliana*. 
 
-Several factors complicate interpretation of our results: censoring due to death, inaccurate identification experiment time within the valve, incomplete understanding of physiological processes especially temporal stationarity of elements. To explain these factors, we consider the differences between the experimental sites in Mn concentrations accumulated during the study period.
-
-Manganese is an essential trace element with important roles in numerous enzymatic pathways that could have harmful effects on freshwater bivalves. Interestingly, surviving valves from the Little Tennessee had films on the gills that were apparent by scanning electron microscopy, which upon x-ray diffraction analysis consisted largely of Mn [@levine2020].
+We were particularly interested in Manganese, as it is an essential trace element with important roles in numerous enzymatic pathways that could have harmful effects on freshwater bivalves. Interestingly, surviving valves from the Little Tennessee had films on the gills that were apparent by scanning electron microscopy, which upon x-ray diffraction analysis consisted largely of Mn [@levine2020].
 
 Manganese valve concentrations have been shown to correlate with seasonal changes [@siegele2001manganese; @shoults2014resolution]. The reasons for the seasonal variation are unknown, but in our study, different survival times could have resulted in different accrual patterns. Those that survived longer would have kept accumulating Mn for later in the season. We do not know when specimens in the experiment died. It could be that those specimens that survived to the end of the study (Tuckasegee 1 site had the lowest mortality) were accruing shell for longer while the trajectories for other specimens were censored at their time of death.
 
-The problem of trajectories censored by death is related to a similar problem. We assumed that the youngest annuli in the nacre accrued during the experiment. We don't know for sure, and we have no way of testing this. In Little Tennessee specimens, for example, where high morbidity and mortality was observed in *A. raveneliana*, 
-it could be that little to no nacre accrued during the experiment. This situation would invalidate our experimental comparisons. Notching or somehow marking the start of the experiment on the shells could have helped track more precisely which parts of the value were deposited during the experiment [@haag2008testing].
+We assumed that the youngest annuli in the nacre accrued during the experiment, but the data provide no way of testing this assumption. In Little Tennessee specimens, where high morbidity and mortality was observed in *A. raveneliana* [@salger2020], it could be that little to no nacre accrued during the experiment. Marking the start of the experiment shells in some way may have provided appropriate data, but @haag2008testing points out that notching shells does harm individuals.
 
-TODO:
-
-* discuss last point on "incomplete understanding of physiological processes": are elements labile within nacre or primsatic layer or are they conserved?
 * wrap up
 
 # Funding

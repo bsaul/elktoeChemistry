@@ -45,9 +45,21 @@ create_wls_data <- function(data){
     dplyr::ungroup()
 }
 
+#' 
+create_ls_data <- function(data){
+  if (nrow(data) == 0) return(NULL)
+  if (all(data$value == data$value[1])) return(NULL)
+  data %>%
+    dplyr::summarize(
+      Y = mean(value),
+      Y_med = median(value)
+    ) %>%
+    dplyr::ungroup()
+}
+
+
 #' Creates a dataset of "naive" summary stats 
 create_naive_summary_stats_data <- function(data, group_by_annuli = TRUE){
-
 
   if (nrow(data) == 0) return(NULL)
   `if`(
@@ -190,6 +202,19 @@ make_wls_ts <- function(m1_rhs, m2_rhs){
     v <- data[["v"]]
     m1 <- lm(f1, weights = 1/v, data = data)
     m2 <- lm(f2, weights = 1/v, data = data)
+    anova(m1, m2)[["F"]][2]
+  }
+}
+
+make_ls_ts <- function(m1_rhs, m2_rhs){
+  
+  fptype <- Y ~ .
+  f1 <- update(fptype, new = m1_rhs)
+  f2 <- update(fptype, new = m2_rhs)
+  
+  function(data){
+    m1 <- lm(f1, data = data)
+    m2 <- lm(f2, data = data)
     anova(m1, m2)[["F"]][2]
   }
 }

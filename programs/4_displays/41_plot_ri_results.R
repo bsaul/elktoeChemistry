@@ -12,7 +12,7 @@ library(gridExtra)
 
 source("programs/4_displays/display_functions.R")
 
-vers    <- "V001"
+vers    <- "V002"
 outFile <- sprintf("manuscript/figures/ri_ncr_hypothesis_%s.pdf", vers)
 
 dt <- 
@@ -34,13 +34,9 @@ plot_dt <-
     # inner_buffer, outer_buffer, 
     p_value)  %>%
   filter(
-    test_data %in% c("ri[wls]", "ri[gam]"),
+    test_data %in% c("ri[ls]"),
     # label %in% c("D", "E", "B"),
-    # !(grepl("_ratio", test_data)),
-    # signal == "base"
-    signal == "avg5_trunc_3sd"
-    # ,
-    # inner_buffer  == "6"
+    signal == "gam"
   ) %>%
   mutate(
     element2 = case_when(
@@ -53,13 +49,27 @@ plot_dt <-
   )
 
 
+
+# ggplot(
+#   data = plot_dt,
+#   aes(x = label, y = element2, 
+#       size = -log10(p_value+ 1),
+#       color = -log10(p_value+ 1) )
+# ) + 
+#   geom_point() + 
+#   scale_color_gradient(
+#     low = "#e5f5f9", high = "#00441b"
+#   ) +
+#   facet_grid( ~ species)
+
+
 ## Plotting it ####
 
 p1 <- single_ri_plot(filter(plot_dt, label == "A"))
 p2 <- single_ri_plot(filter(plot_dt, label == "B"))
 p3 <- single_ri_plot(filter(plot_dt, label == "C"))
 # p4 <- single_ri_plot(filter(plot_dt, label == "D"))
-# p5 <- single_ri_plot(filter(plot_dt, label == "E"))
+p5 <- single_ri_plot(filter(plot_dt, label == "E"))
 
 p <- 
 grid.arrange(
@@ -78,8 +88,13 @@ grid.arrange(
     hjust = 0,
     x = 0),
   p3,
+  textGrob(
+    "D",
+    hjust = 0,
+    x = 0),
+  p5,
   ncol = 1,
-  heights = rep(c(0.2, 2), 3)
+  heights = rep(c(0.2, 2), 4)
 )
 
 

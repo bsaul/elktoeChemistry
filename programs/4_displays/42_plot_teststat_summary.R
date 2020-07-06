@@ -12,7 +12,7 @@ library(gridExtra)
 
 source("programs/4_displays/display_functions.R")
 
-vers    <- "V001"
+vers    <- "V002"
 outFile <- sprintf("manuscript/figures/ri_ncr_summary_%s.pdf", vers)
 
 dt <- 
@@ -26,37 +26,46 @@ dt <-
 
 examine <- 
   dt %>%
-  filter(label == "C", signal == "base") %>%
-  filter(sublabel %in% c("ri[wls]", "ri[gam]")) %>%
-  group_by(species, element) %>%
-  filter(all(p_value < 0.1)) 
+  filter(label %in% c("C", "E"), signal == "gam") %>%
+  filter(sublabel %in% c("ri[ls]")) %>%
+  group_by(element) %>%
+  filter(any(p_value < 0.01)) %>%
+  mutate(
+    label = if_else(label == "E", "D", label)
+  )
 
 examine %>%
+  # mutate(
+  #   data = purrr::map(data, ~ filter(.x, !is.na(baseline_volume))),
+  #   m = purrr::map2(
+  #     .x = data,
+  #     .y = sublabel,
+  #     .f = ~ {
+  #       `if`(
+  #         .y == "ri[wls]",
+  #         lm(Y ~ site + I(baseline_volume/1000) + factor(drawer),
+  #            weights = 1/.x$v,
+  #            data = .x)
+  #         # mgcv::gam(log(value) ~ s(d, bs = "ts") + d*Z + pd*annuli*Z + s(pd, bs = "ts") +
+  #         #       I(baseline_volume/1000) + factor(drawer) +  s(analysis_id, bs = "re"),
+  #         #     data = as.data.frame(.x))
+  #       )
+  # 
+  #     } 
+  #   ),
+  #   data = purrr::map2(
+  #     .x = data,
+  #     .y = m,
+  #     .f = ~ { .x$yhat <- predict(.y); .x }
+  #   )
+  # ) %>%
+  select(species, label, sublabel, element, data, p_value) %>%
   mutate(
-    data = purrr::map(data, ~ filter(.x, !is.na(baseline_volume))),
-    m = purrr::map2(
-      .x = data,
-      .y = sublabel,
-      .f = ~ {
-        `if`(
-          .y == "ri[wls]",
-          lm(Y ~ site + I(baseline_volume/1000) + factor(drawer),
-             weights = 1/.x$v,
-             data = .x),
-          mgcv::gam(log(value) ~ s(d, bs = "ts") + d*Z + pd*annuli*Z + s(pd, bs = "ts") +
-                I(baseline_volume/1000) + factor(drawer) +  s(analysis_id, bs = "re"),
-              data = as.data.frame(.x))
-        )
-
-      } 
+    element2 = case_when(
+      stringr::str_detect(element, "^(Zn|Cu|Mg)") ~ paste0(stringr::str_replace(element, "_ppm_m", "["), "]"),
+      TRUE ~ stringr::str_remove(element, "_ppm_m.*")
     ),
-    data = purrr::map2(
-      .x = data,
-      .y = m,
-      .f = ~ { .x$yhat <- predict(.y); .x }
-    )
   ) %>%
-  select(species, sublabel, element, data, p_value) %>%
   tidyr::unnest(cols = data) %>%
   group_by(sublabel) %>%
   tidyr::nest()->
@@ -64,28 +73,42 @@ examine %>%
 
 river_cols <- c(`Little Tennessee` = "#08519c", `Tuckasegee` = "#a50f15")
 
-
-p1 <-
-plot_dt %>%
-  filter(sublabel == "ri[wls]") %>%
+plot_dt <- 
+  plot_dt %>%
+  filter(sublabel == "ri[ls]") %>%
   pull(data) %>%
   purrr::pluck(1) %>%
   mutate(
-    species_element = paste(species, element)
-  ) %>%
+    species_element = paste(element2, species)
+  ) 
+
+means <- plot_dt %>%
+  group_by(species_element, label, element2, species, river, site) %>%
+  summarise(
+    Y = mean(Y)
+  )
+
+p1 <-
+  plot_dt %>%
   ggplot(
-    aes(x = site, y = yhat, color = river)
+    aes(x = site, y = Y, color = river)
   ) + 
   geom_beeswarm(
     shape = 1
   ) + 
+  geom_point(
+    data  = means,
+    aes(x = site, y = Y, color = river),
+    size  = 3,
+    shape = 18
+  ) +
   scale_color_manual(
     values = river_cols,
     guide = FALSE
   ) + 
   facet_wrap(
-    ncol = 1,
-    species_element ~ ., scales = "free_y"
+    ncol = 2,
+    species_element ~ label, scales = "free_y"
   ) +
   theme_classic() +
   theme(
@@ -114,83 +137,87 @@ site_cols <- c(
 
 #2171b5
 
+# 
+# p2 <- 
+# plot_dt %>%
+#   filter(sublabel == "ri[gam]") %>%
+#   pull(data) %>%
+#   purrr::pluck(1) %>%
+#   mutate(
+#     species_element = paste(species, element)
+#   ) %>%
+#   arrange(species, element, id, d) %>%
+#   group_by(species, id) %>%
+#   filter(transect == min(transect)) %>%
+#   group_by(
+#     species, element, id
+#   ) %>%
+#   mutate(
+#     yh = cummean(yhat)
+#   ) %>%
+#   ggplot(
+#     aes(x = d, y = yhat, group = id, color = site)
+#   ) + 
+#   geom_smooth(
+#     aes(group = site),
+#     se = FALSE,
+#     size = 0.5
+#   ) +
+#   scale_color_manual(
+#     name = "",
+#     values = site_cols
+#   ) + 
+#   scale_x_continuous(
+#     name = "Distance from epoxy/nacre edge"
+#   ) +
+#   coord_cartesian(xlim = c(0, 200)) + 
+#   facet_wrap(
+#     ncol = 1,
+#     species_element ~ ., scales = "free_y"
+#   ) + 
+#   theme_classic() +
+#   theme(
+#     axis.text.y = element_blank(),
+#     axis.text.x = element_text(size = 6),
+#     axis.title.x = element_text(size = 8, color = "grey50"),
+#     # axis.title.x = element_blank(),
+#     axis.title.y = element_blank(),
+#     axis.ticks.x = element_line(color = "grey50", size = 0.2),
+#     axis.ticks.y = element_line(color = "grey50", size = 0.2),
+#     axis.line.x = element_line(color = "grey50"),
+#     axis.line.y = element_line(color = "grey50"),
+#     strip.background = element_blank(),
+#     legend.position = c(.55, .95),
+#     legend.direction = "horizontal",
+#     legend.background = element_blank(),
+#     legend.key.width = unit(3, "mm"),
+#     legend.text = element_text(size = 6)
+#   )
+#  
+# grid.newpage()
+# p <- 
+#   grid.arrange(
+#     # textGrob(
+#     #   "A",
+#     #   hjust = 0,
+#     #   x = 0),
+#     # textGrob(
+#     #   "B",
+#     #   hjust = 0,
+#     #   x = 0),
+#     p1,
+#     # p2,
+#     # ncol = 2,
+#     # nrow = 2,
+#     # heights = c(0.2, 6)
+#   )
 
-p2 <- 
-plot_dt %>%
-  filter(sublabel == "ri[gam]") %>%
-  pull(data) %>%
-  purrr::pluck(1) %>%
-  mutate(
-    species_element = paste(species, element)
-  ) %>%
-  arrange(species, element, id, d) %>%
-  group_by(species, id) %>%
-  filter(transect == min(transect)) %>%
-  group_by(
-    species, element, id
-  ) %>%
-  mutate(
-    yh = cummean(yhat)
-  ) %>%
-  ggplot(
-    aes(x = d, y = yhat, group = id, color = site)
-  ) + 
-  geom_smooth(
-    aes(group = site),
-    se = FALSE,
-    size = 0.5
-  ) +
-  scale_color_manual(
-    name = "",
-    values = site_cols
-  ) + 
-  scale_x_continuous(
-    name = "Distance from epoxy/nacre edge"
-  ) +
-  coord_cartesian(xlim = c(0, 200)) + 
-  facet_wrap(
-    ncol = 1,
-    species_element ~ ., scales = "free_y"
-  ) + 
-  theme_classic() +
-  theme(
-    axis.text.y = element_blank(),
-    axis.text.x = element_text(size = 6),
-    axis.title.x = element_text(size = 8, color = "grey50"),
-    # axis.title.x = element_blank(),
-    axis.title.y = element_blank(),
-    axis.ticks.x = element_line(color = "grey50", size = 0.2),
-    axis.ticks.y = element_line(color = "grey50", size = 0.2),
-    axis.line.x = element_line(color = "grey50"),
-    axis.line.y = element_line(color = "grey50"),
-    strip.background = element_blank(),
-    legend.position = c(.55, .95),
-    legend.direction = "horizontal",
-    legend.background = element_blank(),
-    legend.key.width = unit(3, "mm"),
-    legend.text = element_text(size = 6)
-  )
- 
-grid.newpage()
-p <- 
-  grid.arrange(
-    textGrob(
-      "A",
-      hjust = 0,
-      x = 0),
-    textGrob(
-      "B",
-      hjust = 0,
-      x = 0),
-    p1,
-    p2,
-    ncol = 2,
-    nrow = 2,
-    heights = c(0.2, 6)
-  )
 
-
+# ggsave(
+#   file = outFile,
+#   p1, width = 4, height = 6.6
+# )
 ggsave(
   file = outFile,
-  p, width = 4, height = 6.6
+  p1, width = 4, height = 6.6
 )

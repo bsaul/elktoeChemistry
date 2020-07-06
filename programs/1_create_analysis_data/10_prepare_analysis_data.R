@@ -16,15 +16,20 @@ source(here::here("programs", "1_create_analysis_data", "analysis_data_functions
 ## Signal Filters ####
 # A list containing the chosen signal filters used as sensitivity analyses.
 signal_filters <- list(
-  base   = function(x) identity(x),
-  avg5   = function(x) signal::fftfilt(rep(1, 5)/5, x),
-  avg10  = function(x) signal::fftfilt(rep(1, 10)/10, x),
-  avg5_trunc_3sd = function(x){
+  base   = function(x, ds) identity(x),
+  # avg5   = function(x, ds) signal::fftfilt(rep(1, 5)/5, x),
+  # avg10  = function(x, ds) signal::fftfilt(rep(1, 10)/10, x),
+  avg5_trunc_3sd = function(x, ds){
     rm <- zoo::rollmean(c(rep(0, 4), x), k = 5)
     rs <- zoo::rollapply(c(rep(0, 4), x), width = 5, FUN = sd)
     outliers <- abs(x - rm) > 3*sd(x)
     x[outliers] <- rm[outliers]
     x
+  },
+  gam = function(x, ds){
+    ds$y <- x
+    p <- mgcv::gam(log(y) ~ s(distance, bs = "ts") + layer, data = ds)
+    as.numeric(exp(predict(p)))
   }
 )
 
@@ -70,19 +75,21 @@ valve_data %>%
       .f = ~ dplyr::select(.x, distance, layer, annuli, obs)
     )
   )  %>%
-  
   ## Apply signal filters ####
   dplyr::mutate(
-    chemistry = purrr::map(
+    chemistry = purrr::map2(
       .x = chemistry,
-      .f = ~ purrr::map(
-        .x = .x[-1],
-        .f = function(el){
-          purrr::map(
-            .x = signal_filters,
-            .f = ~ .x(el))
-        }
-      )
+      .y = distance,
+      .f = function(elements, distance){
+        purrr::map(
+          .x = elements[-1],
+          .f = function(el){
+            purrr::map(
+              .x = signal_filters,
+              .f = ~ .x(el, distance))
+          }
+        )
+      }
     )
   ) %>%
   

@@ -46,12 +46,12 @@ RI_CONFIG <- list(
       contrast  = "baseline_v_sites",
       agrp      = "all",
       elements  = .elements,
-      signals   = c("base", "avg5_trunc_3sd"),
+      signals   = c("base", "gam"),
       group_by_valve = TRUE,
       transect_opts  = list(
         .layers    = "ncr",
         .annuli    = LETTERS[2:14], # A-N
-        .min_n_obs = 5L
+        .min_n_obs = 15L
       )
     ),
     # RI functions
@@ -66,6 +66,33 @@ RI_CONFIG <- list(
     nsims  = NSIMS
   ),
 
+  A_ls = list(
+    label     = "A",
+    sublabel  = "ri[ls]",
+    desc      = "Are experimental specimens similar to baseline specimens in past?",
+    filters   = list(
+      contrast  = "baseline_v_sites",
+      agrp      = "all",
+      elements  = .elements,
+      signals   = c("base", "gam"),
+      group_by_valve = TRUE,
+      transect_opts  = list(
+        .layers    = "ncr",
+        .annuli    = LETTERS[2:14], # A-N
+        .min_n_obs = 15L
+      )
+    ),
+    # RI functions
+    prep_FUN      = identity,
+    dec_FUN       = define_multiarm_cluster_declaration,
+    test_data_FUN = create_ls_data,
+    test_statistic_FUN  = make_ls_ts(
+      m1_rhs = ~ Z + factor(drawer) + I(baseline_volume/1000),
+      m2_rhs = ~     factor(drawer) + I(baseline_volume/1000)
+    ),
+    ri_FUN = do_ri_gam,
+    nsims  = NSIMS
+  ),
   # # B: Are sites (excluding baseline) comparable in past?
   # 
   # B_gam = list(
@@ -103,12 +130,12 @@ RI_CONFIG <- list(
       contrast  = "nobaseline",
       agrp      = "all",
       elements  = .elements,
-      signals   = c("base", "avg5_trunc_3sd"),
+      signals   = c("base", "gam"),
       group_by_valve = TRUE,
       transect_opts  = list(
         .layers    = "ncr",
         .annuli    = LETTERS[2:14], # A-N
-        .min_n_obs = 5L
+        .min_n_obs = 15L
       )
     ),
     # RI functions
@@ -122,7 +149,34 @@ RI_CONFIG <- list(
     ri_FUN = do_ri_gam,
     nsims  = NSIMS
   ),
-
+  
+  B_ls = list(
+    label     = "B",
+    sublabel  = "ri[ls]",
+    desc      = "Are sites (excluding baseline) comparable in past?",
+    filters   = list(
+      contrast  = "nobaseline",
+      agrp      = "all",
+      elements  = .elements,
+      signals   = c("base", "gam"),
+      group_by_valve = TRUE,
+      transect_opts  = list(
+        .layers    = "ncr",
+        .annuli    = LETTERS[2:14], # A-N
+        .min_n_obs = 15L
+      )
+    ),
+    # RI functions
+    prep_FUN      = identity,
+    dec_FUN       = define_multiarm_cluster_declaration,
+    test_data_FUN = create_ls_data,
+    test_statistic_FUN  = make_ls_ts(
+      m1_rhs = ~ Z + factor(drawer) + I(baseline_volume/1000),
+      m2_rhs = ~     factor(drawer) + I(baseline_volume/1000)
+    ),
+    ri_FUN = do_ri_gam,
+    nsims  = NSIMS
+  ),
   # # C: Are sites (excluding baseline) different?
   
   #####
@@ -162,12 +216,12 @@ RI_CONFIG <- list(
       contrast  = "nobaseline",
       agrp      = "all",
       elements  = .elements,
-      signals   = c("base", "avg5_trunc_3sd"),
+      signals   = c("base", "gam"),
       group_by_valve = TRUE,
       transect_opts  = list(
         .layers    = "ncr",
         .annuli    = LETTERS[1], # A-N
-        .min_n_obs = 5L
+        .min_n_obs = 15L
       )
     ),
     # RI functions
@@ -182,34 +236,89 @@ RI_CONFIG <- list(
     nsims  = NSIMS
   ),
   
-  
-  D_wls = list(
-    label     = "D",
-    sublabel  = "ri[wls]",
-    desc      = "Are sites (excluding baseline) different in pio?",
+  C_ls = list(
+    label     = "C",
+    sublabel  = "ri[ls]",
+    desc      = "Are sites (excluding baseline) different?",
     filters   = list(
       contrast  = "nobaseline",
       agrp      = "all",
       elements  = .elements,
-      signals   = c("base", "avg5_trunc_3sd"),
+      signals   = c("base", "gam"),
       group_by_valve = TRUE,
       transect_opts  = list(
-        .layers    = "pio",
-        .min_n_obs = 5L
+        .layers    = "ncr",
+        .annuli    = LETTERS[1], # A-N
+        .min_n_obs = 15L
       )
     ),
     # RI functions
     prep_FUN      = identity,
     dec_FUN       = define_multiarm_cluster_declaration,
-    test_data_FUN = create_wls_data,
-    test_statistic_FUN  = make_wls_ts(
+    test_data_FUN = create_ls_data,
+    test_statistic_FUN  = make_ls_ts(
       m1_rhs = ~ Z + factor(drawer) + I(baseline_volume/1000),
       m2_rhs = ~     factor(drawer) + I(baseline_volume/1000)
     ),
     ri_FUN = do_ri_gam,
     nsims  = NSIMS
   ),
-    
+  
+  
+  # D_wls = list(
+  #   label     = "D",
+  #   sublabel  = "ri[wls]",
+  #   desc      = "Are sites (excluding baseline) different in pio?",
+  #   filters   = list(
+  #     contrast  = "nobaseline",
+  #     agrp      = "all",
+  #     elements  = .elements,
+  #     signals   = c("base", "gam"),
+  #     group_by_valve = TRUE,
+  #     transect_opts  = list(
+  #       .layers    = "pio",
+  #       .min_n_obs = 15L
+  #     )
+  #   ),
+  #   # RI functions
+  #   prep_FUN      = identity,
+  #   dec_FUN       = define_multiarm_cluster_declaration,
+  #   test_data_FUN = create_wls_data,
+  #   test_statistic_FUN  = make_wls_ts(
+  #     m1_rhs = ~ Z + factor(drawer) + I(baseline_volume/1000),
+  #     m2_rhs = ~     factor(drawer) + I(baseline_volume/1000)
+  #   ),
+  #   ri_FUN = do_ri_gam,
+  #   nsims  = NSIMS
+  # ),
+  #   
+  # D_ls = list(
+  #   label     = "D",
+  #   sublabel  = "ri[ls]",
+  #   desc      = "Are sites (excluding baseline) different in pio?",
+  #   filters   = list(
+  #     contrast  = "nobaseline",
+  #     agrp      = "all",
+  #     elements  = .elements,
+  #     signals   = c("base", "gam"),
+  #     group_by_valve = TRUE,
+  #     transect_opts  = list(
+  #       .layers    = "pio",
+  #       .min_n_obs = 15L
+  #     )
+  #   ),
+  #   # RI functions
+  #   prep_FUN      = identity,
+  #   dec_FUN       = define_multiarm_cluster_declaration,
+  #   test_data_FUN = create_ls_data,
+  #   test_statistic_FUN  = make_ls_ts(
+  #     m1_rhs = ~ Z + factor(drawer) + I(baseline_volume/1000),
+  #     m2_rhs = ~     factor(drawer) + I(baseline_volume/1000)
+  #   ),
+  #   ri_FUN = do_ri_gam,
+  #   nsims  = NSIMS
+  # ),
+  
   E_wls = list(
     label     = "E",
     sublabel  = "ri[wls]",
@@ -218,11 +327,11 @@ RI_CONFIG <- list(
       contrast  = "nobaseline",
       agrp      = "all",
       elements  = .elements,
-      signals   = c("base", "avg5_trunc_3sd"),
+      signals   = c("base", "gam"),
       group_by_valve = TRUE,
       transect_opts  = list(
         .layers    = "psm",
-        .min_n_obs = 5L
+        .min_n_obs = 15L
       )
     ),
     # RI functions
@@ -235,5 +344,31 @@ RI_CONFIG <- list(
     ),
     ri_FUN = do_ri_gam,
     nsims  = NSIMS
-  )
+  ),
+  
+  E_ls = list(
+    label     = "E",
+    sublabel  = "ri[ls]",
+    desc      = "Are sites (excluding baseline) different in psm?",
+    filters   = list(
+      contrast  = "nobaseline",
+      agrp      = "all",
+      elements  = .elements,
+      signals   = c("base", "gam"),
+      group_by_valve = TRUE,
+      transect_opts  = list(
+        .layers    = "psm",
+        .min_n_obs = 15L
+      )
+    ),
+    # RI functions
+    prep_FUN      = identity,
+    dec_FUN       = define_multiarm_cluster_declaration,
+    test_data_FUN = create_ls_data,
+    test_statistic_FUN  = make_ls_ts(
+      m1_rhs = ~ Z + factor(drawer) + I(baseline_volume/1000),
+      m2_rhs = ~     factor(drawer) + I(baseline_volume/1000)
+    ),
+    ri_FUN = do_ri_gam,
+    nsims = NSIMS)
 )
