@@ -20,12 +20,10 @@ archive*
 scratch*
 *.scriv
 *site_libs*
-*.html
 manuscript/drafts*
 figures*
 extdata/ncrivers*
 extdata/MajorHydro*
 extdata/Municipal*
-docs*
 *Rproj
 
