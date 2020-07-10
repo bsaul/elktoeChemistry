@@ -9,6 +9,9 @@
 #' Clean up IDs contained in the raw data
 #' 
 #' @param x a character vector
+#' @importFrom stringr str_remove
+#' @importFrom magrittr "%>%"
+#' @export
 
 clean_ids <- function(x){
   stringr::str_remove(x, "^\\d{1,2}") %>%
@@ -16,11 +19,12 @@ clean_ids <- function(x){
     stringr::str_replace("\\.", "-")
 }
 
-#' Import data in "Bivalve Transect Datums
+#' Import data in "Bivalve Transect Datums"
 #' 
 #' @param .inFile path to .xlsx file
 #' @param .sheet which sheet to import
-#' 
+#' @importFrom readxl read_excel
+#' @export
 
 read_measurements_sheet <- function(.inFile, .sheet){
   readxl::read_excel(path = .inFile, sheet = .sheet) %>%
@@ -29,8 +33,8 @@ read_measurements_sheet <- function(.inFile, .sheet){
 
 #' Create the data in "Bivalve Transect Datums
 #' 
-#' @param .data the resulf of \code{\link{read_measurements_sheet}}
-#' 
+#' @param .data the result of \code{\link{read_measurements_sheet}}
+#' @export
 
 munge_measurements <- function(.data){
   .data %>%
@@ -62,6 +66,7 @@ munge_measurements <- function(.data){
 #' @param .zero_function a function that shifts the distance function. Defaults to
 #' \code{identity}. \code{x} must be first argument, where \code{x} is \code{.chem_data}
 #' @param .zf_args arguments passed to \code{.zero_function}
+#' @export
 
 shift_distance <- function(.chem_data, .zero_function = identity, .zf_args){
   args <- append(list(x = .chem_data), .zf_args)
@@ -69,13 +74,16 @@ shift_distance <- function(.chem_data, .zero_function = identity, .zf_args){
 }
 
 #' @name changepoint
-#' Uses \code{\link[changepoint]{cpt.meanvar}} to find the changepoint \code{Ca43_CPS}
-#' at the epoxy/valve transition
+#' @title Functions for detecting changepoints laser transects
+#' @description  Uses \code{\link[changepoint]{cpt.meanvar}} to find the 
+#'    changepoint in \code{Ca43_CPS} or \code{Pb208_CPS} or their ratio 
+#'    at the epoxy/valve transition.
 #' 
 #' @param x a chemistry dataset
 #' @param .use_up_to_row how many rows of data to used in the changepoint detection
 #' @param .method passed to \code{\link[changepoint]{cpt.meanvar}}
 #' @importFrom changepoint cpt.meanvar
+#' @export
 
 id_changepoint <- function(x, .var, .use_up_to_row, .method = "AMOC", .outer = FALSE){
   var <- rlang::sym(.var)
@@ -84,14 +92,16 @@ id_changepoint <- function(x, .var, .use_up_to_row, .method = "AMOC", .outer = F
       rn = row_number(),
       nn = if_else(rep(.outer, n()), n() - rn, rn),
       ## ID changepoint
-      cpt = changepoint::cpt.meanvar(cumsum(!! var)[nn < .use_up_to_row], method = .method)@cpts[1],
+      cpt = changepoint::cpt.meanvar(cumsum(!! var)[nn < .use_up_to_row], 
+                                     method = .method)@cpts[1],
       cpt = ifelse(.outer, n() - cpt, cpt),
       # Update distance
       distance = distance - distance[cpt]) %>%
     select(-cpt, -rn, -nn)
 }
 
-#' @describeIn changepoint
+#' @describeIn changepoint detect change in Pb/Ca by minimum value
+#' @export
 pbca_minpoint <- function(x, .use_up_to_row, .outer = FALSE){
   
   dir <- ifelse(.outer, rev, identity)
@@ -109,7 +119,8 @@ pbca_minpoint <- function(x, .use_up_to_row, .outer = FALSE){
     select(-ratio, -cpt, -rn, -nn)
 }
   
-#' @describeIn changepoint
+#' @describeIn changepoint detect change by maximum
+#' @export
 maxpoint <- function(x, .var, .use_up_to_row, .threshold = 1, .outer = FALSE){
   
   x <- x %>% mutate(ratio  = Pb208_CPS/pmax(0.0001, Ca43_CPS))
@@ -141,7 +152,6 @@ maxpoint <- function(x, .var, .use_up_to_row, .threshold = 1, .outer = FALSE){
 
 # Functions to map measurements onto chemistry ####
 
-
 #' Create a function that identifies layers based on distance
 #' 
 #' @param .data a measurement dataset (for a single id_transect)
@@ -151,6 +161,7 @@ maxpoint <- function(x, .var, .use_up_to_row, .threshold = 1, .outer = FALSE){
 #' or prismatic layer depending on the location of the transect)
 #' @return a function of \code{x} that \code{cut}s \code{x} based on the distances
 #' measured between transitions.
+#' @export
 
 create_layer_idFUN <- function(.data, .reference_transition = "on_"){
   dt   <- .data[.data$is_layer, ]
@@ -172,6 +183,7 @@ create_layer_idFUN <- function(.data, .reference_transition = "on_"){
 #' @inheritParams create_layer_idFUN
 #' @return a function of \code{x} that \code{cut}s \code{x} based on the distances
 #' measured between annuli
+#' @export
 
 create_annuli_idFUN <- function(.data, .reference_transition = "on_"){
   repfun <- function(what) { function(x) rep(what, length(x)) }
@@ -244,6 +256,7 @@ create_annuli_idFUN <- function(.data, .reference_transition = "on_"){
 #'  \item + one column for each element
 #' } the \code{layer} and
 #' \code{annuli} variables added
+#' @export
 
 create_wide_analysis_data <- function(.valve_data, .reference_transition, 
                                       .zero_function, 
@@ -285,13 +298,14 @@ create_wide_analysis_data <- function(.valve_data, .reference_transition,
 #' 
 #' @param .wide_data a result of \code{\link{create_wide_analysis_data}}
 #' @importFrom tidyr gather
+#' @export
 
 create_long_analysis_data <- function(.wide_data){
   .wide_data %>%
     tidyr::gather(element, value, -layer, -annuli, -distance)
 }
 
-
+#' Apply a reference method
 #' @param .l a list containing \code{rt}, \code{zf}, and \code{zfa}
 #' @param .n a string naming the method
 
@@ -308,36 +322,38 @@ apply_ref_method <- function(.valve_data, .l, .n){
 
 ## Plot Methods ####
 
+#' Create Plot for reviewing valve alignments
+#' @export
 
 create_qc_plot <- function(.idt_data, .edge_data, .ruler_length, .best_method){
   .idt <- .idt_data$idt[1]
 
   vlines <- .edge_data %>%
-    group_by(idref_grouping) %>%
-    summarise(
+    dplyr::group_by(idref_grouping) %>%
+    dplyr::summarise(
       auto_inner = inner_edge_rn,
       ruler_dist = inner_edge_rn + .ruler_length/2.881,
       auto_outer = outer_edge_rn
     ) %>%
-    mutate(
-      auto_outer = if_else(idref_grouping == "A", NA_real_, auto_outer)
+    dplyr::mutate(
+      auto_outer = dplyr::if_else(idref_grouping == "A", NA_real_, auto_outer)
     )
   
   methods <- .edge_data %>%
-    distinct(idref_grouping) %>%
-    mutate(
+    dplyr::distinct(idref_grouping) %>%
+    dplyr::mutate(
       is_best = idref_grouping == .best_method
     ) 
   
   methods <- methods %>%
-    left_join(
+    dplyr::left_join(
       data_frame(
         idref_grouping = rep(unique(methods$idref_grouping), each = max(.idt_data$rn)),
         x = rep(1:max(.idt_data$rn), times = length(unique(methods$idref_grouping)))
       ),
       by = "idref_grouping"
     ) %>%
-    mutate(
+    dplyr:: mutate(
       color = case_when(
         idref_grouping == "A" ~ "a",
         is_best      == TRUE ~ "b",

@@ -1,0 +1,21 @@
+Package: elktoeChemistry
+Title: Data and code for Elktoe Chemistry project
+Version: 0.1.0
+Authors@R: 
+    person(given = "Bradley",
+           family = "Saul",
+           role = c("aut", "cre"),
+           email = "bradleysaul@gmail.com",
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: What the package does (one paragraph).
+Depends:
+   dplyr,
+   ggplot2
+Imports:
+   readxl  (>= 1.3),
+   stringr (>= 1.4)
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1

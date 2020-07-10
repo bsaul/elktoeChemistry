@@ -1,27 +1,19 @@
 # Elktoe valve chemistry
 
-## About this project
+## About this repository and site
 
-TODO
+This repository contain the data and code used in the analyses for the paper, "TBD". The project website contains complete documentation of the analysis pipeline.
 
-## Team members
+## Project team
 
-TODO
+* Bradley C. Saul
+* Nathan R. Miller: Department of Geological Sciences, University of Texas
+* Heather Gunn: Department of Geological Sciences, University of Texas
+* Michael Walter: Department of Marine, Earth and Atmospheric Sciences, North Carolina State University
+* Scott Salger: School of Sciences, Barton College
+* Mike Gangloff Department of Biology, Appalachian State University
+* Jay F. Levine Department of Marine, Earth and Atmospheric Sciences, North Carolina State University
 
 ## File Organization
 
-* /archive: various files no longer needed or git tracked
-* /data: analytic data file (produced by scripts in /programs)
-* /extdata: external data files including the LA-ICP-MS chemistry files, valve scans and the
-measurement data
-* /img: various images produced by scripts in the analysis process including:
-   * /QC_images: images used in the Quality Control step
-* /manuscript: files used to produce the study manuscript
-* /notes: various emails and notes collected during the study
-* /packrat: the [packrat directory](https://rstudio.github.io/packrat/)
-* /programs: the data processing and analysis scripts for this study. 
-    * Files beginning with 0# are related to data processing.
-    * 1# are analysis scripts and/or directories; e.g.:
-        * /10_study_site: produces the study website
-
-   
+TODO

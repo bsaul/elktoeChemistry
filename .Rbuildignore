@@ -1,0 +1,11 @@
+^renv$
+^renv\.lock$
+^LICENSE\.md$
+^.*\.Rproj$
+^\.Rproj\.user$
+^extdata.*$
+^figures.*$
+^notes.*$
+^manuscript.*$
+^programs.*$
+^archive.*$

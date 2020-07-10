@@ -23,6 +23,21 @@ abstract: >
 keywords: TODO
 ---
 
+# TODO List (as of `r Sys.Date()`)
+
+* [ ] clean up map; is it BW ready? Better color of labels. Remove lat/lon labels. Fewer lat/lon breaks. caption
+* [ ] update figure describing data processing. crop valve. remove "step 3". Show GAM fitting for single element.
+* [ ] develop online supplement
+  * should contain: data preparation and analysis code
+  * detailed description of LA-ICP-MS
+  * any add'l analyses
+* [ ] text edits/updates
+  * develop results section and ensure that it aligns with discusson
+  * discuss design of transects for future studies: fly-scanning along prismatic layer and/or (if possible) some sort of probabilistic sampling within each valve (even simply a systematic sample every X units from umbo to mantle.)
+* [ ] push code to github; data to where (?)
+* [ ] format manuscript for target journal
+
+
 \doublespacing
 
 # Introduction 

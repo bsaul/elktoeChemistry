@@ -1,0 +1,293 @@
+---
+title: "Data Preparation"
+author: "Bradley Saul"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Data Preparation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+params: 
+   file_baseline_specimens: "../extdata/Mussel Metrics Data - Baseline.xlsx"
+   dir_laicpms_source: "../extdata/Data/Geochemical Time-Series"
+   file_out_chemistry: "../data/valve_chemistry.rds"
+   file_out_lod: "../data/lower_detection_limits.rds"
+   file_lod: "../extdata/Std recoveries comp D1-7 reproc.xlsx"
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+This document details the process of preparing the valve data for analysis.
+
+# Collecting Necessary Data
+
+The `elktoeChemistry` R package contains the source data and functions needed for the data processing.
+
+```{r message=FALSE}
+library(elktoeChemistry)
+library(stringr)
+```
+
+
+## Covariates and Outcomes
+
+The `elktoeChemistry` packages includes a `data.frame` with information on the study specimens exposed to the experiment. Variables ending in:
+
+* `_0` are measurements at baseline;
+* `_1` are measurements when the specimen was pulled from experiment;
+* `_d` are differences between baseline and end (`*_1 - *_0`).
+
+```{r}
+str(mussels_wide)
+```
+  
+
+### Add baseline specimens
+
+The `mussels_wide` dataset does not include data on those specimen held out at baseline. The file ``r params$file_baseline_specimens`` contains these data. We add these data to `mussels_wide`.
+
+```{r}
+baseline_specimens <- 
+  readxl::read_xlsx(
+    path = params$file_baseline_specimens,
+    skip = 1L,
+    col_names = c("id", "weight_g_0", 
+                  "length_mm_0", "width_mm_0", "height_mm_0", 
+                  "gravid", "species")
+  ) %>%
+  filter(!is.na(id)) %>%
+  mutate_at(2:5, as.numeric) %>%
+  mutate(
+    buoyant_weight_g_0 = if_else(species == "A. rav.",
+                                 weight_g_0,
+                                 NA_real_),
+    dry_weight_g_0 = if_else(species == "L. fas.",
+                             weight_g_0,
+                             NA_real_),
+    volume_0 = length_mm_0 * width_mm_0 * height_mm_0,
+    species = if_else(species == "A. rav.",
+                      "A. raveneliana",
+                      "L. fasciola")
+  ) %>%
+  select(-weight_g_0, -gravid)
+
+# Append to mussels_wide
+mussels_wide <-
+  mussels_wide %>%
+  bind_rows(baseline_specimens)
+```
+
+## LA-ICP-MS Chemistry data
+
+The chemical time series data from the LA-ICP-MS runs are contained ``r params$dir_laicpms_source``. Each transect is contained in a separate `xlsx` file. Some transects are excluded from analysis due to the shape of the transect or other irregularities seen in the scans.
+
+```{r}
+# Files to exclude from analyses
+exclude_files <- c(
+   # Horizontal (fly-scanning) transects
+   "2-A4-4", "8-C474-5", "27-C531-2", 
+   "11-C482-1", "11-C483-1",
+   
+   # Excluding C497 due to unusual structure at the mantle edge
+   "16-C497-1", "16-C497-2", "16-C497-3",
+   
+   # ??? Per notes: This shell does not exist.
+   "45-P139-2" 
+)
+```
+
+
+```{r}
+valve_files <- list.files(
+  path         = params$dir_laicpms_source,
+  full.names   = TRUE,
+  recursive    = TRUE,
+  include.dirs = FALSE)
+
+# remove exclusions
+valve_files <- valve_files[!str_detect(valve_files, glue::glue_collapse(exclude_files, sep = "|"))]
+raw_data    <- purrr::map(valve_files, readxl::read_excel)
+sheets      <- purrr::map_chr(valve_files, readxl::excel_sheets)
+file_names  <- str_extract(valve_files, "(?<=[1-9]/).*(?=\\.xlsx)")
+names(raw_data) <- file_names
+```
+
+### Preimport consistency checks
+
+```{r}
+# Check sheet names == file name
+if(length(sheets) !=  length(file_names)){
+  warning("Different # of files and sheets")
+}
+
+valve_files[!str_detect(file_names, sheets)]
+```
+
+```{r}
+# Check that the column names are consistent
+colNames <- purrr::map(raw_data, names)
+index_nomatch <- !purrr::map_lgl(colNames, ~ all(.x %in% colNames[[1]]))
+
+if(any(index_nomatch)){
+  warning("Some columns don't match")
+}
+
+colNames[index_nomatch]
+```
+
+### Import chemistry data
+
+```{r}
+valve_chemistry <- 
+  bind_rows(raw_data, .id = "file_name") %>%
+  dplyr::select(
+    file_name, 
+    time = ElapsedTime_s, 
+    scan_distance =`Dist (µm)`,
+    note = Notes, 
+    everything()
+  ) 
+
+str(valve_chemistry)
+```
+
+### Post-import consistency checks
+
+```{r}
+hold <- valve_chemistry %>% filter(!is.na(scan_distance)) %>%
+  group_by(file_name) %>%
+  mutate(
+    x_time = c(0.576, diff(time)),
+    x_dist = c(2.88, diff(scan_distance)),
+    has_on = str_detect(note, "[Oo]n"),
+    has_off = str_detect(note, "[Oo]ff")
+  )
+
+# Are all the elapsed times the same within 0.01
+hold %>%
+  summarise(
+    same_time_diffs = all((x_time - 0.01) < x_time[2] & 
+                           x_time[2] < (x_time + 0.01), na.rm = TRUE)
+  ) %>%
+  filter(!same_time_diffs) %>%
+  nrow() %>%
+  {if(. > 0) warning("not all the elapsed time are within 0.01")}
+
+# Are all the scan distances within 0.01?
+hold %>%
+  summarise(
+    same_dist_diffs = all((x_dist - 0.01) < x_dist[1] & 
+                           x_dist[1] < (x_dist + 0.01), na.rm = TRUE)
+  ) %>%
+  filter(!same_dist_diffs) %>%
+  nrow() %>%
+  {if(. > 0) warning("not all the scan distances are within 0.01")}
+
+## Do all files have an "on" and "off" indicator in the note field?
+hold %>%
+  summarise(
+    n_on    = sum(has_on, na.rm = TRUE),
+    n_off   = sum(has_off, na.rm = TRUE),
+    any_on  = any(has_on, na.rm = TRUE),
+    any_off = any(has_off, na.rm = TRUE)
+  ) %>%
+  filter(
+    !any_on | !any_off | n_on > 1 | n_off > 1
+  ) %>%
+  nrow() %>%
+  {if(. > 0) warning("not all files have on and off indicators")}
+
+```
+
+### Prepare chemistry data for merging with valve measurements
+
+Next, we identify the laser on/off points which were manually annotated in the `xlsx` files and prepare the `valve_chemistry` data for further processing. The result is written to ``r params$file_out_chemistry``
+
+```{r}
+valve_chemistry <-
+  valve_chemistry %>%
+  group_by(file_name) %>%
+  # Identify laser on/off points
+  mutate(
+    is_laser_on  = str_detect(note, "[Oo]n$"),
+    is_laser_off = str_detect(note, "[Oo]ff$"),
+    is_laser_on  = if_else(is.na(is_laser_on), FALSE, is_laser_on),
+    is_laser_off = if_else(is.na(is_laser_off), FALSE, is_laser_off),
+    on_row       = which(is_laser_on),
+    off_row      = which(is_laser_off),
+    last_val_row = min(which(is.na(Ca43_CPS)) - 1),
+    rn           = row_number(),
+    # scan_distance is NA before the on_row, add it back
+    scan_distance  = if_else(
+      is.na(scan_distance), 
+      -2.881 * (on_row - rn) ,
+      scan_distance)
+  ) %>%
+  # Remove rows at end of each file with no data
+  filter(rn <= last_val_row) %>%
+  dplyr::select(
+    -is_laser_on, -is_laser_off, -rn, -on_row, -off_row, -last_val_row
+  ) %>%
+  ungroup() %>%
+  mutate(file_name = clean_ids(file_name)) %>%
+  tidyr::separate(file_name, sep = "-", into = c("id", "transect")) %>%
+  dplyr::select(id, transect, distance = scan_distance, everything(), -time, -note)
+
+saveRDS(valve_chemistry, file = params$file_out_chemistry)
+```
+
+## Lower limit of detection data
+
+The excel file ``r params$file_lod``  was prepared by the UT LA-ICP-MS lab and contains lower limit of detection information data. Here, we use his data to find the average per element per 
+drawer and write the results to ``r params$file_out_lod``.
+
+```{r}
+readxl::read_excel(
+   path = params$file_lod,
+   sheet = "Without Stats"
+  ) %>%
+  mutate(
+    standard = stringr::str_extract(Comments, "614|612")
+  ) %>%
+  group_by(standard, Date) %>%
+  mutate(
+    standard_run = 1:n(),
+  ) %>%
+  ungroup() %>%
+  select(-Date, -Time, -"Duration(s)", -DateTime, -Comments) %>%
+  filter(Exclude == 0) %>%
+  select(
+    drawer = Drawer, output = Output, source_file = `Source file`, 
+    standard, standard_run, matches("CPS|ppm")
+  )  %>%
+  tidyr::gather(
+    key = "key", value = "value", 
+    -drawer, -output, -source_file, -standard, -standard_run,
+     na.rm = TRUE) %>%
+  mutate(
+    drawer       = as.numeric(stringr::str_remove(drawer, "D")),
+    measure      = stringr::str_replace(stringr::str_extract(key, "_(Int2SE|LOD)$"), "_", ""),
+    measure      = if_else(is.na(measure), "raw", measure),
+    element      = stringr::str_replace(key, "_(Int2SE|LOD)$", "")
+  ) %>%
+  select(
+    drawer, standard, output, source_file, standard_run, element, measure, value
+  ) %>%
+  # Just keep the lower limit of detection
+  filter(measure == "LOD") %>%
+  group_by(element, drawer, standard) %>%
+  summarise(
+    lod_mean = mean(value)
+  ) %>%
+  group_by(element, drawer) %>%
+  summarise(
+    lod = mean(lod_mean)
+  ) %>%
+  saveRDS(file = params$file_out_lod)
+
+```
