@@ -7,6 +7,8 @@
 apply_ref_method(.valve_data, .l, .n)
 }
 \arguments{
+\item{.valve_data}{\code{valve_data}}
+
 \item{.l}{a list containing \code{rt}, \code{zf}, and \code{zfa}}
 
 \item{.n}{a string naming the method}

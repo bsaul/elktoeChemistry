@@ -7,12 +7,21 @@ vignette: >
   %\VignetteIndexEntry{Data Preparation}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+bibliography: vignettes.bib
 params: 
-   file_baseline_specimens: "../extdata/Mussel Metrics Data - Baseline.xlsx"
-   dir_laicpms_source: "../extdata/Data/Geochemical Time-Series"
-   file_out_chemistry: "../data/valve_chemistry.rds"
-   file_out_lod: "../data/lower_detection_limits.rds"
-   file_lod: "../extdata/Std recoveries comp D1-7 reproc.xlsx"
+   inputs:
+     value:
+       chemistry_dir:  "../extdata/Data/Geochemical Time-Series"
+       baseline_specimens: "../extdata/Mussel Metrics Data - Baseline.xlsx"
+       lod:  "../extdata/Std recoveries comp D1-7 reproc.xlsx"
+       meausurements: "../extdata/Data/Bivalve Transect Datums.xlsx"
+   outputs: 
+     value: 
+       chemistry: "../data/valve_chemistry.rds"
+       lod: "../data/lower_detection_limits.rds"
+       measurements: "../data/valve_measurements.rds"
+       valve_data: "../data/valve_data.rds"
+       element_info: "../data/element_info.rds"
 ---
 
 ```{r setup, include = FALSE}
@@ -22,7 +31,24 @@ knitr::opts_chunk$set(
 )
 ```
 
-This document details the process of preparing the valve data for analysis.
+# Using this document
+
+This document both details the process of preparing the valve data for analysis and when executed performs the data preparation steps.
+
+The header of the document specifies the locations of the input files (or directories): 
+
+```{r}
+print(params$inputs)
+```
+
+as well as the outputs:
+
+```{r}
+print(params$outputs)
+```
+
+These settings can be changed as needed.
+
 
 # Collecting Necessary Data
 
@@ -49,12 +75,12 @@ str(mussels_wide)
 
 ### Add baseline specimens
 
-The `mussels_wide` dataset does not include data on those specimen held out at baseline. The file ``r params$file_baseline_specimens`` contains these data. We add these data to `mussels_wide`.
+The `mussels_wide` dataset does not include data on those specimen held out at baseline. The file ``r params$inputs$baseline_specimens`` contains these data. We add these data to `mussels_wide`.
 
 ```{r}
 baseline_specimens <- 
   readxl::read_xlsx(
-    path = params$file_baseline_specimens,
+    path = params$inputs$baseline_specimens,
     skip = 1L,
     col_names = c("id", "weight_g_0", 
                   "length_mm_0", "width_mm_0", "height_mm_0", 
@@ -84,7 +110,7 @@ mussels_wide <-
 
 ## LA-ICP-MS Chemistry data
 
-The chemical time series data from the LA-ICP-MS runs are contained ``r params$dir_laicpms_source``. Each transect is contained in a separate `xlsx` file. Some transects are excluded from analysis due to the shape of the transect or other irregularities seen in the scans.
+The chemical time series data from the LA-ICP-MS runs are contained ``r params$inputs$chemistry_dir``. Each transect is contained in a separate `xlsx` file. Some transects are excluded from analysis due to the shape of the transect or other irregularities seen in the scans.
 
 ```{r}
 # Files to exclude from analyses
@@ -104,7 +130,7 @@ exclude_files <- c(
 
 ```{r}
 valve_files <- list.files(
-  path         = params$dir_laicpms_source,
+  path         = params$inputs$chemistry_dir,
   full.names   = TRUE,
   recursive    = TRUE,
   include.dirs = FALSE)
@@ -206,7 +232,7 @@ hold %>%
 
 ### Prepare chemistry data for merging with valve measurements
 
-Next, we identify the laser on/off points which were manually annotated in the `xlsx` files and prepare the `valve_chemistry` data for further processing. The result is written to ``r params$file_out_chemistry``
+Next, we identify the laser on/off points which were manually annotated in the `xlsx` files and prepare the `valve_chemistry` data for further processing. The result is written to ``r params$outputs$chemistry``
 
 ```{r}
 valve_chemistry <-
@@ -238,17 +264,17 @@ valve_chemistry <-
   tidyr::separate(file_name, sep = "-", into = c("id", "transect")) %>%
   dplyr::select(id, transect, distance = scan_distance, everything(), -time, -note)
 
-saveRDS(valve_chemistry, file = params$file_out_chemistry)
+saveRDS(valve_chemistry, file = params$outputs$chemistry)
 ```
 
 ## Lower limit of detection data
 
-The excel file ``r params$file_lod``  was prepared by the UT LA-ICP-MS lab and contains lower limit of detection information data. Here, we use his data to find the average per element per 
-drawer and write the results to ``r params$file_out_lod``.
+The excel file ``r params$file_lod``  was prepared by the UT LA-ICP-MS lab and contains lower limit of detection information data for elemental concentrations. Here, we use his data to find the average per element per drawer and write the results to ``r params$outputs$lod``.
 
 ```{r}
-readxl::read_excel(
-   path = params$file_lod,
+lod <-
+  readxl::read_excel(
+   path = params$inputs$lod,
    sheet = "Without Stats"
   ) %>%
   mutate(
@@ -287,7 +313,778 @@ readxl::read_excel(
   group_by(element, drawer) %>%
   summarise(
     lod = mean(lod_mean)
+  ) 
+
+saveRDS(lod, file = params$outputs$lod)
+```
+
+
+## Measurement Data
+
+This section loads and saves measurements of valves registered by using a ruler to measure distance between points along each transect manually identified as key transition points a valve's anatomy (e.g., the transition between nacre and prismatic layer).
+
+Each sheet of ``r params$inputs$meausurements`` cooresponds to a drawer from the LA-ICP-MS processing. T
+
+```{r}
+sheets        <- readxl::excel_sheets(params$inputs$meausurements)
+import_sheets <- 1:6  ## Note excluding Drawer 7 (see below)
+
+valve_measurements <- 
+  purrr::map_dfr(
+    .x = sheets[import_sheets], 
+    .f = ~ read_measurements_sheet(params$inputs$meausurements, .x) %>% 
+      munge_measurements()
   ) %>%
-  saveRDS(file = params$file_out_lod)
+  
+  bind_rows(
+    ## Drawer 7 import ####
+    # the structure of Drawer is slightly different from the others and 
+    # requires special handling
+    
+    readxl::read_excel(
+      path = params$inputs$meausurements,
+      sheet = 7) %>%
+      filter(grepl("^PAT", `...2`)) %>%
+      dplyr::select(file_name = `...2`, matches("Length")) %>% 
+      filter(!is.na(`Length from 1 to 2 (mm)`)) %>%
+      mutate(
+        file_name = stringr::str_remove(file_name, "^PAT:"),
+        drawer    = 7) %>%
+      munge_measurements()
+  ) %>%
+  
+  ## HARD CODES #####
+  add_row(
+    # Added 2018-11-10:
+    # 12-C485-2 is missing the measurement from 1 to 4 (the prismatic/periostracum 
+    # transition). The bivalve datum spreadsheet notes: This shell is broken 
+    # and does not have a point 4 before the break. Setting this distance to 10
+    # samples before the transition to point 5
+    file_name = "12-C485-2",
+    drawer    = 2,
+    from      = "1",
+    to        = "4",
+    distance  = 18.275 - (10 * .02881)
+  )  %>%
+  
+  mutate(
+    # Added 2018-11-10:
+    # The units of 1 to 5 measurement for 2A6.1 are off by 10^3
+    distance = if_else(file_name == "2A6.1" & to == 5, distance/1000, distance)
+    
+    # Added 2018-11-10:
+    # Removed (at a later date)
+    # if the distance from 1 to 2 is 0 then there is no gap from laser on to
+    # inner epoxy, but this leads to non-unique breaks in the create_layer_idFUN
+    # function ==> adding small gap
+    # distance = case_when(
+    #   to == "2" & distance == 0 ~ -0.02881 ,
+    #   TRUE ~ distance
+    # )
+    
+  ) %>%
+  
+  ## END HARD CODES ##
+  
+  # Remove exclusions 
+  filter(!(file_name %in% exclude_files)) %>%
+  filter(!is.na(distance)) %>%
+  mutate(file_name = clean_ids(file_name)) %>%
+  tidyr::separate(file_name, sep = "-", into = c("id", "transect")) %>%
+  group_by(drawer, id, transect) %>%
+  
+  # put distance in same units as chemistry data
+  mutate(distance = distance * 100) %>% 
+  arrange(id, transect, from, to) %>% 
+  
+  # 2018-11-11: remove cases where to == "2" and distance == 0
+  # These indicate records without a nacre measurement and interfere with the 
+  # processes below
+  filter(!(to == "2" & distance == 0)) %>%
+  
+  # Create the patterns of layer transitions
+  mutate(
+    # NOTE: this works because all(from == "1") == TRUE; this could be generalized to a 
+    # data format where from varies
+    layer_transition = case_when(
+      to == "2" ~ "ipx_ncr",
+      # Handle cases where transect does not cross nacre
+      to == "3" &   "2" %in% to  ~ "ncr_psm",
+      to == "3" & !("2" %in% to) ~ "ipx_psm",
+      to == "4" ~ "psm_pio",
+      to == "5" ~ "pio_opx",
+      to == "6" ~ "opx_off"
+    ),
+    annuli_transition    = str_extract(to, "[A-Z]"),
+    is_layer  = (to %in% 1:6),
+    is_annuli = str_detect(to, "[A-Z]")
+  ) %>%
+  tidyr::nest() %>%
+  
+  # Add a record for laser on -> inner epoxy
+  mutate(data = purrr::map(
+    .x = data, 
+    .f = ~ .x %>%
+         add_row(
+           from     = "1",
+           to       = "1",
+           distance = 0,
+           layer_transition = "on_ipx",
+           annuli_transition = NA_character_,
+           is_layer   = TRUE,
+           is_annuli  = FALSE,
+           .before   = 1 )
+  )
+  ) %>%
+  tidyr::unnest() %>%
+  ungroup()
+```
+
+### Measurements consistency checks
+
+```{r}
+# Which id-transect have missing layer transition measurments?
+
+valid_patterns <- c("on_ipx:(ipx_ncr:ncr_psm|ipx_psm):psm_pio:pio_opx:opx_off")
+
+valve_measurements %>%
+  filter(is_layer) %>%
+  group_by(id, transect) %>%
+  summarise(
+    meas_pattern = paste0(layer_transition, collapse = ":"),
+    has_valid_pattern = str_detect(meas_pattern, valid_patterns)
+  ) %>%
+  filter(!has_valid_pattern)
+```
+
+The resulting dataset identifies the distances between layer transitions (e.g. epoxy to nacre, nacre to prismatic layer, etc) along each LA-ICP-MS transect.
+
+The values in the `from` and `to` columns correspond to the following points on a valve, starting for the inner side of the value:
+
+Numbered datums
+
+* 1 = laser on point in epoxy
+* 2 = interior shell/epoxy contact
+* 3 = nacreous/prismatic layer contact
+* 4 = prismatic/periostracum contact
+* 5 = periostracum/epoxy contact
+* 6 = laser off point in epoxy
+
+Alphabetical datums
+
+* A = youngest (last) annuli
+* B = next youngest annuli
+* C = next youngest annuli
+* D = etc
+* A' = same annuli as A, but next transect toward umbo
+* B' = same annuli as B, but next transect toward umbo
+* C' = etc.
+* A" = same annuli as A and A', but next transect toward umbo
+* B" = etc.
+
+
+```{r}
+str(valve_measurements)
+
+## Save measurements ####
+saveRDS(valve_measurements, file = params$outputs$measurements)
+```
+
+# Linking Anatomical Location to Chemistry
+
+This section joins the `valve_chemistry` data with the `valve_measurements` data by `id/transect`.
+
+## Checks before linking
+
+```{r}
+chem_ids <- unique(paste0(valve_chemistry$id, valve_chemistry$transect))
+meas_ids <- unique(paste0(valve_measurements$id, valve_measurements$transect))
+
+## IDs founds in chemistry data but not in measurement
+setdiff(chem_ids, meas_ids)
+## IDs founds in measurement data but not in chemistry
+setdiff(meas_ids, chem_ids)
+
+## IDs in mussels_wide but not in valve_chemistry
+setdiff(mussels_wide$id, unique(valve_chemistry$id))
+# C497 was excluded
+# Not sure about the others
+
+##  IDs in valve_chemistry but not in mussels_wide
+setdiff(unique(valve_chemistry$id), mussels_wide$id) 
+# most (all?) of these are baseline IDs
+```
+
+## Perform join
+
+```{r}
+valve_data <- 
+  inner_join(
+    valve_chemistry %>%
+      group_by(id, transect) %>%
+      mutate(obs = 1:n()) %>%
+      select(-distance, -contains("CPS")) %>%
+      tidyr::nest(.key = "chemistry"),
+    valve_chemistry %>%
+      group_by(id, transect) %>%
+      mutate(obs = 1:n()) %>%
+      select(id, transect, distance, obs, contains("CPS")) %>%
+      tidyr::nest(.key = "distance"),
+    by = c("id", "transect")
+  ) %>%
+  
+  ## Link chemistry & datum measurements ####
+  inner_join(
+    valve_measurements %>%
+      # dplyr::select(-drawer) %>%
+      group_by(id, transect) %>%
+      tidyr::nest(.key = "measures"),
+    by = c("id", "transect")
+  )
+```
+
+## Add LOD information
+
+```{r}
+valve_data <- 
+  valve_data %>%
+  mutate(
+    drawer = purrr::map_dbl(measures, ~ .x$drawer[1])
+  ) %>%
+  left_join(
+    lod %>%
+      group_by(drawer) %>%
+      tidyr::nest(.key = "lod"),
+    by = "drawer"
+  ) 
+```
+
+## Align anatomy with chemistry
+
+This section tests various methods of identifying reference points from which to calculate distances. We then select the best method for each transect as the one with the smallest mean squared error (difference between the transect distance measured manually and the distance between the inner and outer reference points determined by each method).
+
+### Alignment Methods
+
+The following list specifies the methods used to find alignment. Each element of the list is a different method or different arguments for a method. For example, method `A` uses the epoxy on (`on_`) transition point as the reference transition point and then uses that point as the "zero point" from which to align the anatomy. Method `B` uses the inner expoxy transition point (`ipx_`) as the reference transition point, then from there identifies the zero point using the `id_changepoint` function which based on the `changepoint::cpt.meanvar` function [@killick2014changepoint]. Except for method `A`, the methods are paired: one to identify the inner edge of the valve, the another to identify the outer edge. The pairs are `B-C`, `D-E`, etc.
+
+```{r}
+## Specifications for the alignment methods to test ####
+test_methods <- list(
+  A = list(
+    rt = "on_",
+    zf = identity,
+    zfa = list()
+  ),
+  B = list(
+    rt = "ipx_",
+    zf = id_changepoint,
+    zfa = list(.var = "Ca43_CPS", .use_up_to_row = 150, .method = "AMOC",
+               .outer = FALSE)
+  ),
+  C = list(
+    rt = "_opx",
+    zf = id_changepoint,
+    zfa = list(.var = "Ca43_CPS", .use_up_to_row = 150, .method = "AMOC", 
+               .outer = TRUE)
+  ),
+  D = list(
+    rt = "ipx_",
+    zf = id_changepoint,
+    zfa = list(.var = "Pb208_CPS", .use_up_to_row = 150, .method = "AMOC", 
+               .outer = FALSE)
+  ),
+  E = list(
+    rt = "_opx",
+    zf = id_changepoint,
+    zfa = list(.var = "Pb208_CPS", .use_up_to_row = 150, .method = "AMOC",
+               .outer = TRUE)
+  ),
+  `F` = list(
+    rt = "ipx_",
+    zf = pbca_minpoint,
+    zfa = list(.use_up_to_row = 150, .outer = FALSE)
+  ),
+  G = list(
+    rt = "_opx",
+    zf = pbca_minpoint,
+    zfa = list(.use_up_to_row = 150, .outer = TRUE)
+  ),
+  H = list(
+    rt = "ipx_",
+    zf = maxpoint,
+    zfa = list(.var = "ratio", .use_up_to_row = 150, .outer = FALSE)
+  ),
+  I = list(
+    rt = "_opx",
+    zf = maxpoint,
+    zfa = list(.var = "ratio", .use_up_to_row = 150, .outer = TRUE)
+  ),
+  J = list(
+    rt = "ipx_",
+    zf = maxpoint,
+    zfa = list(.var = "ratio", .use_up_to_row = 150,
+               .threshold = function(x) quantile(x, .95), .outer = FALSE)
+  ),
+  K = list(
+    rt = "_opx",
+    zf = maxpoint,
+    zfa = list(.var = "ratio", .use_up_to_row = 150, 
+               .threshold = function(x) quantile(x, .95), .outer = TRUE)
+  ),
+  L = list(
+    rt = "ipx_",
+    zf = maxpoint,
+    zfa = list(.var = "Pb208_CPS", .use_up_to_row = 150, .threshold = 1000,
+               .outer = FALSE)
+  ),
+  M = list(
+    rt = "_opx",
+    zf = maxpoint,
+    zfa = list(.var = "Pb208_CPS", .use_up_to_row = 150, .threshold = 1000, 
+               .outer = TRUE)
+  )
+)
 
 ```
+
+We apply all these methods:
+```{r}
+method_tests <- purrr::map2_dfr(
+  .x = test_methods, 
+  .y = names(test_methods), 
+  .f = ~ apply_ref_method(valve_data %>% select(-lod), .x, .y)) %>%
+  mutate(idref_method = factor(idref_method))
+```
+
+
+We then calculate the lengths of each transect within a valve as measured "by hand".
+
+```{r}
+valve_lengths <- 
+  valve_measurements %>%
+  group_by(id, transect) %>%
+  filter(
+    sum(grepl("ipx_", layer_transition)) > 0,
+    sum(grepl("opx_", layer_transition)) > 0
+  ) %>%
+  summarise(
+    on_opx_distance = distance[grepl("_opx", layer_transition)],
+    on_ipx_distance = distance[grepl("ipx_", layer_transition)], 
+    valve_length = on_opx_distance - on_ipx_distance
+  )  %>%
+  mutate(
+    idt   = paste(id, transect, sep = "_")
+  ) %>% ungroup %>%
+  select(idt, valve_length)
+```
+
+
+```{r}
+##  Detected inner/outer edges and calculate lengths between the two ####
+tm     <- test_methods[2:length(test_methods)]
+tm_lgl <- c(purrr::map_lgl(tm, ~ .x$zfa$.outer))
+```
+
+
+```{r, warning=FALSE}
+# lengths using all methods except "A"
+chem_valve_lengths <- 
+  method_tests %>% 
+  filter(idref_method != "A") %>%
+  group_by(idref_method, id, transect, .drop = TRUE) %>%
+  summarise(
+    outer_edge_rn = min(which(layer == "opx"), na.rm = TRUE),
+    inner_edge_rn = max(which(layer == "ipx"), na.rm = TRUE)
+  )  %>%
+  mutate(
+    use_inner = idref_method %in% names(tm)[!tm_lgl],
+    use_outer = idref_method %in% names(tm)[tm_lgl],
+    idref_grouping = case_when(
+      idref_method %in% c("B", "C") ~ "B-C",
+      idref_method %in% c("D", "E") ~ "D-E",
+      idref_method %in% c("F", "G") ~ "F-G",
+      idref_method %in% c("H", "I") ~ "H-I",
+      idref_method %in% c("J", "K") ~ "J-K",
+      idref_method %in% c("L", "M") ~ "L-M",
+      idref_method %in% c("N", "O") ~ "N-O"
+    )
+  ) %>%
+  group_by(idref_grouping, id, transect) %>%
+  summarise(
+    inner_edge_rn = inner_edge_rn[use_inner],
+    outer_edge_rn = outer_edge_rn[use_outer]
+  ) %>%
+  mutate(
+    valve_obs = outer_edge_rn - inner_edge_rn,
+    auto_detect_valve_length = valve_obs * 2.881,
+    idt   = paste(id, transect, sep = "_")
+  ) %>% 
+  ungroup() %>%
+  select(idref_grouping, inner_edge_rn, outer_edge_rn,
+         idt, auto_detect_valve_length)
+
+# lengths using method "A"
+chem_valve_lengths_A <- 
+  method_tests %>% 
+  filter(idref_method == "A") %>%
+  group_by(idref_method, id, transect) %>%
+  summarise(
+    outer_edge_rn = min(which(layer == "opx"), na.rm = TRUE),
+    inner_edge_rn = max(which(layer == "ipx"), na.rm = TRUE)
+  ) %>% 
+  ungroup() %>%
+  mutate(
+    idref_method = as.character(idref_method),
+    idt   = paste(id, transect, sep = "_")
+  ) %>% 
+  select(
+    idref_grouping = idref_method, idt, inner_edge_rn, outer_edge_rn
+  )
+
+chem_valve_lengths <- bind_rows(chem_valve_lengths, chem_valve_lengths_A)
+```
+
+```{r}
+
+## Compare valve lengths measured to valve lengths auto detected ####
+valve_length_compare <- chem_valve_lengths %>%
+  left_join(valve_lengths, by = c("idt")) %>%
+  mutate(
+    difference = auto_detect_valve_length - valve_length,
+    rel_diff   = difference/valve_length
+  )
+
+best_method_by_idt <- 
+  valve_length_compare %>%
+  filter(idref_grouping != "A", !is.na(rel_diff)) %>%
+  left_join(
+    chem_valve_lengths_A %>% select(idt, A_iedge = inner_edge_rn), 
+    by = "idt"
+  ) %>%
+  group_by(idt, .drop = TRUE) %>%
+  mutate(
+    is_min_rel_diff   = abs(rel_diff) == min(abs(rel_diff), na.rm = TRUE),
+    iedge_Adiff       = abs(A_iedge - inner_edge_rn)
+  ) %>%
+  filter(is_min_rel_diff) %>%
+  mutate(
+    is_min_Adiff = iedge_Adiff == min(iedge_Adiff)
+  ) %>% 
+  # filter(sum(is_min_Adiff) > 1) %>%
+  summarise(
+    which_method = ifelse(sum(is_min_Adiff) > 1,
+                          sample(1:length(is_min_Adiff), 1),
+                          1),
+    best_method   = idref_grouping[which_method],
+    inner_edge_rn = inner_edge_rn[which_method],
+    outer_edge_rn = outer_edge_rn[which_method],
+    difference    = difference[which_method],
+    rel_diff      = rel_diff[which_method]
+  ) %>%
+  select(-which_method)
+
+valve_length_compare <- bind_rows(
+  valve_length_compare,
+  mutate(best_method_by_idt, idref_grouping  = "best"))
+```
+
+### Visualize differences between the manual measurement and aligment method
+
+In relative terms: 
+
+```{r}
+ggplot(
+  data = valve_length_compare %>% filter(idref_grouping != "A"),
+  aes(x = rel_diff)
+) + 
+  geom_dotplot(binwidth = .01, dotsize = .5) +
+  facet_grid(idref_grouping ~ .)
+```
+
+In absolute terms: 
+
+```{r}
+ggplot(
+  data = valve_length_compare %>% filter(idref_grouping != "A"),
+  aes(x = difference)
+) + 
+  geom_dotplot(binwidth = 10, dotsize = .25) +
+  facet_grid(idref_grouping ~ .)
+```
+
+#### QC: Plot inner edge Ca43_CPS and Pb208_CPS for each id/transect
+
+```{r}
+inner_edge <- method_tests %>% mutate(idt = paste(id, transect, sep = "_")) %>% 
+  filter(distance < 250, idref_method %in% c("A", "B", "D", "F", "H", "J", "L")) 
+
+inner_edge_best <- inner_edge %>%
+  left_join(
+    valve_length_compare %>%
+      filter(idref_grouping == "best") %>%
+      dplyr::select(idt, best_method),
+    by = "idt"
+  ) %>%
+  filter(str_detect(best_method, as.character(idref_method))) %>%
+  mutate(
+    idref_method = "best"
+  )
+
+plotdt <- bind_rows(inner_edge, inner_edge_best)
+```
+
+```{r}
+ggplot(
+  data = plotdt ,
+  aes(x = distance, y = Ca43_CPS, group = idt)
+) + geom_line(alpha = .2) +
+  facet_grid(idref_method ~ .)
+```
+
+```{r}
+ggplot(
+  data = plotdt ,
+  aes(x = distance, y = Pb208_CPS, group = idt)
+) + geom_line(alpha = .2) +
+  facet_grid(idref_method ~ ., scales = "free_y")
+```
+
+
+### Find grouping with smallest error 
+
+```{r}
+best_grouping <- 
+  valve_length_compare %>%
+  filter(idref_grouping != "A") %>%
+  group_by(idref_grouping) %>%
+  summarise(
+    MB  = mean(difference, na.rm = TRUE),
+    MSE = mean(difference^2, na.rm = TRUE),
+    MAD = mean(abs(difference), na.rm = TRUE),
+  ) %>%
+  filter(MSE == min(MSE)) %>% 
+  pull(idref_grouping)
+```
+
+#### QC: Check that for all id/transects relative difference is below a threshold
+
+```
+##
+rel_diff_threshold <- 0.02
+valve_length_compare %>%
+  filter(idref_grouping == best_method, abs(rel_diff) > rel_diff_threshold) %>%
+  arrange(desc(abs(rel_diff)))
+```
+
+### Update valve_data with the "best" aligment method
+
+```{r}
+distances <- 
+  method_tests %>%
+  mutate(idt = paste(id, transect, sep = "_")) %>%
+  filter(idref_method  %in% c("A", "B", "D", "F", "H", "J", "L")) %>%
+  left_join(
+    valve_length_compare %>% 
+      filter(idref_grouping == "best") %>% 
+      dplyr::select(idt, best_method),
+    by = "idt"
+  ) %>%
+  filter(str_detect(best_method, as.character(idref_method))) %>%
+  group_by(id, transect) %>%
+  tidyr::nest()
+
+valve_data <- valve_data %>%
+  select(-distance) %>%
+  left_join(distances, by = c("id", "transect")) %>%
+  select(everything(), distance = data)
+```
+
+## Final data preparations
+
+### Add information about annuli availablity within each id/transect
+
+```{r}
+valve_annual_layer_availability <- valve_data %>%
+  select(id, transect, distance) %>%
+  tidyr::unnest() %>%
+  group_by(id, transect) %>%
+  filter(layer == "ncr") %>%
+  group_by(annuli, add = TRUE) %>%
+  summarise(n = n() > 1) %>%
+  tidyr::spread(
+    key = annuli, value = n, fill = FALSE
+  )
+
+valve_data <- 
+  valve_data %>%
+  left_join(valve_annual_layer_availability, by = c("id", "transect")) 
+```
+
+### Compute age estimate from measured annuli
+
+```{r}
+n_annuli <-  
+  valve_data %>%
+  group_by(id) %>%
+  summarise_at(.vars = vars(matches("^[A-Z]$")), .funs = list(~ sum(.) > 0)) %>%
+  transmute(
+    id       = id,
+    n_annuli = rowSums(.[ , 2:ncol(.)])
+  )
+```
+
+### Add covariates and outcomes
+
+```{r}
+## Add covariates and outcome variables ####
+mussel_info <- 
+  valve_data %>% 
+  ungroup() %>%
+  distinct(id) %>%
+  # add river, site, and other info
+  left_join(mussels_wide, by = 'id') %>%
+  mutate(
+    prop_weight_lost = (buoyant_weight_g_1 - buoyant_weight_g_0)/buoyant_weight_g_0,
+    river = if_else(is.na(river), "Baseline", river),
+    site  = if_else(river == "Baseline", "Baseline", site),
+    species = if_else(is.na(species),
+                      true = case_when(
+                        grepl('A', id) ~ 'A. raveneliana',
+                        TRUE  ~ 'L. fasciola'),
+                      false = species),
+    moribund      = (prop_weight_lost < -0.3) * 1,
+    moribund      = ifelse(is.na(moribund), 0, moribund),
+    dead          = ifelse(river == 'Baseline', 0, dead),
+    final_status  = ifelse(dead, 'Dead', ifelse(moribund, 'Moribund', 'Alive')),
+    final_status  = factor(final_status, ordered = TRUE, 
+                           levels = c('Alive', 'Moribund', 'Dead')),
+    site_num      = as.integer(if_else(site == "Baseline", "1", substr(site, 6, 6))),
+    baseline_volume = volume_0,
+    baseline_weight = if_else(species == "A. raveneliana",
+                              buoyant_weight_g_0,
+                              dry_weight_g_0) 
+  ) %>%
+  dplyr::select(id, site, site_num, river, species, dead,
+                baseline_weight, baseline_volume,
+                prop_weight_lost, moribund, final_status) %>%
+  left_join(n_annuli, by = "id")
+
+valve_data <- 
+  valve_data %>%
+  left_join(mussel_info, by = "id")
+```
+
+### Add analysis subgrouping indicators
+
+* `agrp_any_A`: id has any transect with nacre annuli A
+* `agrp_any_B`: id has any transect with nacre annuli B
+* `agrp_first_transect`: first transect of an id
+* `agrp_first_transect_with_A`: first transect of an id with nacre annuli A
+* `agrp_transect_most_A:` longest transects of an id with the most annuli A
+* `agrp_first_transect_with_B`: first transect of an id with nacre annuli B
+* `agrp_first_transect_with_AB`: first transect of an id with nacre annuli A AND B
+
+
+```{r}
+# Find the transect of an id with the longest section of annuli A
+most_A <- valve_data %>%
+  select(id, transect, distance) %>%
+  tidyr::unnest(cols = c(distance)) %>%
+  group_by(id, transect, layer, annuli) %>%
+  summarise(d = n()) %>%
+  filter(layer == "ncr", annuli == "A") %>%
+  group_by(id) %>%
+  filter(d == max(d)) %>%
+  select(id, transect) %>%
+  mutate(
+    agrp_transect_most_A = TRUE
+  )
+
+valve_data <- 
+  valve_data %>%
+  group_by(id) %>%
+  mutate(
+    agrp_any_A                  = any(A),
+    agrp_any_B                  = any(B),
+    agrp_first_transect         = (transect == min(transect)),
+    firstA_transect             = ifelse(
+      agrp_any_A, transect[min(which(A))], ""),
+    firstB_transect             = ifelse(
+      agrp_any_B, transect[min(which(B))], ""),
+    agrp_first_transect_with_A  = (transect == firstA_transect),
+    agrp_first_transect_with_B  = (transect == firstB_transect),  
+    agrp_first_transect_with_AB = (transect == firstA_transect) &
+                                  (transect == firstB_transect)
+  ) %>% 
+  left_join(most_A, by = c("id", "transect")) %>%
+  mutate(
+    agrp_transect_most_A = if_else(is.na(agrp_transect_most_A), 
+                                   FALSE, 
+                                   agrp_transect_most_A)
+  ) %>%
+  select(-firstA_transect, -firstB_transect)
+```
+
+```{r}
+saveRDS(valve_data, file = params$outputs$valve_data)
+```
+
+## Create a dataset of data on elements measured by LA-ICP-MS
+
+This uses the `PeriodicTable` package [@ide2017periodic]
+
+```{r}
+data("periodicTable", package = "PeriodicTable")
+
+element_info <- 
+  left_join(valve_data$chemistry[[1]], 
+            valve_data$distance[[1]], 
+            by = "obs") %>%
+  select(-ends_with("value_raw"), -ends_with("censor")) %>%
+  select(-idt, -idref_method, -best_method) %>%
+  create_long_analysis_data() %>%
+  distinct(element) %>%
+    mutate(
+      symb = stringr::str_extract(substr(element, 1, 2), '[A-Za-z]+'),
+      element_label = stringr::str_replace(element, '_ppm', '')
+    ) %>%
+    left_join(
+      periodicTable %>%
+      dplyr::select(symb, name, group, period, type, mass, color),
+      by = 'symb')
+
+saveRDS(element_info, file = params$outputs$element_info)
+```
+
+# Et cetera
+
+## Randomly select two specimens of each species for measuring Ca concentrations
+
+```{r}
+valve_data %>%
+  select(id, transect,species, measures) %>%
+  mutate(
+    drawer = purrr::map_dbl(measures, ~.x$drawer[1])
+  ) %>%
+  select(-measures, -transect) %>%
+  distinct(id, species, drawer) %>%
+  group_by(species) %>%
+  tidyr::nest() %>%
+  mutate(
+    picks = purrr::map(data, ~sample_n(.x, 2))
+  ) %>%
+  select(-data) %>%
+  tidyr::unnest()
+  
+# Oops! Forgot to set the random seed. The results were:
+# A tibble: 4 x 3
+# species        id    drawer
+# <chr>          <chr>  <dbl>
+#   1 A. raveneliana C468       1
+# 2 A. raveneliana C531       3
+# 3 L. fasciola    P108       4
+# 4 L. fasciola    P106       4
+
+```
+
+# References

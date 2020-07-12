@@ -45,7 +45,8 @@ munge_measurements <- function(.data){
     ) %>%
     # There are character values in some of the columns that shouldn't be there
     dplyr::filter(
-      stringr::str_detect(value, "^([0-9]*\\.[0-9]*)|([0-9]+)$")  # want to capture both integer and real numbers
+      stringr::str_detect(value, "^([0-9]*\\.[0-9]*)|([0-9]+)$")  
+      # want to capture both integer and real numbers
     ) %>%
     dplyr::mutate(
       # Clean up the ids
@@ -306,8 +307,10 @@ create_long_analysis_data <- function(.wide_data){
 }
 
 #' Apply a reference method
+#' @param .valve_data \code{valve_data}
 #' @param .l a list containing \code{rt}, \code{zf}, and \code{zfa}
 #' @param .n a string naming the method
+#' @export
 
 apply_ref_method <- function(.valve_data, .l, .n){
   create_wide_analysis_data(
