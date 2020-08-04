@@ -1,24 +1,52 @@
-#-----------------------------------------------------------------------------#
-#   Title: Analysis functions
-#  Author: B Saul
-#    Date: 20181228
-# Purpose: Functions for analyzing valve data
-#-----------------------------------------------------------------------------#
-library(dplyr)
-valve_data   <- readRDS(file = "data/valve_data.rds")
-element_info <- readRDS(file = "data/element_info.rds")
-lod          <- readRDS(file = "data/lower_detection_limits.rds")
-outFile      <- "data/analysis_data.rds"
-source(here::here("programs", "1_create_analysis_data", "analysis_data_functions.R"))
+---
+title: "Prepare analysis data"
+author: "Bradley Saul"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Prepare analysis data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+bibliography: vignettes.bib
+params: 
+   inputs:
+     value:
+       valve_data: "../data/valve_data.rds"
+       element_info: "../data/element_info.rds"
+       lod: "../data/lower_detection_limits.rds"
+   outputs: 
+     value: 
+       analysis: "../data/analysis_data.rds"
+---
 
-#-----------------------------------------------------------------------------#
-# Options and settings
-## Signal Filters ####
-# A list containing the chosen signal filters used as sensitivity analyses.
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Preparing analysis data
+
+```{r}
+library(elktoeChemistry)
+library(dplyr)
+valve_data   <- readRDS(params$inputs$valve_data)
+element_info <- readRDS(params$inputs$element_info)
+lod          <- readRDS(params$inputs$lod)
+```
+
+## Settings
+
+##@  Signal Filters
+
+A list containing the chosen signal filters used as sensitivity analyses:
+
+```{r}
 signal_filters <- list(
+  
   base   = function(x, ds) identity(x),
-  # avg5   = function(x, ds) signal::fftfilt(rep(1, 5)/5, x),
-  # avg10  = function(x, ds) signal::fftfilt(rep(1, 10)/10, x),
+
   avg5_trunc_3sd = function(x, ds){
     rm <- zoo::rollmean(c(rep(0, 4), x), k = 5)
     rs <- zoo::rollapply(c(rep(0, 4), x), width = 5, FUN = sd)
@@ -26,6 +54,7 @@ signal_filters <- list(
     x[outliers] <- rm[outliers]
     x
   },
+  
   gam = function(x, ds){
     ds$y <- x
     p <- mgcv::gam(log(y) ~ s(distance, bs = "ts") + layer, data = ds)
@@ -33,10 +62,26 @@ signal_filters <- list(
   }
 )
 
-#-----------------------------------------------------------------------------#
-# Doing the heavy lifting...
+```
+
+# Create analysis data function
+
+The output of the following workflow produces a `function` that returns data ready to be analyzed. This function has four arguments:
+
+* `contrast` determines how the experimental units are groups. Options are:
+    * `"all"`: each site is an exposure level
+    * `"nobaseline"`: each site is an exposure level, baseline units are removed
+    * `"baseline_v_sites"`: baseline units are compared to sites as a single unit
+    * `"sites"`: compares Little Tennessee vs Tuckasegee, grouping sites within each river
+    * `"litn"`: compares sites within the Little Tennessee only
+    * `"tuck"`: compares sites within the Tuckasegee only
+* `group_by_valve`: an indicator of whether to group observations by valve (i.e. by specimen) (`TRUE`) or by transect (`FALSE`). Defaults to `FALSE`.
+* `test_data_FUN`: a `function(data){...}` applied within the pipeline used to create test statistic data. See example.
+* `...`: dots are passed to `filter_analysis_data` to filter observations by specimens, elements, analysis_group, transect layers, or signal (see above).
+
+```{r}
 valve_data %>%
-  ungroup() %>%
+  dplyr::ungroup() %>%
   ## Keep only necessary variables ####
   dplyr::select(
     # identifiers
@@ -138,12 +183,38 @@ valve_data %>%
   ) %>%
   
   ## Add the transect filter functions #### 
-  mutate(
+  dplyr::mutate(
     transect_filter = purrr::map(distance, ~ create_transect_filter(.x))
   )  %>%
   create_analysis_data_preparer() ->
   analysis_data 
 
-saveRDS(analysis_data, file = outFile)
+saveRDS(analysis_data, file = params$outputs$analysis)
+```
 
-rm(list = ls())
+## Example usage of analysis data `function`
+
+
+```{r}
+res <- 
+analysis_data(
+  contrast = "all",
+  test_data_FUN = function(data) data,
+  agrp      = "all",
+  elements  = "Ba_ppm_m138", # "all" returns all elements
+  signals   = c("base", "gam"), 
+  group_by_valve = TRUE,
+  transect_opts  = list(
+    .layers    = "psm",
+    .min_n_obs = 15L
+  )
+)
+```
+
+```{r}
+head(res)
+```
+
+```{r}
+str(res$data[[1]])
+```

@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Creates a "wide" analytic dataset — create_wide_analysis_data • elktoeChemistry</title>
+<title>Create analysis data filter — filter_analysis_data • elktoeChemistry</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Creates a "wide" analytic dataset — create_wide_analysis_data" />
-<meta property="og:description" content="Creates a &quot;wide&quot; analytic dataset" />
+<meta property="og:title" content="Create analysis data filter — filter_analysis_data" />
+<meta property="og:description" content="Create analysis data filter" />
 
 
 
@@ -118,57 +118,25 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Creates a "wide" analytic dataset</h1>
+    <h1>Create analysis data filter</h1>
     
-    <div class="hidden name"><code>create_wide_analysis_data.Rd</code></div>
+    <div class="hidden name"><code>filter_analysis_data.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Creates a "wide" analytic dataset</p>
+    <p>Create analysis data filter</p>
     </div>
 
-    <pre class="usage"><span class='fu'>create_wide_analysis_data</span>(
-  <span class='no'>.valve_data</span>,
-  <span class='no'>.reference_transition</span>,
-  <span class='no'>.zero_function</span>,
-  <span class='kw'>.zf_args</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(),
-  <span class='kw'>.include_ppm</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>
+    <pre class="usage"><span class='fu'>filter_analysis_data</span>(
+  <span class='no'>data</span>,
+  <span class='kw'>elements</span> <span class='kw'>=</span> <span class='st'>"all"</span>,
+  <span class='kw'>signals</span> <span class='kw'>=</span> <span class='st'>"all"</span>,
+  <span class='kw'>identifiers</span> <span class='kw'>=</span> <span class='kw pkg'>rlang</span><span class='kw ns'>::</span><span class='fu'><a href='https://rlang.r-lib.org/reference/nse-defuse.html'>exprs</a></span>(),
+  <span class='kw'>agrp</span> <span class='kw'>=</span> <span class='st'>"all"</span>,
+  <span class='kw'>transect_opts</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>.layers</span> <span class='kw'>=</span> <span class='st'>"ncr"</span>)
 )</pre>
 
-    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
-    <table class="ref-arguments">
-    <colgroup><col class="name" /><col class="desc" /></colgroup>
-    <tr>
-      <th>.valve_data</th>
-      <td><p>a <code><a href='https://tidyr.tidyverse.org/reference/nest.html'>nest</a></code>ed dataset (one row per id_transect) with columns
-<code>chemistry</code> (the chemistry data) and <code>measures</code> (the distance measurements)</p></td>
-    </tr>
-    <tr>
-      <th>.reference_transition</th>
-      <td><p>passed to <code><a href='create_layer_idFUN.html'>create_layer_idFUN</a></code> and
-<code><a href='create_annuli_idFUN.html'>create_annuli_idFUN</a></code></p></td>
-    </tr>
-    <tr>
-      <th>.zero_function</th>
-      <td><p>passed to <code><a href='shift_distance.html'>shift_distance</a></code></p></td>
-    </tr>
-    <tr>
-      <th>.zf_args</th>
-      <td><p>passed to <code><a href='shift_distance.html'>shift_distance</a></code></p></td>
-    </tr>
-    </table>
 
-    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
-
-    <p>an <code><a href='https://tidyr.tidyverse.org/reference/nest.html'>unnest</a></code>ed <code>data.frame</code> containing:</p><ul>
-<li><p>id</p></li>
-<li><p>transect</p></li>
-<li><p>distance (shifted by <code><a href='shift_distance.html'>shift_distance</a></code>)</p></li>
-<li><p>layer: a label for the valve layer from which the observation is measured</p></li>
-<li><p>annuli: a label for the annual layer from which the observation is measured</p></li>
-<li><p>+ one column for each element</p></li>
-</ul><p>the <code>layer</code> and
-<code>annuli</code> variables added</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

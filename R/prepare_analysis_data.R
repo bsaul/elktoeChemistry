@@ -12,6 +12,7 @@ ppm_to_mmol <- function(ppm, gmol){
 
 #' Convert ppm to mmol/Ca mol
 #' @inheritParams ppm_to_mmol
+#' @export
 ppm_to_mmol_camol <- function(ppm, gmol, ca_wt_pct = 40.078, ca_ppm = 400432){
   ca_mol <- ppm_to_mmol(ca_ppm, ca_wt_pct)/1000
   ppm_to_mmol(ppm = ppm, gmol = gmol)/ca_mol
@@ -21,6 +22,7 @@ ppm_to_mmol_camol <- function(ppm, gmol, ca_wt_pct = 40.078, ca_ppm = 400432){
 #' 
 #' @param chem_dt chemistry dataset
 #' @param lod_dt lod dataset
+#' @export
 apply_lod <- function(chem_dt, lod_dt){
   chem_dt %>%
     tidyr::gather(key = "element", value = "value", -obs) %>%
@@ -49,6 +51,7 @@ apply_lod <- function(chem_dt, lod_dt){
 #' @return a function that filters \code{ds} by chosen \code{.layers}, 
 #'      \code{annuli} (optionally), and (optionally trims the observations by 
 #'      \code{.inner_buffer} and \code{.outer_buffer}.
+#' @export
 create_transect_filter <- function(ds){
   
   function(.layers,
@@ -83,7 +86,8 @@ create_transect_filter <- function(ds){
 }
 
 #' Create analysis data filter
-#' 
+#'
+#' @export 
 filter_analysis_data <- function(data,
                                  elements    = "all",
                                  signals     = "all",
@@ -131,8 +135,6 @@ filter_analysis_data <- function(data,
 }
 
 
-
-
 #' Create a function that prepares data for analysis 
 #' @param prepared_analysis_data TODO
 #' @param analysis_grouping a list of variables which define the final grouping of 
@@ -148,6 +150,7 @@ filter_analysis_data <- function(data,
 #'        \code{test_data_FUN} is a function that takes combined dataset of an 
 #'        element, distances, and the LOD and returns a dataset that can be 
 #'        passed to a test statistic function.
+#' @export
 create_analysis_data_preparer <- function(prepared_analysis_data, 
                                           analysis_grouping = rlang::syms(c("species", "element", "signal", "contrast")),
                                           adata_filter_FUN = filter_analysis_data,  
