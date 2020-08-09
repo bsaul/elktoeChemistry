@@ -4,5 +4,6 @@ pkgdown_sha: ~
 articles:
   prepare_analysis_data: prepare_analysis_data.html
   preprocess_data: preprocess_data.html
-last_built: 2020-08-09T15:02Z
+  summarize_elements: summarize_elements.html
+last_built: 2020-08-09T15:57Z
 

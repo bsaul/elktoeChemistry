@@ -1,0 +1,92 @@
+---
+title: "Describe specimens"
+author: "Bradley Saul"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Describe specimens}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+bibliography: vignettes.bib
+params: 
+   inputs: 
+     value: 
+       analysis: "../data/analysis_data.rds"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Summarizing elements
+
+```{r}
+library(elktoeChemistry)
+library(dplyr)
+library(gt)
+analysis_data  <- readRDS(params$inputs$analysis)
+```
+
+```{r}
+dt <-
+  analysis_data(
+    contrast = "all",
+    test_data_FUN = function(data) data,
+    agrp      = "agrp_any_A",
+    elements  = "all", # "all" returns all elements
+    signals   = c("base"),
+    group_by_valve = TRUE,
+    transect_opts  = list(
+      .layers    = c("ncr", "psm"),
+      .min_n_obs = 0L
+    )
+  )
+```
+
+```{r}
+make_element_summary_table <- function(dt, el){
+  dt %>%
+  gt(rowname_col = "site", groupname_col = "species") %>%
+  tab_header(
+    title = el,
+  ) %>%
+  fmt_number(
+    columns = vars(mean, sd, cv),
+    decimals = 3,
+    suffixing = TRUE
+  )
+}
+```
+
+
+```{r}
+table_dt <- 
+  dt %>%
+  select(species, element, data) %>%
+  tidyr::unnest(cols = c(data)) %>%
+  group_by(element, species, site, layer, id) %>%
+  summarise(
+    value = mean(value),
+  ) %>%
+  group_by(element, species, site, layer) %>%
+  summarise(
+    mean = mean(value),
+    sd   = sd(value),
+    cv   = mean/sd
+  ) %>%
+  group_by(element) %>%
+  group_nest() %>%
+  mutate(
+    tab = purrr::map2(data, element, ~ make_element_summary_table(.x, .y))
+  )
+```
+
+
+```{r, results="asis"}
+purrr::walk(table_dt$tab, print)
+```

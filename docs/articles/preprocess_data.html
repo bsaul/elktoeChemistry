@@ -59,6 +59,9 @@
     <li>
       <a href="../articles/preprocess_data.html">Preprocess data</a>
     </li>
+    <li>
+      <a href="../articles/summarize_elements.html">Describe specimens</a>
+    </li>
   </ul>
 </li>
       </ul>
@@ -128,6 +131,7 @@
 <p>The <code>elktoeChemistry</code> R package contains the source data and functions needed for the data processing.</p>
 <div class="sourceCode" id="cb3"><html><body><pre class="r"><span class="fu"><a href="https://rdrr.io/r/base/library.html">library</a></span>(<span class="no">elktoeChemistry</span>)
 <span class="co">#&gt; Warning: package 'dplyr' was built under R version 3.6.2</span>
+<span class="co">#&gt; Warning: package 'ggplot2' was built under R version 3.6.2</span>
 <span class="fu"><a href="https://rdrr.io/r/base/library.html">library</a></span>(<span class="no">stringr</span>)</pre></body></html></div>
 <div id="covariates-and-outcomes" class="section level2">
 <h2 class="hasAnchor">
@@ -254,10 +258,10 @@
   <span class="kw">include.dirs</span> <span class="kw">=</span> <span class="fl">FALSE</span>)
 
 <span class="co"># remove exclusions</span>
-<span class="no">valve_files</span> <span class="kw">&lt;-</span> <span class="no">valve_files</span>[!<span class="fu"><a href="https://rdrr.io/pkg/stringr/man/str_detect.html">str_detect</a></span>(<span class="no">valve_files</span>, <span class="kw pkg">glue</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/glue/man/glue_collapse.html">glue_collapse</a></span>(<span class="no">exclude_files</span>, <span class="kw">sep</span> <span class="kw">=</span> <span class="st">"|"</span>))]
+<span class="no">valve_files</span> <span class="kw">&lt;-</span> <span class="no">valve_files</span>[!<span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html">str_detect</a></span>(<span class="no">valve_files</span>, <span class="kw pkg">glue</span><span class="kw ns">::</span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue_collapse.html">glue_collapse</a></span>(<span class="no">exclude_files</span>, <span class="kw">sep</span> <span class="kw">=</span> <span class="st">"|"</span>))]
 <span class="no">raw_data</span>    <span class="kw">&lt;-</span> <span class="kw pkg">purrr</span><span class="kw ns">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span>(<span class="no">valve_files</span>, <span class="kw pkg">readxl</span><span class="kw ns">::</span><span class="no"><a href="https://rdrr.io/pkg/readxl/man/read_excel.html">read_excel</a></span>)
 <span class="no">sheets</span>      <span class="kw">&lt;-</span> <span class="kw pkg">purrr</span><span class="kw ns">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map_chr</a></span>(<span class="no">valve_files</span>, <span class="kw pkg">readxl</span><span class="kw ns">::</span><span class="no"><a href="https://rdrr.io/pkg/readxl/man/excel_sheets.html">excel_sheets</a></span>)
-<span class="no">file_names</span>  <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/stringr/man/str_extract.html">str_extract</a></span>(<span class="no">valve_files</span>, <span class="st">"(?&lt;=[1-9]/).*(?=\\.xlsx)"</span>)
+<span class="no">file_names</span>  <span class="kw">&lt;-</span> <span class="fu"><a href="https://stringr.tidyverse.org/reference/str_extract.html">str_extract</a></span>(<span class="no">valve_files</span>, <span class="st">"(?&lt;=[1-9]/).*(?=\\.xlsx)"</span>)
 <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span>(<span class="no">raw_data</span>) <span class="kw">&lt;-</span> <span class="no">file_names</span></pre></body></html></div>
 <div id="preimport-consistency-checks" class="section level3">
 <h3 class="hasAnchor">
@@ -267,7 +271,7 @@
   <span class="fu"><a href="https://rdrr.io/r/base/warning.html">warning</a></span>(<span class="st">"Different # of files and sheets"</span>)
 }
 
-<span class="no">valve_files</span>[!<span class="fu"><a href="https://rdrr.io/pkg/stringr/man/str_detect.html">str_detect</a></span>(<span class="no">file_names</span>, <span class="no">sheets</span>)]
+<span class="no">valve_files</span>[!<span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html">str_detect</a></span>(<span class="no">file_names</span>, <span class="no">sheets</span>)]
 <span class="co">#&gt;  [1] "../extdata/Data/Geochemical Time-Series/Drawer 1/5C463.1.xlsx"  </span>
 <span class="co">#&gt;  [2] "../extdata/Data/Geochemical Time-Series/Drawer 1/8C472.2.xlsx"  </span>
 <span class="co">#&gt;  [3] "../extdata/Data/Geochemical Time-Series/Drawer 3/20-C509-1.xlsx"</span>
@@ -343,8 +347,8 @@
   <span class="fu">mutate</span>(
     <span class="kw">x_time</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fl">0.576</span>, <span class="fu"><a href="https://rdrr.io/r/base/diff.html">diff</a></span>(<span class="no">time</span>)),
     <span class="kw">x_dist</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fl">2.88</span>, <span class="fu"><a href="https://rdrr.io/r/base/diff.html">diff</a></span>(<span class="no">scan_distance</span>)),
-    <span class="kw">has_on</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/pkg/stringr/man/str_detect.html">str_detect</a></span>(<span class="no">note</span>, <span class="st">"[Oo]n"</span>),
-    <span class="kw">has_off</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/pkg/stringr/man/str_detect.html">str_detect</a></span>(<span class="no">note</span>, <span class="st">"[Oo]ff"</span>)
+    <span class="kw">has_on</span> <span class="kw">=</span> <span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html">str_detect</a></span>(<span class="no">note</span>, <span class="st">"[Oo]n"</span>),
+    <span class="kw">has_off</span> <span class="kw">=</span> <span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html">str_detect</a></span>(<span class="no">note</span>, <span class="st">"[Oo]ff"</span>)
   )
 
 <span class="co"># Are all the elapsed times the same within 0.01</span>
@@ -393,8 +397,8 @@
   <span class="fu">group_by</span>(<span class="no">file_name</span>) <span class="kw">%&gt;%</span>
   <span class="co"># Identify laser on/off points</span>
   <span class="fu">mutate</span>(
-    <span class="kw">is_laser_on</span>  <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/pkg/stringr/man/str_detect.html">str_detect</a></span>(<span class="no">note</span>, <span class="st">"[Oo]n$"</span>),
-    <span class="kw">is_laser_off</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/pkg/stringr/man/str_detect.html">str_detect</a></span>(<span class="no">note</span>, <span class="st">"[Oo]ff$"</span>),
+    <span class="kw">is_laser_on</span>  <span class="kw">=</span> <span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html">str_detect</a></span>(<span class="no">note</span>, <span class="st">"[Oo]n$"</span>),
+    <span class="kw">is_laser_off</span> <span class="kw">=</span> <span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html">str_detect</a></span>(<span class="no">note</span>, <span class="st">"[Oo]ff$"</span>),
     <span class="kw">is_laser_on</span>  <span class="kw">=</span> <span class="fu">if_else</span>(<span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span>(<span class="no">is_laser_on</span>), <span class="fl">FALSE</span>, <span class="no">is_laser_on</span>),
     <span class="kw">is_laser_off</span> <span class="kw">=</span> <span class="fu">if_else</span>(<span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span>(<span class="no">is_laser_off</span>), <span class="fl">FALSE</span>, <span class="no">is_laser_off</span>),
     <span class="kw">on_row</span>       <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html">which</a></span>(<span class="no">is_laser_on</span>),
@@ -430,7 +434,7 @@
    <span class="kw">sheet</span> <span class="kw">=</span> <span class="st">"Without Stats"</span>
   ) <span class="kw">%&gt;%</span>
   <span class="fu">mutate</span>(
-    <span class="kw">standard</span> <span class="kw">=</span> <span class="kw pkg">stringr</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/stringr/man/str_extract.html">str_extract</a></span>(<span class="no">Comments</span>, <span class="st">"614|612"</span>)
+    <span class="kw">standard</span> <span class="kw">=</span> <span class="kw pkg">stringr</span><span class="kw ns">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_extract.html">str_extract</a></span>(<span class="no">Comments</span>, <span class="st">"614|612"</span>)
   ) <span class="kw">%&gt;%</span>
   <span class="fu">group_by</span>(<span class="no">standard</span>, <span class="no">Date</span>) <span class="kw">%&gt;%</span>
   <span class="fu">mutate</span>(
@@ -448,10 +452,10 @@
     -<span class="no">drawer</span>, -<span class="no">output</span>, -<span class="no">source_file</span>, -<span class="no">standard</span>, -<span class="no">standard_run</span>,
      <span class="kw">na.rm</span> <span class="kw">=</span> <span class="fl">TRUE</span>) <span class="kw">%&gt;%</span>
   <span class="fu">mutate</span>(
-    <span class="kw">drawer</span>       <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span>(<span class="kw pkg">stringr</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/stringr/man/str_remove.html">str_remove</a></span>(<span class="no">drawer</span>, <span class="st">"D"</span>)),
-    <span class="kw">measure</span>      <span class="kw">=</span> <span class="kw pkg">stringr</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/stringr/man/str_replace.html">str_replace</a></span>(<span class="kw pkg">stringr</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/stringr/man/str_extract.html">str_extract</a></span>(<span class="no">key</span>, <span class="st">"_(Int2SE|LOD)$"</span>), <span class="st">"_"</span>, <span class="st">""</span>),
+    <span class="kw">drawer</span>       <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span>(<span class="kw pkg">stringr</span><span class="kw ns">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_remove.html">str_remove</a></span>(<span class="no">drawer</span>, <span class="st">"D"</span>)),
+    <span class="kw">measure</span>      <span class="kw">=</span> <span class="kw pkg">stringr</span><span class="kw ns">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_replace.html">str_replace</a></span>(<span class="kw pkg">stringr</span><span class="kw ns">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_extract.html">str_extract</a></span>(<span class="no">key</span>, <span class="st">"_(Int2SE|LOD)$"</span>), <span class="st">"_"</span>, <span class="st">""</span>),
     <span class="kw">measure</span>      <span class="kw">=</span> <span class="fu">if_else</span>(<span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span>(<span class="no">measure</span>), <span class="st">"raw"</span>, <span class="no">measure</span>),
-    <span class="kw">element</span>      <span class="kw">=</span> <span class="kw pkg">stringr</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/stringr/man/str_replace.html">str_replace</a></span>(<span class="no">key</span>, <span class="st">"_(Int2SE|LOD)$"</span>, <span class="st">""</span>)
+    <span class="kw">element</span>      <span class="kw">=</span> <span class="kw pkg">stringr</span><span class="kw ns">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_replace.html">str_replace</a></span>(<span class="no">key</span>, <span class="st">"_(Int2SE|LOD)$"</span>, <span class="st">""</span>)
   ) <span class="kw">%&gt;%</span>
   <span class="fu">select</span>(
     <span class="no">drawer</span>, <span class="no">standard</span>, <span class="no">output</span>, <span class="no">source_file</span>, <span class="no">standard_run</span>, <span class="no">element</span>, <span class="no">measure</span>, <span class="no">value</span>
@@ -498,7 +502,7 @@
       <span class="kw pkg">dplyr</span><span class="kw ns">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span>(<span class="kw">file_name</span> <span class="kw">=</span> <span class="no">`...2`</span>, <span class="fu">matches</span>(<span class="st">"Length"</span>)) <span class="kw">%&gt;%</span>
       <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span>(!<span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span>(<span class="no">`Length from 1 to 2 (mm)`</span>)) <span class="kw">%&gt;%</span>
       <span class="fu">mutate</span>(
-        <span class="kw">file_name</span> <span class="kw">=</span> <span class="kw pkg">stringr</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/stringr/man/str_remove.html">str_remove</a></span>(<span class="no">file_name</span>, <span class="st">"^PAT:"</span>),
+        <span class="kw">file_name</span> <span class="kw">=</span> <span class="kw pkg">stringr</span><span class="kw ns">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_remove.html">str_remove</a></span>(<span class="no">file_name</span>, <span class="st">"^PAT:"</span>),
         <span class="kw">drawer</span>    <span class="kw">=</span> <span class="fl">7</span>) <span class="kw">%&gt;%</span>
       <span class="fu"><a href="../reference/munge_measurements.html">munge_measurements</a></span>()
   ) <span class="kw">%&gt;%</span>
@@ -565,9 +569,9 @@
       <span class="no">to</span> <span class="kw">==</span> <span class="st">"5"</span> ~ <span class="st">"pio_opx"</span>,
       <span class="no">to</span> <span class="kw">==</span> <span class="st">"6"</span> ~ <span class="st">"opx_off"</span>
     ),
-    <span class="kw">annuli_transition</span>    <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/pkg/stringr/man/str_extract.html">str_extract</a></span>(<span class="no">to</span>, <span class="st">"[A-Z]"</span>),
+    <span class="kw">annuli_transition</span>    <span class="kw">=</span> <span class="fu"><a href="https://stringr.tidyverse.org/reference/str_extract.html">str_extract</a></span>(<span class="no">to</span>, <span class="st">"[A-Z]"</span>),
     <span class="kw">is_layer</span>  <span class="kw">=</span> (<span class="no">to</span> <span class="kw">%in%</span> <span class="fl">1</span>:<span class="fl">6</span>),
-    <span class="kw">is_annuli</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/pkg/stringr/man/str_detect.html">str_detect</a></span>(<span class="no">to</span>, <span class="st">"[A-Z]"</span>)
+    <span class="kw">is_annuli</span> <span class="kw">=</span> <span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html">str_detect</a></span>(<span class="no">to</span>, <span class="st">"[A-Z]"</span>)
   ) <span class="kw">%&gt;%</span>
   <span class="kw pkg">tidyr</span><span class="kw ns">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/nest.html">nest</a></span>() <span class="kw">%&gt;%</span>
 
@@ -621,7 +625,7 @@
   <span class="fu">group_by</span>(<span class="no">id</span>, <span class="no">transect</span>) <span class="kw">%&gt;%</span>
   <span class="fu">summarise</span>(
     <span class="kw">meas_pattern</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span>(<span class="no">layer_transition</span>, <span class="kw">collapse</span> <span class="kw">=</span> <span class="st">":"</span>),
-    <span class="kw">has_valid_pattern</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/pkg/stringr/man/str_detect.html">str_detect</a></span>(<span class="no">meas_pattern</span>, <span class="no">valid_patterns</span>)
+    <span class="kw">has_valid_pattern</span> <span class="kw">=</span> <span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html">str_detect</a></span>(<span class="no">meas_pattern</span>, <span class="no">valid_patterns</span>)
   ) <span class="kw">%&gt;%</span>
   <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span>(!<span class="no">has_valid_pattern</span>)
 <span class="co">#&gt; `summarise()` regrouping output by 'id' (override with `.groups` argument)</span>
@@ -1053,7 +1057,7 @@
       <span class="kw pkg">dplyr</span><span class="kw ns">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span>(<span class="no">idt</span>, <span class="no">best_method</span>),
     <span class="kw">by</span> <span class="kw">=</span> <span class="st">"idt"</span>
   ) <span class="kw">%&gt;%</span>
-  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span>(<span class="fu"><a href="https://rdrr.io/pkg/stringr/man/str_detect.html">str_detect</a></span>(<span class="no">best_method</span>, <span class="fu"><a href="https://rdrr.io/r/base/character.html">as.character</a></span>(<span class="no">idref_method</span>))) <span class="kw">%&gt;%</span>
+  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span>(<span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html">str_detect</a></span>(<span class="no">best_method</span>, <span class="fu"><a href="https://rdrr.io/r/base/character.html">as.character</a></span>(<span class="no">idref_method</span>))) <span class="kw">%&gt;%</span>
   <span class="fu">mutate</span>(
     <span class="kw">idref_method</span> <span class="kw">=</span> <span class="st">"best"</span>
   )
@@ -1111,7 +1115,7 @@ valve_length_compare %&gt;%
       <span class="kw pkg">dplyr</span><span class="kw ns">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span>(<span class="no">idt</span>, <span class="no">best_method</span>),
     <span class="kw">by</span> <span class="kw">=</span> <span class="st">"idt"</span>
   ) <span class="kw">%&gt;%</span>
-  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span>(<span class="fu"><a href="https://rdrr.io/pkg/stringr/man/str_detect.html">str_detect</a></span>(<span class="no">best_method</span>, <span class="fu"><a href="https://rdrr.io/r/base/character.html">as.character</a></span>(<span class="no">idref_method</span>))) <span class="kw">%&gt;%</span>
+  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span>(<span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html">str_detect</a></span>(<span class="no">best_method</span>, <span class="fu"><a href="https://rdrr.io/r/base/character.html">as.character</a></span>(<span class="no">idref_method</span>))) <span class="kw">%&gt;%</span>
   <span class="fu">group_by</span>(<span class="no">id</span>, <span class="no">transect</span>) <span class="kw">%&gt;%</span>
   <span class="kw pkg">tidyr</span><span class="kw ns">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/nest.html">nest</a></span>()
 
@@ -1276,8 +1280,8 @@ valve_length_compare %&gt;%
   <span class="fu"><a href="../reference/create_long_analysis_data.html">create_long_analysis_data</a></span>() <span class="kw">%&gt;%</span>
   <span class="fu">distinct</span>(<span class="no">element</span>) <span class="kw">%&gt;%</span>
     <span class="fu">mutate</span>(
-      <span class="kw">symb</span> <span class="kw">=</span> <span class="kw pkg">stringr</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/stringr/man/str_extract.html">str_extract</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/substr.html">substr</a></span>(<span class="no">element</span>, <span class="fl">1</span>, <span class="fl">2</span>), <span class="st">'[A-Za-z]+'</span>),
-      <span class="kw">element_label</span> <span class="kw">=</span> <span class="kw pkg">stringr</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/stringr/man/str_replace.html">str_replace</a></span>(<span class="no">element</span>, <span class="st">'_ppm'</span>, <span class="st">''</span>)
+      <span class="kw">symb</span> <span class="kw">=</span> <span class="kw pkg">stringr</span><span class="kw ns">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_extract.html">str_extract</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/substr.html">substr</a></span>(<span class="no">element</span>, <span class="fl">1</span>, <span class="fl">2</span>), <span class="st">'[A-Za-z]+'</span>),
+      <span class="kw">element_label</span> <span class="kw">=</span> <span class="kw pkg">stringr</span><span class="kw ns">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_replace.html">str_replace</a></span>(<span class="no">element</span>, <span class="st">'_ppm'</span>, <span class="st">''</span>)
     ) <span class="kw">%&gt;%</span>
     <span class="fu">left_join</span>(
       <span class="no">periodicTable</span> <span class="kw">%&gt;%</span>
@@ -1313,10 +1317,10 @@ valve_length_compare %&gt;%
 <span class="co">#&gt; # Groups:   species [2]</span>
 <span class="co">#&gt;   species        id    drawer</span>
 <span class="co">#&gt;   &lt;chr&gt;          &lt;chr&gt;  &lt;dbl&gt;</span>
-<span class="co">#&gt; 1 A. raveneliana C472       1</span>
-<span class="co">#&gt; 2 A. raveneliana A5         1</span>
-<span class="co">#&gt; 3 L. fasciola    P147       6</span>
-<span class="co">#&gt; 4 L. fasciola    P105       4</span>
+<span class="co">#&gt; 1 A. raveneliana C484       2</span>
+<span class="co">#&gt; 2 A. raveneliana C532       3</span>
+<span class="co">#&gt; 3 L. fasciola    P148       6</span>
+<span class="co">#&gt; 4 L. fasciola    P130       5</span>
 
 <span class="co"># Oops! Forgot to set the random seed. The results were:</span>
 <span class="co"># A tibble: 4 x 3</span>

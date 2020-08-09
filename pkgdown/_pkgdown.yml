@@ -6,7 +6,7 @@ template:
     bootswatch: cerulean
 navbar:
   structure:
-    left:  [home, preparation, reference]
+    left:  [home, preparation, analysis, reference]
     right: [github]
 components:
   home: ~
@@ -17,3 +17,8 @@ components:
       href: articles/preprocess_data.html
     - text: Preparing Analysis Data
       href: articles/prepare_analysis_data.html
+  analysis:
+    text: Analysis
+    menu:
+    - text: Summarize elements
+      href: articles/summarize_elements.html
