@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Prepare analysis data • elktoeChemistry</title>
-<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
+<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/cerulean/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
@@ -78,7 +78,7 @@
       <h1 data-toc-skip>Prepare analysis data</h1>
                         <h4 class="author">Bradley Saul</h4>
             
-            <h4 class="date">2020-08-04</h4>
+            <h4 class="date">2020-08-09</h4>
       
       
       <div class="hidden name"><code>prepare_analysis_data.Rmd</code></div>
@@ -161,55 +161,55 @@
 <code>...</code>: dots are passed to <code>filter_analysis_data</code> to filter observations by specimens, elements, analysis_group, transect layers, or signal (see above).</li>
 </ul>
 <div class="sourceCode" id="cb3"><html><body><pre class="r"><span class="no">valve_data</span> <span class="kw">%&gt;%</span>
-  <span class="kw pkg">dplyr</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/group_by.html">ungroup</a></span>() <span class="kw">%&gt;%</span>
+  <span class="kw pkg">dplyr</span><span class="kw ns">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">ungroup</a></span>() <span class="kw">%&gt;%</span>
   <span class="co">## Keep only necessary variables ####</span>
-  <span class="kw pkg">dplyr</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/select.html">select</a></span>(
+  <span class="kw pkg">dplyr</span><span class="kw ns">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span>(
     <span class="co"># identifiers</span>
     <span class="no">id</span>, <span class="no">transect</span>, <span class="no">river</span>, <span class="no">site</span>, <span class="no">site_num</span>, <span class="no">species</span>,
     <span class="co"># baseline covariates</span>
-    <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/reexports.html">starts_with</a></span>(<span class="st">"baseline"</span>), <span class="no">n_annuli</span>, <span class="no">drawer</span>,
+    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/reexports.html">starts_with</a></span>(<span class="st">"baseline"</span>), <span class="no">n_annuli</span>, <span class="no">drawer</span>,
     <span class="co"># outcomes</span>
     <span class="no">dead</span>, <span class="no">prop_weight_lost</span>, <span class="no">moribund</span>, <span class="no">final_status</span>,
     <span class="co"># analysis groupings</span>
-    <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/reexports.html">starts_with</a></span>(<span class="st">"agrp"</span>),
+    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/reexports.html">starts_with</a></span>(<span class="st">"agrp"</span>),
     <span class="co"># chemistry and measurements</span>
     <span class="no">chemistry</span>, <span class="no">distance</span>, <span class="no">lod</span>
   ) <span class="kw">%&gt;%</span>
 
   <span class="co">## Make character variables easier to type ####</span>
-  <span class="kw pkg">dplyr</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/mutate.html">mutate</a></span>(
-    <span class="kw">species</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/if_else.html">if_else</a></span>(<span class="no">species</span> <span class="kw">==</span> <span class="st">"A. raveneliana"</span>, <span class="st">"Arav"</span>, <span class="st">"Lfas"</span>)
+  <span class="kw pkg">dplyr</span><span class="kw ns">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span>(
+    <span class="kw">species</span> <span class="kw">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html">if_else</a></span>(<span class="no">species</span> <span class="kw">==</span> <span class="st">"A. raveneliana"</span>, <span class="st">"Arav"</span>, <span class="st">"Lfas"</span>)
   ) <span class="kw">%&gt;%</span>
 
   <span class="co">## Censor concentrations at lower limit of detection ####</span>
   <span class="co"># Drop unneeded variables (e.g. censoring)</span>
-  <span class="kw pkg">dplyr</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/mutate.html">mutate</a></span>(
-    <span class="kw">chemistry</span>  <span class="kw">=</span> <span class="kw pkg">purrr</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/purrr/man/map2.html">map2</a></span>(
+  <span class="kw pkg">dplyr</span><span class="kw ns">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span>(
+    <span class="kw">chemistry</span>  <span class="kw">=</span> <span class="kw pkg">purrr</span><span class="kw ns">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map2.html">map2</a></span>(
       <span class="kw">.x</span> <span class="kw">=</span> <span class="no">chemistry</span>,
       <span class="kw">.y</span> <span class="kw">=</span> <span class="no">lod</span>,
       <span class="kw">.f</span> <span class="kw">=</span> ~ {
-        <span class="fu"><a href="../reference/apply_lod.html">apply_lod</a></span>(<span class="no">.x</span>, <span class="no">.y</span>) <span class="kw">%&gt;%</span> <span class="kw pkg">dplyr</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/select.html">select</a></span>(-<span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/reexports.html">ends_with</a></span>(<span class="st">"_censor"</span>))
+        <span class="fu"><a href="../reference/apply_lod.html">apply_lod</a></span>(<span class="no">.x</span>, <span class="no">.y</span>) <span class="kw">%&gt;%</span> <span class="kw pkg">dplyr</span><span class="kw ns">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span>(-<span class="fu"><a href="https://dplyr.tidyverse.org/reference/reexports.html">ends_with</a></span>(<span class="st">"_censor"</span>))
       })
   ) <span class="kw">%&gt;%</span>
 
   <span class="co">## Clean up distance data ####</span>
   <span class="co"># Keep only needed variables</span>
-  <span class="kw pkg">dplyr</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/mutate.html">mutate</a></span>(
-    <span class="kw">distance</span> <span class="kw">=</span> <span class="kw pkg">purrr</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/purrr/man/map.html">map</a></span>(
+  <span class="kw pkg">dplyr</span><span class="kw ns">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span>(
+    <span class="kw">distance</span> <span class="kw">=</span> <span class="kw pkg">purrr</span><span class="kw ns">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span>(
       <span class="kw">.x</span> <span class="kw">=</span> <span class="no">distance</span>,
-      <span class="kw">.f</span> <span class="kw">=</span> ~ <span class="kw pkg">dplyr</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/select.html">select</a></span>(<span class="no">.x</span>, <span class="no">distance</span>, <span class="no">layer</span>, <span class="no">annuli</span>, <span class="no">obs</span>)
+      <span class="kw">.f</span> <span class="kw">=</span> ~ <span class="kw pkg">dplyr</span><span class="kw ns">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span>(<span class="no">.x</span>, <span class="no">distance</span>, <span class="no">layer</span>, <span class="no">annuli</span>, <span class="no">obs</span>)
     )
   )  <span class="kw">%&gt;%</span>
   <span class="co">## Apply signal filters ####</span>
-  <span class="kw pkg">dplyr</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/mutate.html">mutate</a></span>(
-    <span class="kw">chemistry</span> <span class="kw">=</span> <span class="kw pkg">purrr</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/purrr/man/map2.html">map2</a></span>(
+  <span class="kw pkg">dplyr</span><span class="kw ns">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span>(
+    <span class="kw">chemistry</span> <span class="kw">=</span> <span class="kw pkg">purrr</span><span class="kw ns">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map2.html">map2</a></span>(
       <span class="kw">.x</span> <span class="kw">=</span> <span class="no">chemistry</span>,
       <span class="kw">.y</span> <span class="kw">=</span> <span class="no">distance</span>,
       <span class="kw">.f</span> <span class="kw">=</span> <span class="kw">function</span>(<span class="no">elements</span>, <span class="no">distance</span>){
-        <span class="kw pkg">purrr</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/purrr/man/map.html">map</a></span>(
+        <span class="kw pkg">purrr</span><span class="kw ns">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span>(
           <span class="kw">.x</span> <span class="kw">=</span> <span class="no">elements</span>[-<span class="fl">1</span>],
           <span class="kw">.f</span> <span class="kw">=</span> <span class="kw">function</span>(<span class="no">el</span>){
-            <span class="kw pkg">purrr</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/purrr/man/map.html">map</a></span>(
+            <span class="kw pkg">purrr</span><span class="kw ns">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span>(
               <span class="kw">.x</span> <span class="kw">=</span> <span class="no">signal_filters</span>,
               <span class="kw">.f</span> <span class="kw">=</span> ~ <span class="fu">.x</span>(<span class="no">el</span>, <span class="no">distance</span>))
           }
@@ -223,12 +223,12 @@
   <span class="co"># Note that at this stage, this simply creates a copy of the LOD data for </span>
   <span class="co"># each observation; however, at the next stage (conversion to different scale),</span>
   <span class="co"># the lod will vary depending on the layer.</span>
-  <span class="kw pkg">dplyr</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/mutate.html">mutate</a></span>(
-    <span class="kw">chemistry</span> <span class="kw">=</span> <span class="kw pkg">purrr</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/purrr/man/map2.html">map2</a></span>(
+  <span class="kw pkg">dplyr</span><span class="kw ns">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span>(
+    <span class="kw">chemistry</span> <span class="kw">=</span> <span class="kw pkg">purrr</span><span class="kw ns">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map2.html">map2</a></span>(
       <span class="kw">.x</span> <span class="kw">=</span> <span class="no">chemistry</span>,
       <span class="kw">.y</span> <span class="kw">=</span> <span class="no">lod</span>,
       <span class="kw">.f</span> <span class="kw">=</span> <span class="kw">function</span>(<span class="no">ch</span>, <span class="no">ld</span>){
-        <span class="kw pkg">purrr</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/purrr/man/imap.html">imap</a></span>(
+        <span class="kw pkg">purrr</span><span class="kw ns">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/imap.html">imap</a></span>(
           <span class="kw">.x</span> <span class="kw">=</span> <span class="no">ch</span>,
           <span class="kw">.f</span> <span class="kw">=</span> ~ {
             <span class="no">lod_dat</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span>(<span class="no">ld</span>[<span class="no">ld</span>$<span class="no">element</span> <span class="kw">==</span> <span class="no">.y</span>, <span class="st">"lod"</span>, <span class="kw">drop</span> <span class="kw">=</span> <span class="fl">TRUE</span>], <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span>(<span class="no">ch</span><span class="kw">[[</span><span class="fl">1</span>]]<span class="kw">[[</span><span class="fl">1</span>]]))
@@ -240,19 +240,19 @@
   ) <span class="kw">%&gt;%</span>
 
   <span class="co">## Convert values to mmmol per Ca mol ####</span>
-  <span class="kw pkg">dplyr</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/mutate.html">mutate</a></span>(
-    <span class="kw">chemistry</span> <span class="kw">=</span> <span class="kw pkg">purrr</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/purrr/man/map2.html">map2</a></span>(
+  <span class="kw pkg">dplyr</span><span class="kw ns">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span>(
+    <span class="kw">chemistry</span> <span class="kw">=</span> <span class="kw pkg">purrr</span><span class="kw ns">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map2.html">map2</a></span>(
       <span class="kw">.x</span> <span class="kw">=</span> <span class="no">chemistry</span>,
       <span class="kw">.y</span> <span class="kw">=</span> <span class="no">distance</span>,
       <span class="kw">.f</span> <span class="kw">=</span> <span class="kw">function</span>(<span class="no">ch</span>, <span class="no">ds</span>){
-        <span class="no">cawtpct</span> <span class="kw">&lt;-</span> <span class="kw pkg">dplyr</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/if_else.html">if_else</a></span>(<span class="no">ds</span><span class="kw">[[</span><span class="st">"layer"</span>]] <span class="kw">==</span> <span class="st">"ncr"</span>, <span class="fl">39.547395</span>, <span class="fl">40.078</span>)
+        <span class="no">cawtpct</span> <span class="kw">&lt;-</span> <span class="kw pkg">dplyr</span><span class="kw ns">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html">if_else</a></span>(<span class="no">ds</span><span class="kw">[[</span><span class="st">"layer"</span>]] <span class="kw">==</span> <span class="st">"ncr"</span>, <span class="fl">39.547395</span>, <span class="fl">40.078</span>)
         <span class="co"># apply to each element</span>
-        <span class="kw pkg">purrr</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/purrr/man/imap.html">imap</a></span>(
+        <span class="kw pkg">purrr</span><span class="kw ns">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/imap.html">imap</a></span>(
           <span class="kw">.x</span> <span class="kw">=</span> <span class="no">ch</span>,
           <span class="kw">.f</span> <span class="kw">=</span> <span class="kw">function</span>(<span class="no">vals</span>, <span class="no">element</span>){
             <span class="co"># apply to each signal</span>
             <span class="no">mass</span> <span class="kw">&lt;-</span> <span class="no">element_info</span>[<span class="no">element_info</span><span class="kw">[[</span><span class="st">"element"</span>]] <span class="kw">==</span> <span class="no">element</span>, <span class="st">"mass"</span>, <span class="kw">drop</span> <span class="kw">=</span> <span class="fl">TRUE</span>]
-            <span class="kw pkg">purrr</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/purrr/man/map.html">map</a></span>(
+            <span class="kw pkg">purrr</span><span class="kw ns">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span>(
               <span class="kw">.x</span> <span class="kw">=</span> <span class="no">vals</span>,
               <span class="kw">.f</span> <span class="kw">=</span> ~ <span class="fu"><a href="../reference/ppm_to_mmol_camol.html">ppm_to_mmol_camol</a></span>(<span class="kw">ppm</span> <span class="kw">=</span> <span class="no">.x</span>, <span class="kw">gmol</span> <span class="kw">=</span> <span class="no">mass</span>, <span class="kw">ca_wt_pct</span> <span class="kw">=</span> <span class="no">cawtpct</span>)
             )
@@ -263,8 +263,8 @@
   ) <span class="kw">%&gt;%</span>
 
   <span class="co">## Add the transect filter functions #### </span>
-  <span class="kw pkg">dplyr</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/mutate.html">mutate</a></span>(
-    <span class="kw">transect_filter</span> <span class="kw">=</span> <span class="kw pkg">purrr</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/purrr/man/map.html">map</a></span>(<span class="no">distance</span>, ~ <span class="fu"><a href="../reference/create_transect_filter.html">create_transect_filter</a></span>(<span class="no">.x</span>))
+  <span class="kw pkg">dplyr</span><span class="kw ns">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span>(
+    <span class="kw">transect_filter</span> <span class="kw">=</span> <span class="kw pkg">purrr</span><span class="kw ns">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span>(<span class="no">distance</span>, ~ <span class="fu"><a href="../reference/create_transect_filter.html">create_transect_filter</a></span>(<span class="no">.x</span>))
   )  <span class="kw">%&gt;%</span>
   <span class="fu"><a href="../reference/create_analysis_data_preparer.html">create_analysis_data_preparer</a></span>() <span class="kw">-&gt;</span>
   <span class="no">analysis_data</span>

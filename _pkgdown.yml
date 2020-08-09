@@ -1,0 +1,19 @@
+home:
+  title: Elktoe valve chemisty
+  description: TBD
+template:
+  params:
+    bootswatch: cerulean
+navbar:
+  structure:
+    left:  [home, preparation, reference]
+    right: [github]
+components:
+  home: ~
+  preparation:
+    text: Preparation
+    menu:
+    - text: Preprocessing Data
+      href: articles/preprocess_data.html
+    - text: Preparing Analysis Data
+      href: articles/prepare_analysis_data.html
