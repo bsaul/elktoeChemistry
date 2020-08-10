@@ -1,35 +1,45 @@
-#-----------------------------------------------------------------------------#
-# Title: Elktoe Study Map
-# Author: B Saul
-# Date: 11/29/15
-# Purpose: Create map of elktoe study
-#-----------------------------------------------------------------------------#
+---
+title: "Study Map"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Study Map}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+params:
+  inputs:
+    value:
+      hydro: '../extdata/MajorHydro/MajorHydro.shp'
+      munip: '../extdata/MunicipalBoundary_SHP/MunicipalBoundaries.shp'
+  outputs:
+    value:
+      map: "../manuscript/figures/study_map.pdf"
+---
 
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r}
 library(dplyr)
 library(sf)
 library(ggplot2)
 library(ggmap)
-# library(osmdata)
+```
 
-
-# To map
-# extent of watersheds
-# thick line for rivers
-# dams
-# sites
-# distance btn sites in river km
-# flow direction
-# major towns
-# major pollutors
-
+```{r}
 read_sp_data <- function(.dsn, .layer){
   sf::st_transform(sf::st_read(dsn = .dsn, layer = .layer), 2264)
 }
+```
 
-# streams <- read_sp_data('extdata/ncrivers/ncrivers.shp', 'ncrivers')
-rivers <- read_sp_data('extdata/MajorHydro/MajorHydro.shp', 'MajorHydro')
-munip  <- read_sp_data('extdata/MunicipalBoundary_SHP/MunicipalBoundaries.shp', 
-                       'MunicipalBoundaries') %>%
+
+```{r}
+rivers <- read_sp_data(params$inputs$hydro, 'MajorHydro')
+munip  <- read_sp_data(params$inputs$munip, 'MunicipalBoundaries') %>%
   filter(CountyName %in% c("JACKSON", "MACON", "SWAIN"))
 
 sites <- data.frame(
@@ -45,8 +55,6 @@ pnts <- st_sfc(geom = st_multipoint(x = cbind(sites$lon, sites$lat)))
 sites$geom <- pnts
 st_crs(sites$geom) <- 4326
 sites$geom <- sites$geom %>% st_transform(2264)
-
-# st_crs(box) <- 4326
 
 box <- st_bbox(sites$geom) %>% st_as_sfc() 
 bbox <- st_buffer(box, dist = units::set_units(8, "km"))
@@ -106,10 +114,14 @@ ggmap(background) +
   ) ->
   p
 
-p 
+p
+```
 
+
+```{r}
 ggsave(
-  filename = "manuscript/figures/study_map.pdf",
+  filename = params$output$map,
   plot = p,
   height = 4, width = 4
 )
+```
