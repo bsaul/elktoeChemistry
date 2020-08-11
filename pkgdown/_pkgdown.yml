@@ -4,21 +4,25 @@ home:
 template:
   params:
     bootswatch: cerulean
+articles:
 navbar:
   structure:
     left:  [home, preparation, results, reference]
     right: [github]
-components:
-  home: ~
-  preparation:
-    text: Preparation
-    menu:
-    - text: Preprocessing Data
-      href: articles/preprocess_data.html
-    - text: Preparing Analysis Data
-      href: articles/prepare_analysis_data.html
-  results:
-    text: Results
-    menu:
-    - text: Summarize elements
-      href: articles/summarize_elements.html
+  components:
+    home: ~
+    preparation:
+      text: Preparation
+      menu:
+      - text: Preprocessing Data
+        href: articles/preprocess_data.html
+      - text: Preparing Analysis Data
+        href: articles/prepare_analysis_data.html
+    results:
+      text: Results
+      menu:
+      - text: Study map
+        href: articles/study_map.html   
+      - text: Summarize elements
+        href: articles/summarize_elements.html
+  
