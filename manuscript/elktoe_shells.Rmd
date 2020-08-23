@@ -26,15 +26,16 @@ keywords: TODO
 # TODO List (as of `r Sys.Date()`)
 
 * [ ] clean up map; is it BW ready? Better color of labels. Remove lat/lon labels. Fewer lat/lon breaks. caption
-* [ ] update figure describing data processing. crop valve. remove "step 3". Show GAM fitting for single element.
-* [ ] develop online supplement
-  * should contain: data preparation and analysis code
-  * detailed description of LA-ICP-MS
-  * any add'l analyses
+* [ ] update figure (Figure 2) describing data processing. crop valve. remove "step 3". Show GAM fitting for single element.
+* [ ] develop online supplement (bsaul.github.io/elktoeChemistry)
+  * [x] should contain: data preparation and analysis code
+  * [ ] detailed description of LA-ICP-MS
+  * [ ] any add'l analyses
 * [ ] text edits/updates
   * develop results section and ensure that it aligns with discusson
   * discuss design of transects for future studies: fly-scanning along prismatic layer and/or (if possible) some sort of probabilistic sampling within each valve (even simply a systematic sample every X units from umbo to mantle.)
-* [ ] push code to github; data to where (?)
+* [x] push code to github
+* [ ] push data to github
 * [ ] format manuscript for target journal
 
 
@@ -44,11 +45,16 @@ keywords: TODO
 
 Freshwater mussels (Bivalvia: Unionidae, Magaritifera) are predominately suspension feeding bivalves that inhabit streams, rivers and lakes.Unionids provide a range of ecosystem services [@vaughn2017ecosystem] They serve as food for raccoons, muskrats and other species that inhabit riparian habitat, and when abundant help stabilize streambeds. While feeding unionids filter the water column removing algae, bacteria and detritus and process and sequester some contaminants [@gagne2007changes, @vaughn2017ecosystem]. Unionid shells support a microecosytem of bacteria, protozoa and fungi that play a prominent role in stream ecology. Their shells are similar to tree rings, archiving some aspects of their environmental history, and have been used as bioindicators of pollution [@markich2002freshwater; @brown2005freshwater; @shoults2014resolution; @wilson2018freshwater]
 
-North American freshwater mussel species are imperiled throughout their home range.  The majority, are federally or state listed as threatened, endangered or of special concern [@williams1993conservation]. Environmentally degrading riparian land-use practices have been attributed to their decline. Exposure to certain heavy metals from municipal effluents and other sources have been shown to increase morbidity and mortality in freshwater bivalves [@naimo1995a-review]. @hartmut2007declining attributed declining populations of the freshwater pearl mussel (*Margaritifera margaritifera*) to heavy metals and pesticides. Exposure to heavy metals have also been associated with genotoxic effects [@black1996dna, @khan2019bioaccumulation] enzymatic function, and behavioral changes [@naimo1995a-review].
+North American freshwater mussel species are imperiled throughout their home range. The majority, are federally or state listed as threatened, endangered or of special concern [@williams1993conservation]. Environmentally degrading riparian land-use practices have been attributed to their decline. Exposure to certain heavy metals from municipal effluents and other sources have been shown to increase morbidity and mortality in freshwater bivalves [@naimo1995a-review]. @hartmut2007declining attributed declining populations of the freshwater pearl mussel (*Margaritifera margaritifera*) to heavy metals and pesticides. Exposure to heavy metals have also been associated with genotoxic effects [@black1996dna, @khan2019bioaccumulation] enzymatic function, and behavioral changes [@naimo1995a-review].
 
-The Appalachian Elktoe (*Alasmidonta raveneliana*) (Bivalvia: Unionidae) is native to the streams of eastern Tennessee and western North Carolina. The Elktoe is listed as federally endangered and remaining populations are found in the Nolichucky River in eastern Tennessee and the Upper Tennessee River system in North Carolina. Although once abundant in the Little Tennessee River, NC, precipitous declines were noted in  *A. raveneliana*  populations after major hurricane-related flooding associated with Hurricane Frances in 2004. However, within the same watershed’s  *A. raveneliana*  Tuckasegee River populations appeared stable. @miller2013concentrations evaluated sediment concentrations of Cu, Cr, Ni, and Zn in the Little Tennessee and Tuckasegee. When considered with the chemical concentrations of *A. raveneliana* shells measured by @jarvis2011water, they found these elements (Cu in particular) unlikely to be the primary culprit in the *A. raveneliana* decline. Reasons for the decline remain unclear [@jarvis2011water; @miller2013concentrations; miller2016potential; @pandolfi2016effects]. 
+The Appalachian Elktoe (*Alasmidonta raveneliana*) (Bivalvia: Unionidae) is native to the streams of eastern Tennessee and western North Carolina. The Elktoe is listed as federally endangered and remaining populations are found in the Nolichucky River in eastern Tennessee and the Upper Tennessee River system in North Carolina {>>NM: What is current status?<<}. Although once abundant in the Little Tennessee River, NC, precipitous declines were noted in  *A. raveneliana*  populations after major hurricane-related flooding associated with Hurricane Frances in 2004. However, within the same watershed’s  *A. raveneliana*  Tuckasegee River populations appeared stable. @miller2013concentrations evaluated sediment concentrations of Cu, Cr, Ni, and Zn in the Little Tennessee and Tuckasegee. When considered with the chemical concentrations of *A. raveneliana* shells measured by @jarvis2011water, they found these elements (Cu in particular) unlikely to be the primary culprit in the *A. raveneliana* decline. Reasons for the decline remain unclear [@jarvis2011water; @miller2013concentrations; miller2016potential; @pandolfi2016effects]. 
 
-To determine how river-specific factors may be associated with health and physiological outcomes, we conducted a completely randomized experiment by assigning eighty-two  *A. raveneliana*  along with an equal number of hatchery-raised Wavy-Rayed Lampmussel (*Lampsilis fasciola*) to sites within each river [@salger2020]. In this paper, we ask whether exposure to the experimental sites modified the accretion of twenty trace elements in specimens’ valves. We demonstrate how chemical trajectories obtained by laser ablation inductively coupled plasma mass spectrometry (LA-ICP-MS) transects [@pozebon2014review] can be aligned with anatomical features of the valves, thus making comparisons of specific valve layers and time periods possible. 
+To determine how river-specific factors may be associated with health and physiological outcomes, we conducted a completely randomized experiment by assigning eighty-two  *A. raveneliana*  along with an equal number of hatchery-raised Wavy-Rayed Lampmussel (*Lampsilis fasciola*) to sites within each river [@salger2020]. In this paper {>>NM: Perhaps specify the research hypotheses investigated in this study.  
+1.	 Assess the compositional differences in shell composition as a function of specimen health/morbidity and intra-watershed location.
+2.	 Among these populations:
+a.	 compare inner (nacreous) to outer (prismatic layers) shell compositions during the experimental period.
+b.	 Compare inner to outer shell compositions preceding the experimental period, as sampled by replicate whole-valve transects away from the umbo, to assess whether innermost and/or outermost valve layers, biomineralized prior to the experiment, were affected by environmental exposure associated with relocation.
+<<}, we ask whether exposure to the experimental sites modified the accretion of twenty trace elements in specimens’ valves. We demonstrate how chemical trajectories obtained by laser ablation inductively coupled plasma mass spectrometry (LA-ICP-MS) transects [@pozebon2014review] can be aligned with anatomical features of the valves, thus making comparisons of specific valve layers and time periods possible. 
 
 # Materials and methods
 
