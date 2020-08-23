@@ -68,6 +68,11 @@ keywords: TODO
 
 \doublespacing
 
+```{r, echo = FALSE, message=FALSE}
+library(elktoeChemistry)
+library(gt)
+```
+
 # Introduction 
 
 Freshwater mussels (Bivalvia: Unionidae, Magaritifera) are predominately suspension feeding bivalves that inhabit streams, rivers and lakes.Unionids provide a range of ecosystem services [@vaughn2017ecosystem] They serve as food for raccoons, muskrats and other species that inhabit riparian habitat, and when abundant help stabilize streambeds. While feeding unionids filter the water column removing algae, bacteria and detritus and process and sequester some contaminants [@gagne2007changes; @vaughn2017ecosystem]. Unionid shells support a microecosytem of bacteria, protozoa and fungi that play a prominent role in stream ecology. Their shells are similar to tree rings, archiving some aspects of their environmental history, and have been used as bioindicators of pollution [@markich2002freshwater; @brown2005freshwater; @shoults2014resolution; @wilson2018freshwater]
@@ -143,6 +148,33 @@ The methodology, test statistics, and the model specifications are further descr
 
 # Results
 
+Table XXX shows characteristics of the specimens at baseline.
+
+```{r, results='asis', echo = FALSE}
+val <- function(x){
+  sprintf("%.f1 (%.f2)", mean(x), sd(x))
+}
+
+mussels_wide %>%
+  mutate(
+    weight_0 = if_else(species == "A. raveneliana", buoyant_weight_g_0, dry_weight_g_0)
+  ) %>%
+  group_by(species, site) %>%
+  summarise(
+    weight = val(weight_0),
+    length = val(length_mm_0),
+    width  = val(width_mm_0),
+    height = val(width_mm_0),
+    .groups = "keep"
+  ) %>%
+  gt() 
+# %>%
+#   tab_header(
+#     title = "Specimen baseline characteristrics",
+#   )
+```
+
+
 The experimental p-values corresponding to hypothesis tests for Q1-Q4 for each element are shown in Figure \@ref(fig:rires). Only *L. fasciola* had any results with p-values $<0.01$: Barium (B, C, D), Strontium (A, B), and Manganese (D). 
 
 ```{r rires, echo = FALSE, fig.cap = "Points are p-values (log$_{10}$ scale) testing the null hypothesis of no difference in each element accrued prior to the experiment in (A) nacre for sites versus baseline specimens excluding most recent annuli in non-baseline specimens, (B) nacre for between experiment sites excluding baseline excluding most recent annuli, (C) nacre between experiment sites excluding baseline including most recent annuli, and (D) prismatic layer between experiment sites. Smaller p-values suggest a larger discrepancy between sites under a null hypothesis of no difference between sites. P-values $<0.1$ are labelled by element."}
@@ -159,9 +191,9 @@ knitr::include_graphics(here::here("manuscript", "figures", "ri_ncr_summary_v002
 
 Based on current understanding of bivalve shell growth [@checa2000a-new-model], the laser transects that crossed the nacre should have captured the accretion that occurred during the experiment. By careful alignment of anatomic imaging and chemical data obtained by LA-ICP-MS, we were able to extract and analyze elemental concentrations from the nacre, including the locations of annuli within the nacre. We hypothesized that some elements would differentially accrue within the nacre across experimental assignments and could be detected from LA-ICP-MS data. @jackson2003laser, for example, experimentally fed contaminated fish to banded water snakes and showed LA-ICP-MS used on tail tissue was able to differentiate between treatments.
 
-Our analysis revealed no clear cut differences between sites that could be easily explained by the experiment itself. The lower concentrations of Barium in Little Tennesse Site 1 *L. fasciola* specimen has no obvious explanation, for example. All *L. fasciola* specimens were hatchery raised in the same conditions. The shells for the experimental sites were randomly distributed in the LA-ICP-MS sequence, suggesting the result is not an artifact of LA-ICP-MS processing. Moreover, *A. raveneliana* specimens do show a similar pattern in the nacre. Since *A. raveneliana* were much older than *L. fasciola*, comparing prismatic layer difference across species may not be relevant, as the laser transect in general crossed older prismatic layer sections in *A. raveneliana*. 
+Our analysis revealed no clear cut differences between sites that could be easily explained by the experiment itself. The lower concentrations of Barium in Little Tennessee Site 1 *L. fasciola* specimen has no obvious explanation, for example. All *L. fasciola* specimens were hatchery raised in the same conditions. The shells for the experimental sites were randomly distributed in the LA-ICP-MS sequence, suggesting the result is not an artifact of LA-ICP-MS processing. Moreover, *A. raveneliana* specimens do show a similar pattern in the nacre. Since *A. raveneliana* were much older than *L. fasciola*, comparing prismatic layer difference across species may not be relevant, as the laser transect in general crossed older prismatic layer sections in *A. raveneliana*. 
 
-We were particularly interested in Manganese, as it is an essential trace element with important roles in numerous enzymatic pathways that could have harmful effects on freshwater bivalves. Interestingly, surviving valves from the Little Tennessee had films on the gills that were apparent by scanning electron microscopy, which upon x-ray diffraction analysis consisted largely of Mn [@levine2020].
+We were particularly interested in Mn, as it is an essential trace element with important roles in numerous enzymatic pathways that could have harmful effects on freshwater bivalves. Interestingly, surviving valves from the Little Tennessee had films on the gills that were apparent by scanning electron microscopy, which upon x-ray diffraction analysis consisted largely of Mn [@levine2020].
 
 Manganese valve concentrations have been shown to correlate with seasonal changes [@siegele2001manganese; @shoults2014resolution]. The reasons for the seasonal variation are unknown, but in our study, different survival times could have resulted in different accrual patterns. Those that survived longer would have kept accumulating Mn for later in the season. We do not know when specimens in the experiment died. It could be that those specimens that survived to the end of the study (Tuckasegee 1 site had the lowest mortality) were accruing shell for longer while the trajectories for other specimens were censored at their time of death.
 
