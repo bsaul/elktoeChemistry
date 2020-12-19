@@ -22,7 +22,9 @@ navbar:
       text: Results
       menu:
       - text: Study map
-        href: articles/study_map.html   
+        href: articles/study_map.html
+      - text: Elemental diversity
+        href: articles/diversity.html
       - text: Summarize elements
         href: articles/summarize_elements.html
   

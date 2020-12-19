@@ -31,7 +31,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">elktoeChemistry</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.1</span>
       </span>
     </div>
 
@@ -63,6 +63,9 @@
       <a href="../articles/study_map.html">Study map</a>
     </li>
     <li>
+      <a href="../articles/diversity.html">Elemental diversity</a>
+    </li>
+    <li>
       <a href="../articles/summarize_elements.html">Summarize elements</a>
     </li>
   </ul>
@@ -84,12 +87,12 @@
 
       
 
-      </header><script src="map_study_area_files/jquery-1.11.3/jquery.min.js"></script><script src="map_study_area_files/elevate-section-attrs-2.0/elevate-section-attrs.js"></script><div class="row">
+      </header><script src="map_study_area_files/header-attrs-2.6/header-attrs.js"></script><script src="map_study_area_files/accessible-code-block-0.0.1/empty-anchor.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Study Map</h1>
             
-            <h4 class="date">2020-08-11</h4>
+            <h4 class="date">2020-12-18</h4>
       
       
       <div class="hidden name"><code>map_study_area.Rmd</code></div>
@@ -98,8 +101,8 @@
 
     
     
-<div class="sourceCode" id="cb1"><html><body><pre class="r"><span class="fu"><a href="https://rdrr.io/r/base/library.html">library</a></span>(<span class="no">dplyr</span>)
-<span class="co">#&gt; Warning: package 'dplyr' was built under R version 3.6.2</span>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; Attaching package: 'dplyr'</span>
 <span class="co">#&gt; The following objects are masked from 'package:stats':</span>
@@ -108,60 +111,59 @@
 <span class="co">#&gt; The following objects are masked from 'package:base':</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt;     intersect, setdiff, setequal, union</span>
-<span class="fu"><a href="https://rdrr.io/r/base/library.html">library</a></span>(<span class="no">sf</span>)
-<span class="co">#&gt; Linking to GEOS 3.7.2, GDAL 2.4.2, PROJ 5.2.0</span>
-<span class="fu"><a href="https://rdrr.io/r/base/library.html">library</a></span>(<span class="no">ggplot2</span>)
-<span class="co">#&gt; Warning: package 'ggplot2' was built under R version 3.6.2</span>
-<span class="fu"><a href="https://rdrr.io/r/base/library.html">library</a></span>(<span class="no">ggmap</span>)
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://r-spatial.github.io/sf/">sf</a></span><span class="op">)</span>
+<span class="co">#&gt; Linking to GEOS 3.8.1, GDAL 3.1.4, PROJ 6.3.1</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/dkahle/ggmap">ggmap</a></span><span class="op">)</span>
 <span class="co">#&gt; Google's Terms of Service: https://cloud.google.com/maps-platform/terms/.</span>
-<span class="co">#&gt; Please cite ggmap if you use it! See citation("ggmap") for details.</span></pre></body></html></div>
-<div class="sourceCode" id="cb2"><html><body><pre class="r"><span class="no">read_sp_data</span> <span class="kw">&lt;-</span> <span class="kw">function</span>(<span class="no">.dsn</span>, <span class="no">.layer</span>){
-  <span class="kw pkg">sf</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/sf/man/st_transform.html">st_transform</a></span>(<span class="kw pkg">sf</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/sf/man/st_read.html">st_read</a></span>(<span class="kw">dsn</span> <span class="kw">=</span> <span class="no">.dsn</span>, <span class="kw">layer</span> <span class="kw">=</span> <span class="no">.layer</span>), <span class="fl">2264</span>)
-}</pre></body></html></div>
-<div class="sourceCode" id="cb3"><html><body><pre class="r"><span class="no">rivers</span> <span class="kw">&lt;-</span> <span class="fu">read_sp_data</span>(<span class="no">params</span>$<span class="no">inputs</span>$<span class="no">hydro</span>, <span class="st">'MajorHydro'</span>)
+<span class="co">#&gt; Please cite ggmap if you use it! See citation("ggmap") for details.</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">read_sp_data</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">.dsn</span>, <span class="va">.layer</span><span class="op">)</span><span class="op">{</span>
+  <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_transform.html">st_transform</a></span><span class="op">(</span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html">st_read</a></span><span class="op">(</span>dsn <span class="op">=</span> <span class="va">.dsn</span>, layer <span class="op">=</span> <span class="va">.layer</span><span class="op">)</span>, <span class="fl">2264</span><span class="op">)</span>
+<span class="op">}</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">rivers</span> <span class="op">&lt;-</span> <span class="fu">read_sp_data</span><span class="op">(</span><span class="va">params</span><span class="op">$</span><span class="va">inputs</span><span class="op">$</span><span class="va">hydro</span>, <span class="st">'MajorHydro'</span><span class="op">)</span>
 <span class="co">#&gt; Reading layer `MajorHydro' from data source `/Users/bsaul/Dropbox/Research/projects/elktoeChemistry/extdata/MajorHydro/MajorHydro.shp' using driver `ESRI Shapefile'</span>
 <span class="co">#&gt; Simple feature collection with 3404 features and 5 fields</span>
 <span class="co">#&gt; geometry type:  LINESTRING</span>
 <span class="co">#&gt; dimension:      XY</span>
 <span class="co">#&gt; bbox:           xmin: -84.29812 ymin: 33.83982 xmax: -75.45998 ymax: 36.58755</span>
-<span class="co">#&gt; epsg (SRID):    4326</span>
-<span class="co">#&gt; proj4string:    +proj=longlat +datum=WGS84 +no_defs</span>
-<span class="no">munip</span>  <span class="kw">&lt;-</span> <span class="fu">read_sp_data</span>(<span class="no">params</span>$<span class="no">inputs</span>$<span class="no">munip</span>, <span class="st">'MunicipalBoundaries'</span>) <span class="kw">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span>(<span class="no">CountyName</span> <span class="kw">%in%</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"JACKSON"</span>, <span class="st">"MACON"</span>, <span class="st">"SWAIN"</span>))
+<span class="co">#&gt; geographic CRS: WGS 84</span>
+<span class="va">munip</span>  <span class="op">&lt;-</span> <span class="fu">read_sp_data</span><span class="op">(</span><span class="va">params</span><span class="op">$</span><span class="va">inputs</span><span class="op">$</span><span class="va">munip</span>, <span class="st">'MunicipalBoundaries'</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">CountyName</span> <span class="op">%in%</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"JACKSON"</span>, <span class="st">"MACON"</span>, <span class="st">"SWAIN"</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt; Reading layer `MunicipalBoundaries' from data source `/Users/bsaul/Dropbox/Research/projects/elktoeChemistry/extdata/MunicipalBoundary_SHP/MunicipalBoundaries.shp' using driver `ESRI Shapefile'</span>
 <span class="co">#&gt; Simple feature collection with 551 features and 25 fields</span>
 <span class="co">#&gt; geometry type:  MULTIPOLYGON</span>
 <span class="co">#&gt; dimension:      XY</span>
 <span class="co">#&gt; bbox:           xmin: 491681.5 ymin: 34700.65 xmax: 3018438 ymax: 1023767</span>
-<span class="co">#&gt; epsg (SRID):    2264</span>
-<span class="co">#&gt; proj4string:    +proj=lcc +lat_1=36.16666666666666 +lat_2=34.33333333333334 +lat_0=33.75 +lon_0=-79 +x_0=609601.2192024384 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=us-ft +no_defs</span>
+<span class="co">#&gt; projected CRS:  NAD83 / North Carolina (ftUS)</span>
 
-<span class="no">sites</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span>(
-  <span class="kw">river</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span>(<span class="st">'Tuck'</span>, <span class="fl">3</span>), <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span>(<span class="st">'LiTN'</span>, <span class="fl">3</span>) ),
-  <span class="kw">site</span>  <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span>(<span class="fl">1</span>:<span class="fl">3</span>, <span class="fl">2</span>),
-  <span class="kw">landmark</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"Dillsboro"</span>, <span class="st">"Barker's Creek"</span>, <span class="st">"Whittier Post Office"</span>,
-               <span class="st">"Franklin Dam"</span>, <span class="st">"Rosecreek Bridge"</span>, <span class="st">"Needmore Swinging Bridge"</span>),
-  <span class="kw">lat</span>  <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fl">35.347642</span>, <span class="fl">35.381479</span>, <span class="fl">35.435096</span>, <span class="fl">35.220284</span>, <span class="fl">35.271884</span>, <span class="fl">35.322444</span>),
-  <span class="kw">lon</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(-<span class="fl">83.236917</span>, -<span class="fl">83.288928</span>, -<span class="fl">83.358732</span>, -<span class="fl">83.371543</span>, -<span class="fl">83.440744</span>, -<span class="fl">83.521481</span>)
-)
+<span class="va">sites</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>
+  river <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="st">'Tuck'</span>, <span class="fl">3</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="st">'LiTN'</span>, <span class="fl">3</span><span class="op">)</span> <span class="op">)</span>,
+  site  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="fl">2</span><span class="op">)</span>,
+  landmark <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Dillsboro"</span>, <span class="st">"Barker's Creek"</span>, <span class="st">"Whittier Post Office"</span>,
+               <span class="st">"Franklin Dam"</span>, <span class="st">"Rosecreek Bridge"</span>, <span class="st">"Needmore Swinging Bridge"</span><span class="op">)</span>,
+  lat  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">35.347642</span>, <span class="fl">35.381479</span>, <span class="fl">35.435096</span>, <span class="fl">35.220284</span>, <span class="fl">35.271884</span>, <span class="fl">35.322444</span><span class="op">)</span>,
+  lon <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">83.236917</span>, <span class="op">-</span><span class="fl">83.288928</span>, <span class="op">-</span><span class="fl">83.358732</span>, <span class="op">-</span><span class="fl">83.371543</span>, <span class="op">-</span><span class="fl">83.440744</span>, <span class="op">-</span><span class="fl">83.521481</span><span class="op">)</span> 
+<span class="op">)</span> 
 
-<span class="no">pnts</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/sf/man/sfc.html">st_sfc</a></span>(<span class="kw">geom</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/pkg/sf/man/st.html">st_multipoint</a></span>(<span class="kw">x</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">cbind</a></span>(<span class="no">sites</span>$<span class="no">lon</span>, <span class="no">sites</span>$<span class="no">lat</span>)))
-<span class="no">sites</span>$<span class="no">geom</span> <span class="kw">&lt;-</span> <span class="no">pnts</span>
-<span class="fu"><a href="https://rdrr.io/pkg/sf/man/st_crs.html">st_crs</a></span>(<span class="no">sites</span>$<span class="no">geom</span>) <span class="kw">&lt;-</span> <span class="fl">4326</span>
-<span class="no">sites</span>$<span class="no">geom</span> <span class="kw">&lt;-</span> <span class="no">sites</span>$<span class="no">geom</span> <span class="kw">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/pkg/sf/man/st_transform.html">st_transform</a></span>(<span class="fl">2264</span>)
+<span class="va">pnts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/sfc.html">st_sfc</a></span><span class="op">(</span>geom <span class="op">=</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st.html">st_multipoint</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">cbind</a></span><span class="op">(</span><span class="va">sites</span><span class="op">$</span><span class="va">lon</span>, <span class="va">sites</span><span class="op">$</span><span class="va">lat</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="va">sites</span><span class="op">$</span><span class="va">geom</span> <span class="op">&lt;-</span> <span class="va">pnts</span>
+<span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_crs.html">st_crs</a></span><span class="op">(</span><span class="va">sites</span><span class="op">$</span><span class="va">geom</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fl">4326</span>
+<span class="va">sites</span><span class="op">$</span><span class="va">geom</span> <span class="op">&lt;-</span> <span class="va">sites</span><span class="op">$</span><span class="va">geom</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_transform.html">st_transform</a></span><span class="op">(</span><span class="fl">2264</span><span class="op">)</span>
 
-<span class="no">box</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/sf/man/st_bbox.html">st_bbox</a></span>(<span class="no">sites</span>$<span class="no">geom</span>) <span class="kw">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/pkg/sf/man/st_as_sfc.html">st_as_sfc</a></span>()
-<span class="no">bbox</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/sf/man/geos_unary.html">st_buffer</a></span>(<span class="no">box</span>, <span class="kw">dist</span> <span class="kw">=</span> <span class="kw pkg">units</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/units/man/set_units.html">set_units</a></span>(<span class="fl">8</span>, <span class="st">"km"</span>))
-<span class="no">riv</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/sf/man/geos_binary_ops.html">st_intersection</a></span>(<span class="no">bbox</span>, <span class="no">rivers</span>$<span class="no">geometry</span>)
-<span class="no">mun</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/sf/man/geos_binary_ops.html">st_intersection</a></span>(<span class="no">bbox</span>, <span class="no">munip</span>$<span class="no">geometry</span>)
+<span class="va">box</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_bbox.html">st_bbox</a></span><span class="op">(</span><span class="va">sites</span><span class="op">$</span><span class="va">geom</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sfc.html">st_as_sfc</a></span><span class="op">(</span><span class="op">)</span> 
+<span class="va">bbox</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_unary.html">st_buffer</a></span><span class="op">(</span><span class="va">box</span>, dist <span class="op">=</span> <span class="fu">units</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/units/man/set_units.html">set_units</a></span><span class="op">(</span><span class="fl">8</span>, <span class="st">"km"</span><span class="op">)</span><span class="op">)</span>
+<span class="va">riv</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_binary_ops.html">st_intersection</a></span><span class="op">(</span><span class="va">bbox</span>, <span class="va">rivers</span><span class="op">$</span><span class="va">geometry</span><span class="op">)</span> 
+<span class="va">mun</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_binary_ops.html">st_intersection</a></span><span class="op">(</span><span class="va">bbox</span>, <span class="va">munip</span><span class="op">$</span><span class="va">geometry</span><span class="op">)</span>
 
 
-<span class="no">riv</span> <span class="kw">&lt;-</span> <span class="no">riv</span> <span class="kw">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/pkg/sf/man/st_transform.html">st_transform</a></span>(<span class="fl">4326</span>)
-<span class="no">mun</span> <span class="kw">&lt;-</span> <span class="no">mun</span> <span class="kw">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/pkg/sf/man/st_transform.html">st_transform</a></span>(<span class="fl">4326</span>)
-<span class="no">sites</span>$<span class="no">geom</span> <span class="kw">&lt;-</span> <span class="no">sites</span>$<span class="no">geom</span> <span class="kw">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/pkg/sf/man/st_transform.html">st_transform</a></span>(<span class="fl">4326</span>)
-<span class="no">background</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/ggmap/man/get_stamenmap.html">get_stamenmap</a></span>(
-  <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">matrix</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/attr.html">attr</a></span>(<span class="no">riv</span>, <span class="st">"bbox"</span>), <span class="kw">ncol</span> <span class="kw">=</span> <span class="fl">2</span>),
-  <span class="kw">maptype</span> <span class="kw">=</span> <span class="st">"terrain-background"</span>)
+<span class="va">riv</span> <span class="op">&lt;-</span> <span class="va">riv</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_transform.html">st_transform</a></span><span class="op">(</span><span class="fl">4326</span><span class="op">)</span>
+<span class="va">mun</span> <span class="op">&lt;-</span> <span class="va">mun</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_transform.html">st_transform</a></span><span class="op">(</span><span class="fl">4326</span><span class="op">)</span>
+<span class="va">sites</span><span class="op">$</span><span class="va">geom</span> <span class="op">&lt;-</span> <span class="va">sites</span><span class="op">$</span><span class="va">geom</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_transform.html">st_transform</a></span><span class="op">(</span><span class="fl">4326</span><span class="op">)</span>
+<span class="va">background</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/ggmap/man/get_stamenmap.html">get_stamenmap</a></span><span class="op">(</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html">attr</a></span><span class="op">(</span><span class="va">riv</span>, <span class="st">"bbox"</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>, 
+  maptype <span class="op">=</span> <span class="st">"terrain-background"</span><span class="op">)</span>
 <span class="co">#&gt; Source : http://tile.stamen.com/terrain-background/10/274/403.png</span>
 <span class="co">#&gt; Source : http://tile.stamen.com/terrain-background/10/275/403.png</span>
 <span class="co">#&gt; Source : http://tile.stamen.com/terrain-background/10/274/404.png</span>
@@ -169,59 +171,60 @@
 <span class="co">#&gt; Source : http://tile.stamen.com/terrain-background/10/274/405.png</span>
 <span class="co">#&gt; Source : http://tile.stamen.com/terrain-background/10/275/405.png</span>
 
-<span class="no">river_label_pos</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/reexports.html">tibble</a></span>(
-  <span class="kw">label</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"Tuckasegee"</span>, <span class="st">"Little Tennessee"</span>),
-  <span class="kw">lat</span>   <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fl">35.42</span>, <span class="fl">35.29</span>),
-  <span class="kw">lon</span>   <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(-<span class="fl">83.28</span>, -<span class="fl">83.42</span>)
-)
+<span class="va">river_label_pos</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>
+  label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Tuckasegee"</span>, <span class="st">"Little Tennessee"</span><span class="op">)</span>,
+  lat   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">35.42</span>, <span class="fl">35.29</span><span class="op">)</span>,
+  lon   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">83.28</span>, <span class="op">-</span><span class="fl">83.42</span><span class="op">)</span>
+<span class="op">)</span>
 
-<span class="fu"><a href="https://rdrr.io/pkg/ggmap/man/ggmap.html">ggmap</a></span>(<span class="no">background</span>) +
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html">geom_sf</a></span>(
-    <span class="kw">data</span> <span class="kw">=</span> <span class="no">mun</span>,
-    <span class="kw">color</span> <span class="kw">=</span> <span class="st">"grey20"</span>,
-    <span class="kw">fill</span> <span class="kw">=</span> <span class="st">"grey50"</span>,
-    <span class="kw">inherit.aes</span> <span class="kw">=</span> <span class="fl">FALSE</span>
-  ) +
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html">geom_sf</a></span>(
-    <span class="kw">data</span> <span class="kw">=</span> <span class="no">riv</span>,
-    <span class="kw">color</span> <span class="kw">=</span> <span class="st">"#116966"</span>,
-    <span class="kw">fill</span>  <span class="kw">=</span> <span class="st">"blue"</span>,
-    <span class="kw">inherit.aes</span> <span class="kw">=</span> <span class="fl">FALSE</span>
-  ) +
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html">geom_sf</a></span>(
-    <span class="kw">data</span> <span class="kw">=</span> <span class="no">sites</span>,
-    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(<span class="kw">geometry</span> <span class="kw">=</span> <span class="no">geom</span>,
-        <span class="kw">shape</span>   <span class="kw">=</span> <span class="no">river</span>),
-    <span class="kw">color</span> <span class="kw">=</span> <span class="st">"#7f2b04"</span>,
-    <span class="kw">fill</span>  <span class="kw">=</span> <span class="st">"white"</span>,
-    <span class="kw">shape</span> <span class="kw">=</span> <span class="fl">25</span>,
-    <span class="kw">alpha</span> <span class="kw">=</span> <span class="fl">1</span>,
-    <span class="kw">inherit.aes</span> <span class="kw">=</span> <span class="fl">FALSE</span>
-  ) +
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_text.html">geom_text</a></span>(
-    <span class="kw">data</span> <span class="kw">=</span> <span class="no">sites</span> <span class="kw">%&gt;%</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span>(<span class="kw">lon</span> <span class="kw">=</span> <span class="no">lon</span> - <span class="fl">0.015</span>),
-    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(<span class="kw">label</span> <span class="kw">=</span> <span class="no">site</span>)
-  ) +
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_text.html">geom_text</a></span>(
-    <span class="kw">data</span> <span class="kw">=</span> <span class="no">river_label_pos</span>,
-    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(<span class="kw">label</span> <span class="kw">=</span> <span class="no">label</span>),
-    <span class="kw">angle</span> <span class="kw">=</span> <span class="fl">320</span>,
-    <span class="kw">color</span> <span class="kw">=</span> <span class="st">"black"</span>
-  ) +
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guides.html">guides</a></span>(
-    <span class="kw">color</span> <span class="kw">=</span> <span class="fl">FALSE</span>,
-    <span class="kw">shape</span> <span class="kw">=</span> <span class="fl">FALSE</span>
-  ) <span class="kw">-&gt;</span>
-  <span class="no">p</span>
+<span class="fu"><a href="https://rdrr.io/pkg/ggmap/man/ggmap.html">ggmap</a></span><span class="op">(</span><span class="va">background</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html">geom_sf</a></span><span class="op">(</span>
+    data <span class="op">=</span> <span class="va">mun</span>,
+    color <span class="op">=</span> <span class="st">"grey20"</span>,
+    fill <span class="op">=</span> <span class="st">"grey50"</span>,
+    inherit.aes <span class="op">=</span> <span class="cn">FALSE</span>
+  <span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html">geom_sf</a></span><span class="op">(</span>
+    data <span class="op">=</span> <span class="va">riv</span>,
+    color <span class="op">=</span> <span class="st">"#116966"</span>,
+    fill  <span class="op">=</span> <span class="st">"blue"</span>,
+    inherit.aes <span class="op">=</span> <span class="cn">FALSE</span>
+  <span class="op">)</span> <span class="op">+</span> 
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html">geom_sf</a></span><span class="op">(</span>
+    data <span class="op">=</span> <span class="va">sites</span>,
+    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>geometry <span class="op">=</span> <span class="va">geom</span>,
+        shape   <span class="op">=</span> <span class="va">river</span><span class="op">)</span>,
+    color <span class="op">=</span> <span class="st">"#7f2b04"</span>,
+    fill  <span class="op">=</span> <span class="st">"white"</span>,
+    shape <span class="op">=</span> <span class="fl">25</span>,
+    alpha <span class="op">=</span> <span class="fl">1</span>,
+    inherit.aes <span class="op">=</span> <span class="cn">FALSE</span>
+  <span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_text.html">geom_text</a></span><span class="op">(</span>
+    data <span class="op">=</span> <span class="va">sites</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>lon <span class="op">=</span> <span class="va">lon</span> <span class="op">-</span> <span class="fl">0.015</span><span class="op">)</span>,
+    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>label <span class="op">=</span> <span class="va">site</span><span class="op">)</span>
+  <span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_text.html">geom_text</a></span><span class="op">(</span>
+    data <span class="op">=</span> <span class="va">river_label_pos</span>,
+    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>label <span class="op">=</span> <span class="va">label</span><span class="op">)</span>,
+    angle <span class="op">=</span> <span class="fl">320</span>,
+    color <span class="op">=</span> <span class="st">"black"</span>
+  <span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guides.html">guides</a></span><span class="op">(</span>
+    color <span class="op">=</span> <span class="cn">FALSE</span>,
+    shape <span class="op">=</span> <span class="cn">FALSE</span>
+  <span class="op">)</span> <span class="op">-&gt;</span>
+  <span class="va">p</span>
 <span class="co">#&gt; Coordinate system already present. Adding new coordinate system, which will replace the existing one.</span>
 
-<span class="no">p</span></pre></body></html></div>
+<span class="va">p</span></code></pre></div>
 <p><img src="map_study_area_files/figure-html/unnamed-chunk-3-1.png" width="700"></p>
-<div class="sourceCode" id="cb4"><html><body><pre class="r"><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html">ggsave</a></span>(
-  <span class="kw">filename</span> <span class="kw">=</span> <span class="no">params</span>$<span class="no">output</span>$<span class="no">map</span>,
-  <span class="kw">plot</span> <span class="kw">=</span> <span class="no">p</span>,
-  <span class="kw">height</span> <span class="kw">=</span> <span class="fl">4</span>, <span class="kw">width</span> <span class="kw">=</span> <span class="fl">4</span>
-)</pre></body></html></div>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html">ggsave</a></span><span class="op">(</span>
+  filename <span class="op">=</span> <span class="va">params</span><span class="op">$</span><span class="va">output</span><span class="op">$</span><span class="va">map</span>,
+  plot <span class="op">=</span> <span class="va">p</span>,
+  height <span class="op">=</span> <span class="fl">4</span>, width <span class="op">=</span> <span class="fl">4</span>
+<span class="op">)</span></code></pre></div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
@@ -237,7 +240,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

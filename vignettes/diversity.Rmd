@@ -1,0 +1,253 @@
+---
+title: "Elemental Diversity"
+author: "Bradley Saul"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Elemental Diversity}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+bibliography: vignettes.bib
+params: 
+   inputs: 
+     value: 
+       analysis: "../data/analysis_data.rds"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Examining Diversity in Elements within and between layers, individuals and sites
+
+```{r}
+library(elktoeChemistry)
+library(dplyr)
+library(entropart)
+library(ggplot2)
+analysis_data  <- readRDS(params$inputs$analysis)
+```
+
+```{r, echo = FALSE}
+site_colors <- 
+  c("LiTN 1" = "#99d8c9",
+    "LiTN 2" = "#41ae76",
+    "LiTN 3" = "#005824",
+    "Tuck 1" = "#fdae6b",
+    "Tuck 2" = "#f16913",
+    "Tuck 3" = "#8c2d04",
+    "Baseline" = "#525252")
+```
+
+
+```{r}
+dt <- 
+  analysis_data(
+    contrast = "all",
+    test_data_FUN = identity,
+    transect_opts  = list(
+      .layers    = c("ipx", "ncr", "psm", "pio", "opx")
+    )
+  ) %>%
+  select(signal, species, element, data) %>%
+  tidyr::unnest(cols = data) %>%
+  select(
+    signal, species, final_status, river, site, 
+    id, obs, transect, layer, annuli, element, value) %>%
+  group_by(
+    signal, species, final_status, river, site,
+    id, layer, annuli, element,
+  ) %>%
+  summarise(
+    value = sum(value)
+  ) 
+```
+
+```{r}
+adt <- 
+  dt %>% 
+  ungroup() %>%
+  mutate(
+    layer_annuli = if_else(is.na(annuli),
+                     as.character(layer),
+                     paste(layer, annuli)),
+    layer_annuli = factor(layer_annuli, 
+                    levels = c("ipx", paste("ncr", LETTERS[1:13]),
+                               "psm", "pio", "opx")),
+  ) %>%
+  select(
+    signal, species, site, id, layer, annuli,
+     layer_annuli, element, value
+  )
+```
+
+
+## Across Nacral layers within individuals
+
+```{r, warning=FALSE}
+ncrdt <-
+  adt %>%
+  filter(species == "Arav", layer == "ncr", annuli <= "C") %>%
+  select(-layer, -layer_annuli) %>%
+  group_by(
+    signal, species, site, id
+  ) %>%
+  filter(any(annuli > "A")) %>%
+  group_nest() %>%
+  mutate(
+    data = purrr::map(
+      .x = data,
+      .f = ~ tidyr::pivot_wider(
+        .x, names_from = "annuli", values_from = "value")
+    ),
+    mc = purrr::map(
+      .x = data,
+      .f = ~ MetaCommunity(.x[ , -1])
+    ),
+    dp = purrr::map(
+      .x = mc,
+      .f = ~ DivProfile(
+        q = seq(0, 2, by = 0.1), 
+        MC = .x,
+        Biased = FALSE)
+    ),
+    beta = purrr::map(
+      dp,
+      ~ tibble(
+        q     = .x[["Order"]],
+        value = .x[["TotalBetaDiversity"]]
+      )
+    )
+  ) 
+```
+
+```{r, fig.height=5}
+pdt <- 
+  ncrdt %>%
+  select(signal, species, site, id, beta) %>%
+  tidyr::unnest(beta)
+
+ggplot(
+  data = pdt,
+  aes(x = q, y = value, id = id,
+      color = site)
+) +
+  geom_line() +
+  scale_color_manual(values = site_colors) +
+  facet_grid(signal ~ .)
+
+```
+
+
+```{r, warning=FALSE}
+ncr_summary <- 
+  ncrdt %>%
+  select(
+    signal, species, site, id, mc
+  ) %>%
+  group_by(signal, species, site) %>%
+  group_nest() %>%
+  mutate(
+    data = purrr::map(
+      .x = data, 
+      .f = ~ MergeMC(.x$mc, Weights = sapply(.x$mc, function(x) (x$N)))
+    ),
+    dp = purrr::map(
+      .x = data,
+      .f = ~ DivProfile(seq(0, 2, by = 0.1), MC = .x)
+    ),
+    beta = purrr::map(
+      dp,
+      ~ tibble(
+        q     = .x[["Order"]],
+        value = .x[["TotalBetaDiversity"]]
+      )
+    )
+  )
+```
+
+
+```{r}
+pdt <- 
+  ncr_summary %>%
+  select(signal, species, site, beta) %>%
+  tidyr::unnest(beta)
+
+
+ggplot(
+  data = pdt,
+  aes(x = q, y = value, id = site,
+      color = site)
+) +
+  geom_line() +
+  scale_color_manual(values = site_colors) +
+  facet_grid(signal ~ .)
+```  
+
+
+## Within Layers Between Sites
+
+```{r, warning=FALSE}
+layer_dt <- 
+  adt %>%
+  filter(is.na(annuli) | annuli <= "C") %>%
+  select(-layer, -annuli) %>%
+  group_by(signal, species, site, layer_annuli) %>%
+  group_nest() %>%
+  filter(species == "Arav") %>%
+  mutate(
+    data = purrr::map(
+      .x = data,
+      .f = ~ tidyr::pivot_wider(
+        .x, names_from = "id", values_from = "value")
+    ),
+    mc = purrr::map(
+      .x = data,
+      .f = ~ MetaCommunity(.x[ , -1])
+    ),
+    dp = purrr::map(
+      .x = mc,
+      .f = ~ DivProfile(q = seq(0, 2, by = 0.1), .x,
+                        Biased = FALSE)
+    ),
+    beta = purrr::map(
+      dp,
+      ~ tibble(
+        q     = .x[["Order"]],
+        value = .x[["TotalBetaDiversity"]]
+      )
+    )
+  )
+```
+
+```{r, fig.width=8}
+betas <- 
+  layer_dt %>%
+  filter(signal == "base") %>%
+  select(species, site, layer_annuli, beta) %>%
+  tidyr::unnest(cols = beta)
+
+
+ggplot(
+  data = betas,
+  aes(x = q, y = value, group = site, color = site)
+) +
+  geom_line() + 
+  scale_color_manual(
+    values = site_colors
+  ) + 
+  scale_y_continuous(
+    "Effective number of individuals"
+  ) + 
+  scale_x_continuous(
+    "Order of diversity"
+  ) + 
+  facet_grid(species ~ layer_annuli, scales = "free_y") +
+  theme_bw()
+
+```

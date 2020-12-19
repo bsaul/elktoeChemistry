@@ -1,0 +1,26 @@
+---
+title: "20200829 elktoe report"
+date: "8/29/2020"
+output: word_document
+bibliography: elktoe.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+North American freshwater mussel species are imperiled throughout their home range. The majority, are federally or state listed as threatened, endangered or of special concern. Environmentally degrading riparian land-use practices have been attributed to their decline. Exposure to certain heavy metals from municipal effluents and other sources have been shown to increase morbidity and mortality in freshwater bivalves [@naimo1995a-review]. @hartmut2007declining attributed declining populations of the freshwater pearl mussel (*Margaritifera margaritifera*) to heavy metals and pesticides. Exposure to heavy metals have also been associated with genotoxic effects [@black1996dna; @khan2019bioaccumulation] enzymatic function, and behavioral changes [@naimo1995a-review].
+
+The Appalachian Elktoe (*Alasmidonta raveneliana*) (Bivalvia: Unionidae) is native to the streams of eastern Tennessee and western North Carolina. The Elktoe is listed as federally endangered and remaining populations are found in the Nolichucky River in eastern Tennessee and the Upper Tennessee River system in North Carolina. Although once abundant in the Little Tennessee River, NC, precipitous declines were noted in  *A. raveneliana*  populations after major hurricane-related flooding associated with Hurricane Frances in 2004. However, within the same watershed’s  *A. raveneliana*  Tuckasegee River populations appeared stable. @miller2013concentrations evaluated sediment concentrations of Cu, Cr, Ni, and Zn in the Little Tennessee and Tuckasegee. When considered with the chemical concentrations of *A. raveneliana* shells measured by @jarvis2011water, they found these elements (Cu in particular) unlikely to be the primary culprit in the *A. raveneliana* decline. Reasons for the decline remain unclear [@jarvis2011water; @miller2013concentrations; miller2016potential; @pandolfi2016effects]. 
+
+To determine how river-specific factors may be associated with health and physiological outcomes, we conducted a completely randomized experiment by assigning eighty-two  *A. raveneliana*  along with an equal number of hatchery-raised Wavy-Rayed Lampmussel (*Lampsilis fasciola*) to sites within each river. IWe asked whether exposure to the experimental sites modified the accretion of twenty trace elements in specimens’ valves. We demonstrate how chemical trajectories obtained by laser ablation inductively coupled plasma mass spectrometry (LA-ICP-MS) transects of valve cross-sections [@pozebon2014review] can be aligned with anatomical features of the valves in order to compare specific valve layers and time periods. 
+
+We hypothesized that the distributions of one or more elements accrued in either the nacre or prismatic layer would differ between experimental sites. To examine differential accrual, we probed the research hypotheses by systematically examining both the sources and validity of any observed differences in shell composition in manner that was faithful to the completely randomized experimental design, thus permiting randomization-based inference [@splawa-neyman1990on-the-application; @coppock2019ri2] by permuting assignments to sites. 
+
+```{r rires, echo = FALSE, fig.cap = "Points are p-values (log$_{10}$ scale) testing the null hypothesis of no difference in each element accrued prior to the experiment in (A) nacre for sites versus baseline specimens excluding most recent annuli in non-baseline specimens, (B) nacre for between experiment sites excluding baseline excluding most recent annuli, (C) nacre between experiment sites excluding baseline including most recent annuli, and (D) prismatic layer between experiment sites. Smaller p-values suggest a larger discrepancy between sites under a null hypothesis of no difference between sites. P-values $<0.1$ are labelled by element."}
+knitr::include_graphics(here::here("manuscript", "figures", "ri_ncr_hypothesis_v002.pdf"))
+```
+
+Our analysis revealed no clear cut differences between sites that could be easily explained by the experiment itself. The lower concentrations of Barium in Little Tennessee Site 1 *L. fasciola* specimen has no obvious explanation, for example. All *L. fasciola* specimens were hatchery raised in the same conditions. The shells for the experimental sites were randomly distributed in the LA-ICP-MS sequence, suggesting the result is not an artifact of LA-ICP-MS processing. Moreover, *A. raveneliana* specimens do show a similar pattern in the nacre. Since *A. raveneliana* were much older than *L. fasciola*, comparing prismatic layer difference across species may not be relevant, as the laser transect in general crossed older prismatic layer sections in *A. raveneliana*. 
+
+# References
