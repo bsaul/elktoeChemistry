@@ -6,7 +6,6 @@ packrat/lib*/
 *.xls*
 *.ppt*
 *.jpg
-*.png
 *.pdf
 *.tif
 *.tar.gz
