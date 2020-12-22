@@ -93,7 +93,7 @@
       <h1 data-toc-skip>Prepare analysis data</h1>
                         <h4 class="author">Bradley Saul</h4>
             
-            <h4 class="date">2020-12-18</h4>
+            <h4 class="date">2020-12-22</h4>
       
       
       <div class="hidden name"><code>prepare_analysis_data.Rmd</code></div>
@@ -131,6 +131,10 @@
   
   base   <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">ds</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/identity.html">identity</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>,
 
+  mad_10 <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">ds</span><span class="op">)</span> <span class="op">{</span>
+    <span class="fu">pracma</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/pracma/man/hampel.html">hampel</a></span><span class="op">(</span><span class="va">x</span>, k <span class="op">=</span> <span class="fl">10</span>, t0 <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">$</span><span class="va">y</span>
+  <span class="op">}</span>,
+  
   avg5_trunc_3sd <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">ds</span><span class="op">)</span><span class="op">{</span>
     <span class="va">rm</span> <span class="op">&lt;-</span> <span class="fu">zoo</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/zoo/man/rollmean.html">rollmean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">4</span><span class="op">)</span>, <span class="va">x</span><span class="op">)</span>, k <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>
     <span class="va">rs</span> <span class="op">&lt;-</span> <span class="fu">zoo</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/zoo/man/rollapply.html">rollapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">4</span><span class="op">)</span>, <span class="va">x</span><span class="op">)</span>, width <span class="op">=</span> <span class="fl">5</span>, FUN <span class="op">=</span> <span class="va">sd</span><span class="op">)</span>

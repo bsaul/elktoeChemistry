@@ -1,10 +1,10 @@
 ---
-title: "Describe specimens"
+title: "Element Summaries"
 author: "Bradley Saul"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Describe specimens}
+  %\VignetteIndexEntry{Element Summaries}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 bibliography: vignettes.bib
@@ -19,11 +19,12 @@ editor_options:
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  echo    = FALSE,
+  message = FALSE
 )
 ```
 
-# Summarizing elements
 
 ```{r}
 library(elktoeChemistry)
@@ -37,56 +38,161 @@ dt <-
   analysis_data(
     contrast = "all",
     test_data_FUN = function(data) data,
-    agrp      = "agrp_any_A",
+    # agrp      = "agrp_any_A",
     elements  = "all", # "all" returns all elements
-    signals   = c("base"),
+    signals   = c("mad_10"),
     group_by_valve = TRUE,
     transect_opts  = list(
-      .layers    = c("ncr", "psm"),
+      .layers    = c("ipx", "ncr", "psm", "pio", "opx"),
       .min_n_obs = 0L
     )
   )
 ```
 
 ```{r}
-make_element_summary_table <- function(dt, el){
-  dt %>%
-  gt(rowname_col = "site", groupname_col = "species") %>%
-  tab_header(
-    title = el,
-  ) %>%
-  fmt_number(
-    columns = vars(mean, sd, cv),
-    decimals = 3,
-    suffixing = TRUE
-  )
-}
-```
-
-
-```{r}
-table_dt <- 
+specimen_data <- 
   dt %>%
   select(species, element, data) %>%
-  tidyr::unnest(cols = c(data)) %>%
-  group_by(element, species, site, layer, id) %>%
+  tidyr::unnest(cols = c(data))
+
+specimen_summaries <- 
+  specimen_data %>%
+  group_by(element, species, site, id, layer) %>%
   summarise(
-    value = mean(value),
+    lmoments = list(lmomco::pwmLC(x = value, threshold = lod[1], nmom=4, sort=TRUE)),
+    n = n(),
+    md = median(value),
+    m = mean(value),
+    pc = mean(value <= lod),
+    ipm = 
+      if_else(pc == 1,
+              mean(value),
+              mean(value * (value >= lod))/(1 - pc)),
+    v = var(value)
   ) %>%
-  group_by(element, species, site, layer) %>%
-  summarise(
-    mean = mean(value),
-    sd   = sd(value),
-    cv   = mean/sd
-  ) %>%
-  group_by(element) %>%
-  group_nest() %>%
   mutate(
-    tab = purrr::map2(data, element, ~ make_element_summary_table(.x, .y))
+    l1 = if_else(
+      pc == 1,
+      m,
+      purrr::map_dbl(lmoments, ~ .x[["Aprimebetas"]][1] ))
+    )
+
+kruskal_pvalues <- 
+  specimen_summaries %>%
+  group_by(element, species, layer) %>%
+  summarise(
+    k_pvalue = kruskal.test(x = l1, g = site)[["p.value"]]
   )
+
+table_dt <- 
+  specimen_summaries %>%
+  group_by(element, species, site, layer) %>%
+  mutate(
+    iv = if_else(v == 0, 1, 1/v)
+  ) %>%
+  # Choose specimen-level summary statistic
+  mutate(
+    value = l1
+  ) %>%
+  summarise(
+    mean   = mean(value),
+    sd     = sd(value),
+    median = median(value),
+    iqr    = IQR(value),
+    ivm    = mean(value*iv)/sum(iv),
+    cv     = mean/sd
+  ) 
 ```
 
+```{r}
+tab <- 
+  table_dt %>%
+  mutate(
+    mdvalue = 
+      if_else(median <= 9.99, 
+        sprintf("%.02g (%.03g)", median, iqr),
+        sprintf("%.1f (%.1f)", median, iqr)),
+    mnvalue = 
+      if_else(mean <= 9.99, 
+              sprintf("%.02g (%.03g)", mean, sd),
+              sprintf("%.1f (%.1f)", mean, sd)),
+    layer = factor(layer, levels = c("ncr", "psm", "pio", "ipx", "opx"),
+                   ordered =  TRUE),
+    species = factor(
+      species, levels = c("Arav", "Lfas"), ordered = TRUE
+    ),
+    species_layer = interaction(layer, species, sep = "_")
+  ) %>%
+  ungroup() %>%
+  filter(
+    layer %in% c("ncr", "psm", "pio")
+  ) %>%
+  select(
+    element, species_layer, site, value = mdvalue
+  ) %>%
+  tidyr::pivot_wider(
+    names_from = c("species_layer"),
+    names_sort = TRUE,
+    values_from = "value"
+  ) 
 
-```{r, results="asis"}
-purrr::walk(table_dt$tab, print)
+pvalues_tab <- 
+  kruskal_pvalues %>%
+  mutate(
+    layer = factor(layer, levels = c("ncr", "psm", "pio", "ipx", "opx"),
+                   ordered =  TRUE),
+    species = factor(
+      species, levels = c("Arav", "Lfas"), ordered = TRUE
+    ),
+    species_layer = interaction(layer, species, sep = "_")
+  ) %>%
+  ungroup() %>%
+  filter(
+    layer %in% c("ncr", "psm", "pio")
+  ) %>%
+  select(
+    element, species_layer, value = k_pvalue
+  ) %>%
+  mutate(
+    value =  case_when(
+            value < 0.001 ~  "<0.001",
+            value < 0.01  ~  sprintf("%.03f", value),
+            TRUE ~ sprintf("%.02f", value))
+  ) %>%
+  tidyr::pivot_wider(
+    names_from = c("species_layer"),
+    names_sort = TRUE,
+    values_from = "value"
+  ) 
+```
+
+```{r}
+tab %>%
+  bind_rows(pvalues_tab) %>%
+  mutate(
+    site = if_else(is.na(site), "p-value", site)
+  ) %>%
+  arrange(element) %>%
+  gt(
+    rowname_col = "site",
+    groupname_col = c("element")
+  ) %>%
+  tab_header(
+    title = "Average concentrations by layer",
+    subtitle = "Values are site-level median (interquartile range) of specimen-level probability of censoring weighted L-moment means for each layer. P-values are from Kruskal-Wallis test of a null hypothesis that the location parameters are the same across sites. A small p-value indicates that the distribution of L-moment means may be different at least one site."
+  ) %>%
+  cols_label(
+    ncr_Arav = "nacre",
+    psm_Arav = "prismatic",
+    pio_Arav = "periostracum",
+    ncr_Lfas = "nacre",
+    psm_Lfas = "prismatic",
+    pio_Lfas = "periostracum"
+  ) %>%
+  tab_spanner(
+    "A. raveneliana", c("ncr_Arav", "psm_Arav", "pio_Arav"),
+  )  %>%
+  tab_spanner(
+    "L. fasciola", c("ncr_Lfas", "psm_Lfas", "pio_Lfas"),
+  ) 
 ```

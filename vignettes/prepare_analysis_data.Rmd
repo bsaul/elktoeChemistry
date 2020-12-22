@@ -48,6 +48,10 @@ signal_filters <- list(
   
   base   = function(x, ds) identity(x),
 
+  mad_10 = function(x, ds) {
+    pracma::hampel(x, k = 10, t0 = 3)$y
+  },
+  
   avg5_trunc_3sd = function(x, ds){
     rm <- zoo::rollmean(c(rep(0, 4), x), k = 5)
     rs <- zoo::rollapply(c(rep(0, 4), x), width = 5, FUN = sd)
