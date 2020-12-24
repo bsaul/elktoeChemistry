@@ -30,6 +30,7 @@ knitr::opts_chunk$set(
 library(elktoeChemistry)
 library(dplyr)
 library(gt)
+library(ggplot2)
 analysis_data  <- readRDS(params$inputs$analysis)
 ```
 
@@ -38,8 +39,7 @@ dt <-
   analysis_data(
     contrast = "all",
     test_data_FUN = function(data) data,
-    # agrp      = "agrp_any_A",
-    elements  = "all", # "all" returns all elements
+    elements  = "all", 
     signals   = c("mad_10"),
     group_by_valve = TRUE,
     transect_opts  = list(
@@ -49,42 +49,18 @@ dt <-
   )
 ```
 
-```{r}
-specimen_data <- 
-  dt %>%
-  select(species, element, data) %>%
-  tidyr::unnest(cols = c(data))
-
-specimen_summaries <- 
-  specimen_data %>%
-  group_by(element, species, site, id, layer) %>%
-  summarise(
-    lmoments = list(lmomco::pwmLC(x = value, threshold = lod[1], nmom=4, sort=TRUE)),
-    n = n(),
-    md = median(value),
-    m = mean(value),
-    pc = mean(value <= lod),
-    ipm = 
-      if_else(pc == 1,
-              mean(value),
-              mean(value * (value >= lod))/(1 - pc)),
-    v = var(value)
-  ) %>%
-  mutate(
-    l1 = if_else(
-      pc == 1,
-      m,
-      purrr::map_dbl(lmoments, ~ .x[["Aprimebetas"]][1] ))
-    )
-
-kruskal_pvalues <- 
-  specimen_summaries %>%
-  group_by(element, species, layer) %>%
-  summarise(
-    k_pvalue = kruskal.test(x = l1, g = site)[["p.value"]]
+```{r functions}
+layer2 <- function(layer, annuli){
+   case_when(
+      layer == "ncr" & annuli == "A" ~ "ncr_new",
+      layer == "ncr" & annuli != "A" ~ "ncr_old",
+      layer %in% c("ipx", "opx")     ~ "epx",
+      TRUE ~ layer
   )
+}
 
-table_dt <- 
+
+make_summary_table_data <- function(specimen_summaries){
   specimen_summaries %>%
   group_by(element, species, site, layer) %>%
   mutate(
@@ -102,21 +78,20 @@ table_dt <-
     ivm    = mean(value*iv)/sum(iv),
     cv     = mean/sd
   ) 
-```
+}
 
-```{r}
-tab <- 
-  table_dt %>%
+make_summary_table <- function(table_data){
+  table_data %>%
   mutate(
-    mdvalue = 
-      if_else(median <= 9.99, 
-        sprintf("%.02g (%.03g)", median, iqr),
-        sprintf("%.1f (%.1f)", median, iqr)),
+    mdvalue = sprintf("%.02g (%.02g)", median, iqr),
+      # if_else(median <= 9.99, 
+      #   sprintf("%.02g (%.03g)", median, iqr),
+      #   sprintf("%.1f (%.1f)", median, iqr)),
     mnvalue = 
       if_else(mean <= 9.99, 
               sprintf("%.02g (%.03g)", mean, sd),
               sprintf("%.1f (%.1f)", mean, sd)),
-    layer = factor(layer, levels = c("ncr", "psm", "pio", "ipx", "opx"),
+    layer = factor(layer, levels = c("ncr_new", "ncr_old", "psm", "pio", "epx"),
                    ordered =  TRUE),
     species = factor(
       species, levels = c("Arav", "Lfas"), ordered = TRUE
@@ -124,75 +99,274 @@ tab <-
     species_layer = interaction(layer, species, sep = "_")
   ) %>%
   ungroup() %>%
-  filter(
-    layer %in% c("ncr", "psm", "pio")
-  ) %>%
   select(
-    element, species_layer, site, value = mdvalue
+    element, species_layer, site, 
+    l_value = median,
+    s_value = iqr
   ) %>%
   tidyr::pivot_wider(
+    # names_from = c("layer"),
     names_from = c("species_layer"),
     names_sort = TRUE,
-    values_from = "value"
+    values_from = c("l_value", "s_value")
   ) 
+}
 
-pvalues_tab <- 
-  kruskal_pvalues %>%
-  mutate(
-    layer = factor(layer, levels = c("ncr", "psm", "pio", "ipx", "opx"),
-                   ordered =  TRUE),
-    species = factor(
-      species, levels = c("Arav", "Lfas"), ordered = TRUE
-    ),
-    species_layer = interaction(layer, species, sep = "_")
-  ) %>%
-  ungroup() %>%
-  filter(
-    layer %in% c("ncr", "psm", "pio")
-  ) %>%
-  select(
-    element, species_layer, value = k_pvalue
-  ) %>%
-  mutate(
-    value =  case_when(
-            value < 0.001 ~  "<0.001",
-            value < 0.01  ~  sprintf("%.03f", value),
-            TRUE ~ sprintf("%.02f", value))
-  ) %>%
-  tidyr::pivot_wider(
-    names_from = c("species_layer"),
-    names_sort = TRUE,
-    values_from = "value"
-  ) 
-```
+cols_merge_ls <- function(tbl, layer, species){
+  vs <- paste(c("l", "s"), "value", layer, species, sep = "_")
 
-```{r}
-tab %>%
-  bind_rows(pvalues_tab) %>%
-  mutate(
-    site = if_else(is.na(site), "p-value", site)
-  ) %>%
-  arrange(element) %>%
+  cols_merge(
+     data = tbl,
+     columns = vs,
+     hide_columns = vs[2],
+     pattern      = "{1} ({2})"
+   ) 
+}
+
+make_gt_table <- function(table_data){
+  
+  table_data %>%
   gt(
     rowname_col = "site",
     groupname_col = c("element")
   ) %>%
   tab_header(
-    title = "Average concentrations by layer",
-    subtitle = "Values are site-level median (interquartile range) of specimen-level probability of censoring weighted L-moment means for each layer. P-values are from Kruskal-Wallis test of a null hypothesis that the location parameters are the same across sites. A small p-value indicates that the distribution of L-moment means may be different at least one site."
+    title = "Average mol/Ca mmol concentrations by layer",
+    subtitle = "Values are site-level median (interquartile range) of specimen-level probability of censoring weighted L-moment location parameter for each layer."
   ) %>%
+  fmt_number(
+    columns  = starts_with("l_value"),
+    n_sigfig = 2
+  ) %>%
+  fmt_number(
+    columns  = starts_with("s_value"),
+    n_sigfig = 2
+  ) %>%
+  cols_merge_ls("ncr_new", "Arav") %>%
+  cols_merge_ls("ncr_new", "Lfas") %>%
+  cols_merge_ls("ncr_old", "Arav") %>%
+  cols_merge_ls("ncr_old", "Lfas") %>%
+  cols_merge_ls("psm", "Arav") %>%
+  cols_merge_ls("psm", "Lfas") %>%
+  cols_merge_ls("pio", "Arav") %>%
+  cols_merge_ls("pio", "Lfas") %>%
+  cols_merge_ls("epx", "Arav") %>%
+  cols_merge_ls("epx", "Lfas") %>%
   cols_label(
-    ncr_Arav = "nacre",
-    psm_Arav = "prismatic",
-    pio_Arav = "periostracum",
-    ncr_Lfas = "nacre",
-    psm_Lfas = "prismatic",
-    pio_Lfas = "periostracum"
+    l_value_ncr_new_Arav = "nacre (youngest annuli)",
+    l_value_ncr_old_Arav = "nacre (older annuli)",
+    l_value_psm_Arav = "prismatic",
+    l_value_pio_Arav = "periostracum",
+    l_value_epx_Arav = "epoxy",
+    l_value_ncr_new_Lfas = "nacre (youngest annuli)",
+    l_value_ncr_old_Lfas = "nacre (older annuli)",
+    l_value_psm_Lfas = "prismatic",
+    l_value_pio_Lfas = "periostracum",
+    l_value_epx_Lfas = "epoxy"
   ) %>%
   tab_spanner(
-    "A. raveneliana", c("ncr_Arav", "psm_Arav", "pio_Arav"),
+    "A. raveneliana",
+    columns = ends_with("Arav"), 
   )  %>%
   tab_spanner(
-    "L. fasciola", c("ncr_Lfas", "psm_Lfas", "pio_Lfas"),
+    "L. fasciola", 
+    columns = ends_with("Lfas")
+  )
+}
+
+```
+
+# Summary of elements by species/site/layer
+
+```{r summary0}
+specimen_summaries <- 
+  summarize_specimens(dt, modify_layer = layer2)
+
+tab <-
+  specimen_summaries %>%
+  make_summary_table_data() %>%
+  make_summary_table() %>%
+  mutate(
+    element =  case_when(
+      stringr::str_detect(element, "^(Zn|Cu|Mg)") ~
+        paste0(stringr::str_replace(element, "_ppm_m", "["), "]"),
+      TRUE ~ stringr::str_remove(element, "_ppm_m.*")
+    )
+  ) %>%
+  make_gt_table() %>%
+  tab_options(
+    data_row.padding = 2,
+    table.font.size = 8
+  ) %>%
+  cols_width(
+    vars(site) ~ px(50),
+    everything() ~ px(50)
+  )
+
+
+tab
+
+```
+
+```{r}
+tab %>% 
+  gtsave("element_summary.tex", here::here("manuscript", "figures"))
+```
+
+
+
+
+```{r}
+
+kruskal_pvalues_A <- 
+  specimen_summaries %>%
+  group_by(element, species, layer) %>%
+  summarise(
+    k_pvalue_unadj = kruskal.test(x = l1, g = site)[["p.value"]],
+    k_pvalue_adj = {
+      x <- residuals(lm(l1 ~ -1 + factor(drawer)))
+      kruskal.test(x = x, g = site)[["p.value"]]
+    } 
+  )
+
+kruskal_pvalues_B <- 
+  specimen_summaries %>%
+  filter(site != "Baseline") %>%
+  group_by(element, species, layer) %>%
+  summarise(
+    k_pvalue_unadj = kruskal.test(x = l1, g = site)[["p.value"]],
+    k_pvalue_adj = {
+      x <- residuals(lm(l1 ~ -1 + factor(drawer)))
+      kruskal.test(x = x, g = site)[["p.value"]]
+    } 
+  )
+
+pvals <- 
+  bind_rows(
+    kruskal_pvalues_A %>% mutate(test = "A"),
+    kruskal_pvalues_B %>% mutate(test = "B")
+  ) %>%
+  mutate(
+    p_value = k_pvalue_adj,
+    layer = factor(layer, levels = c("ncr_new", "ncr_old", "psm", "pio", "epx"),
+               ordered =  TRUE),
+    element2 = case_when(
+      stringr::str_detect(element, "^(Zn|Cu|Mg)") ~
+        paste0(stringr::str_replace(element, "_ppm_m", "["), "]"),
+      TRUE ~ stringr::str_remove(element, "_ppm_m.*")
+    ),
+    p_flag  = p_value < 0.1,
+    p_small = (p_value < 0.001),
+    p_value2 = if_else(p_small, 0.001, p_value),
+    test = if_else(
+      test == "A",
+      "including baseline site",
+      "experimental sites only",
+    ),
+    species = if_else(
+      species == "Arav",
+      "A. raveneliana",
+      "L. fasciola"
+    )
+    # layer = case_when(
+    #       layer == "ncr_new" ~ "nacre (youngest)",
+    #       layer == "ncr_old" ~ "nacre (older)",
+    #       layer == "psm" ~ "prismatic",
+    #       layer == "pio" ~ "periostracum",
+    #       layer == "epx" ~ "epoxy",
+    # )
+  )
+
+p <- 
+  ggplot(
+    data = pvals,
+    aes(y = -log10(k_pvalue_adj), x = element2, shape = layer, color = layer)
+  ) + 
+  geom_point(size = 1) + 
+  coord_flip() + 
+  scale_y_continuous(
+    name   = expression(-log[10]~(p)),
+    limits = -log10(c(1.1, 0.0000001)),
+    breaks =  -log10(c(1, 0.1, 0.05, 0.01, 0.001, 0.0001, 0.00001)),
+    labels = c("1", "0.1", "", "0.01", "0.001", "0.0001", "0.00001"),
+    expand = c(0, 0)
+  ) +
+  scale_color_manual(
+    values = c(epx = "black", ncr_new = "grey75", ncr_old = "grey50",
+               psm = "blue", pio = "green")
+  ) +
+  facet_grid(test ~ species) +
+  theme_classic() +
+  theme(
+      strip.background = element_blank(),
+      legend.position = "bottom",
+      panel.grid.major.x = element_line(color = "grey50", size = 0.2,
+                                        linetype = "dotted"),
+      panel.grid.major.y = element_line(color = "grey90", size = 0.2),
+      axis.text.x  = element_text(size = 8),
+      axis.line.x  = element_line(color = "grey50"),
+      axis.ticks.x = element_line(color = "grey50"),
+      axis.title.x = element_blank(),
+      axis.text.y  = element_text(size = 8),
+      axis.line.y  = element_blank(),
+      axis.title.y = element_blank(),
+      axis.ticks.y = element_blank(),
+    )
+
+ggsave(here::here("manuscript", "figures", "pvalues.pdf"), p, width = 7, height =5)
+```
+
+
+```{r eval=FALSE}
+pvalues_tab <- 
+  pvals %>%
+  mutate(
+    k_pvalue_unadj =  case_when(
+            k_pvalue_unadj < 0.001 ~  "<0.001",
+            k_pvalue_unadj < 0.01  ~  sprintf("%.03f", k_pvalue_unadj),
+            TRUE ~ sprintf("%.02f", k_pvalue_unadj)),
+    k_pvalue_adj =  case_when(
+            k_pvalue_adj < 0.001 ~  "<0.001",
+            k_pvalue_adj < 0.01  ~  sprintf("%.03f", k_pvalue_adj),
+            TRUE ~ sprintf("%.02f", k_pvalue_adj)),
+  ) %>%
+  mutate(
+    k_pvalue = sprintf("%s (a: %s)", k_pvalue_unadj, k_pvalue_adj),
+    layer = factor(layer, levels = c("ncr_new", "ncr_old", "psm", "pio", "epx"),
+                   ordered =  TRUE),
+    species = factor(
+      species, levels = c("Arav", "Lfas"), ordered = TRUE
+    ),
+    species_layer = interaction(layer, species, sep = "_")
+  ) %>%
+  ungroup() %>%
+  select(
+    test, element, species_layer, value = k_pvalue
+  ) %>%
+  tidyr::pivot_wider(
+    names_from = c("species_layer"),
+    names_sort = TRUE,
+    values_from = "value"
   ) 
+# "'Test' row p-values are from Kruskal-Wallis test of a null hypothesis that the location parameters are the same across sites. P-values are presented as unadjusted (adjusted for LA-ICP-MS batch). The Test A includes the baseline site in the comparison, while Test excludes this site. A small p-value indicates that the distribution of L-moment measures of location may be different at least one site."
+```
+ 
+```{r}
+ 
+# small_pvals <- 
+#   pvals %>%
+#   group_by(element) %>%
+#   filter(any(k_pvalue_adj < 0.001)) %>%
+#   distinct(element) %>%
+#   pull(element)
+#   
+# manutab <- 
+#   specimen_summaries %>%
+#   make_summary_table_data() %>%
+#   make_summary_table() %>%
+#   filter(element %in% small_pvals) %>%
+#   make_gt_table()
+#   
+# manutab %>% 
+#   gtsave("element_summary.tex", here::here("manuscript", "figures"))
 ```

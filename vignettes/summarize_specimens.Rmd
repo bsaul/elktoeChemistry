@@ -1,0 +1,94 @@
+---
+title: "Specimen Summaries"
+author: "Bradley Saul"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Specimen Summaries}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+bibliography: vignettes.bib
+params: 
+   inputs: 
+     value: 
+       valve: "../data/valve_data.rds"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  echo    = FALSE,
+  message = FALSE
+)
+```
+
+
+```{r}
+library(elktoeChemistry)
+library(dplyr)
+library(gt)
+analysis_data  <- readRDS(params$inputs$valve)
+```
+
+```{r}
+dt <-
+  analysis_data %>%
+  select(
+    species, id, site, starts_with("baseline_"), n_annuli
+  )
+```
+```{r}
+
+val <- function(x){
+  sprintf("%.02g (%.03g)", mean(x, na.rm = TRUE), sd(x, na.rm = TRUE))
+}
+
+tab <- 
+  dt %>%
+  select(species, site, id, starts_with("baseline")) %>%
+  distinct() %>%
+  group_by(species, site) %>%
+  summarise(
+    n        = n(),
+    weight   = val(baseline_weight),
+    # volume   = val(baseline_volume/1000),
+    length   = val(baseline_length),
+    width    = val(baseline_width),
+    height   = val(baseline_weight),
+    # n_annuli = val(n_annuli),
+    .groups = "keep"
+  )
+
+out <- 
+  tab %>%
+  ungroup() %>%
+  gt(
+    rowname_col = "site",
+    groupname_col = c("species")
+  ) %>%
+  cols_label(
+    n      = "n",
+    weight = "Weight (g)",
+    length = "Length (mm)",
+    width  = "Width (mm)",
+    height = "Height (mm)",
+  ) %>%
+  tab_header(
+    title = "Baseline characteristrics",
+  )
+```
+
+```{r}
+out %>%
+  gtsave("table1.tex", path = "../manuscript/figures/")
+
+# out %>%
+#   gtsave("table1.html", path = "../manuscript/figures/")
+```
+
+```{r}
+out
+```

@@ -93,7 +93,7 @@
       <h1 data-toc-skip>Preprocess data</h1>
                         <h4 class="author">Bradley Saul</h4>
             
-            <h4 class="date">2020-12-18</h4>
+            <h4 class="date">2020-12-22</h4>
       
       
       <div class="hidden name"><code>preprocess_data.Rmd</code></div>
@@ -228,26 +228,26 @@
                   <span class="st">"length_mm_0"</span>, <span class="st">"width_mm_0"</span>, <span class="st">"height_mm_0"</span>, 
                   <span class="st">"gravid"</span>, <span class="st">"species"</span><span class="op">)</span>
   <span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">id</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate_all.html">mutate_at</a></span><span class="op">(</span><span class="fl">2</span><span class="op">:</span><span class="fl">5</span>, <span class="va">as.numeric</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>
-    buoyant_weight_g_0 <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html">if_else</a></span><span class="op">(</span><span class="va">species</span> <span class="op">==</span> <span class="st">"A. rav."</span>,
+  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">id</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">mutate_at</span><span class="op">(</span><span class="fl">2</span><span class="op">:</span><span class="fl">5</span>, <span class="va">as.numeric</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">mutate</span><span class="op">(</span>
+    buoyant_weight_g_0 <span class="op">=</span> <span class="fu">if_else</span><span class="op">(</span><span class="va">species</span> <span class="op">==</span> <span class="st">"A. rav."</span>,
                                  <span class="va">weight_g_0</span>,
                                  <span class="cn">NA_real_</span><span class="op">)</span>,
-    dry_weight_g_0 <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html">if_else</a></span><span class="op">(</span><span class="va">species</span> <span class="op">==</span> <span class="st">"L. fas."</span>,
+    dry_weight_g_0 <span class="op">=</span> <span class="fu">if_else</span><span class="op">(</span><span class="va">species</span> <span class="op">==</span> <span class="st">"L. fas."</span>,
                              <span class="va">weight_g_0</span>,
                              <span class="cn">NA_real_</span><span class="op">)</span>,
     volume_0 <span class="op">=</span> <span class="va">length_mm_0</span> <span class="op">*</span> <span class="va">width_mm_0</span> <span class="op">*</span> <span class="va">height_mm_0</span>,
-    species <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html">if_else</a></span><span class="op">(</span><span class="va">species</span> <span class="op">==</span> <span class="st">"A. rav."</span>,
+    species <span class="op">=</span> <span class="fu">if_else</span><span class="op">(</span><span class="va">species</span> <span class="op">==</span> <span class="st">"A. rav."</span>,
                       <span class="st">"A. raveneliana"</span>,
                       <span class="st">"L. fasciola"</span><span class="op">)</span>
   <span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">weight_g_0</span>, <span class="op">-</span><span class="va">gravid</span><span class="op">)</span>
+  <span class="fu">select</span><span class="op">(</span><span class="op">-</span><span class="va">weight_g_0</span>, <span class="op">-</span><span class="va">gravid</span><span class="op">)</span>
 
 <span class="co"># Append to mussels_wide</span>
 <span class="va">mussels_wide</span> <span class="op">&lt;-</span>
   <span class="va">mussels_wide</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind.html">bind_rows</a></span><span class="op">(</span><span class="va">baseline_specimens</span><span class="op">)</span></code></pre></div>
+  <span class="fu">bind_rows</span><span class="op">(</span><span class="va">baseline_specimens</span><span class="op">)</span></code></pre></div>
 </div>
 </div>
 <div id="la-icp-ms-chemistry-data" class="section level2">
@@ -319,13 +319,13 @@
 <a href="#import-chemistry-data" class="anchor"></a>Import chemistry data</h3>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">valve_chemistry</span> <span class="op">&lt;-</span> 
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind.html">bind_rows</a></span><span class="op">(</span><span class="va">raw_data</span>, .id <span class="op">=</span> <span class="st">"file_name"</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">bind_rows</span><span class="op">(</span><span class="va">raw_data</span>, .id <span class="op">=</span> <span class="st">"file_name"</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span>
     <span class="va">file_name</span>, 
     time <span class="op">=</span> <span class="va">ElapsedTime_s</span>, 
     scan_distance <span class="op">=</span><span class="va">`Dist (µm)`</span>,
     note <span class="op">=</span> <span class="va">Notes</span>, 
-    <span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html">everything</a></span><span class="op">(</span><span class="op">)</span>
+    <span class="fu">everything</span><span class="op">(</span><span class="op">)</span>
   <span class="op">)</span> 
 
 <span class="fu"><a href="https://rdrr.io/r/utils/str.html">str</a></span><span class="op">(</span><span class="va">valve_chemistry</span><span class="op">)</span>
@@ -363,9 +363,9 @@
 <h3 class="hasAnchor">
 <a href="#post-import-consistency-checks" class="anchor"></a>Post-import consistency checks</h3>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">hold</span> <span class="op">&lt;-</span> <span class="va">valve_chemistry</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">scan_distance</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">file_name</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>
+<code class="sourceCode R"><span class="va">hold</span> <span class="op">&lt;-</span> <span class="va">valve_chemistry</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">scan_distance</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">group_by</span><span class="op">(</span><span class="va">file_name</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">mutate</span><span class="op">(</span>
     x_time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.576</span>, <span class="fu"><a href="https://rdrr.io/r/base/diff.html">diff</a></span><span class="op">(</span><span class="va">time</span><span class="op">)</span><span class="op">)</span>,
     x_dist <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2.88</span>, <span class="fu"><a href="https://rdrr.io/r/base/diff.html">diff</a></span><span class="op">(</span><span class="va">scan_distance</span><span class="op">)</span><span class="op">)</span>,
     has_on <span class="op">=</span> <span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html">str_detect</a></span><span class="op">(</span><span class="va">note</span>, <span class="st">"[Oo]n"</span><span class="op">)</span>,
@@ -374,35 +374,35 @@
 
 <span class="co"># Are all the elapsed times the same within 0.01</span>
 <span class="va">hold</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>
+  <span class="fu">summarise</span><span class="op">(</span>
     same_time_diffs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/all.html">all</a></span><span class="op">(</span><span class="op">(</span><span class="va">x_time</span> <span class="op">-</span> <span class="fl">0.01</span><span class="op">)</span> <span class="op">&lt;</span> <span class="va">x_time</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span> <span class="op">&amp;</span> 
                            <span class="va">x_time</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span> <span class="op">&lt;</span> <span class="op">(</span><span class="va">x_time</span> <span class="op">+</span> <span class="fl">0.01</span><span class="op">)</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
   <span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="va">same_time_diffs</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="va">same_time_diffs</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="op">{</span><span class="kw">if</span><span class="op">(</span><span class="va">.</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="kw"><a href="https://rdrr.io/r/base/warning.html">warning</a></span><span class="op">(</span><span class="st">"not all the elapsed time are within 0.01"</span><span class="op">)</span><span class="op">}</span>
 <span class="co">#&gt; `summarise()` ungrouping output (override with `.groups` argument)</span>
 
 <span class="co"># Are all the scan distances within 0.01?</span>
 <span class="va">hold</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>
+  <span class="fu">summarise</span><span class="op">(</span>
     same_dist_diffs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/all.html">all</a></span><span class="op">(</span><span class="op">(</span><span class="va">x_dist</span> <span class="op">-</span> <span class="fl">0.01</span><span class="op">)</span> <span class="op">&lt;</span> <span class="va">x_dist</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">&amp;</span> 
                            <span class="va">x_dist</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">&lt;</span> <span class="op">(</span><span class="va">x_dist</span> <span class="op">+</span> <span class="fl">0.01</span><span class="op">)</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
   <span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="va">same_dist_diffs</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="va">same_dist_diffs</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="op">{</span><span class="kw">if</span><span class="op">(</span><span class="va">.</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="kw"><a href="https://rdrr.io/r/base/warning.html">warning</a></span><span class="op">(</span><span class="st">"not all the scan distances are within 0.01"</span><span class="op">)</span><span class="op">}</span>
 <span class="co">#&gt; `summarise()` ungrouping output (override with `.groups` argument)</span>
 
 <span class="co">## Do all files have an "on" and "off" indicator in the note field?</span>
 <span class="va">hold</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>
+  <span class="fu">summarise</span><span class="op">(</span>
     n_on    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">has_on</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,
     n_off   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">has_off</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,
     any_on  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/any.html">any</a></span><span class="op">(</span><span class="va">has_on</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,
     any_off <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/any.html">any</a></span><span class="op">(</span><span class="va">has_off</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
   <span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span>
+  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span>
     <span class="op">!</span><span class="va">any_on</span> <span class="op">|</span> <span class="op">!</span><span class="va">any_off</span> <span class="op">|</span> <span class="va">n_on</span> <span class="op">&gt;</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">n_off</span> <span class="op">&gt;</span> <span class="fl">1</span>
   <span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
@@ -416,32 +416,32 @@
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">valve_chemistry</span> <span class="op">&lt;-</span>
   <span class="va">valve_chemistry</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">file_name</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">group_by</span><span class="op">(</span><span class="va">file_name</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="co"># Identify laser on/off points</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>
+  <span class="fu">mutate</span><span class="op">(</span>
     is_laser_on  <span class="op">=</span> <span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html">str_detect</a></span><span class="op">(</span><span class="va">note</span>, <span class="st">"[Oo]n$"</span><span class="op">)</span>,
     is_laser_off <span class="op">=</span> <span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html">str_detect</a></span><span class="op">(</span><span class="va">note</span>, <span class="st">"[Oo]ff$"</span><span class="op">)</span>,
-    is_laser_on  <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html">if_else</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">is_laser_on</span><span class="op">)</span>, <span class="cn">FALSE</span>, <span class="va">is_laser_on</span><span class="op">)</span>,
-    is_laser_off <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html">if_else</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">is_laser_off</span><span class="op">)</span>, <span class="cn">FALSE</span>, <span class="va">is_laser_off</span><span class="op">)</span>,
+    is_laser_on  <span class="op">=</span> <span class="fu">if_else</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">is_laser_on</span><span class="op">)</span>, <span class="cn">FALSE</span>, <span class="va">is_laser_on</span><span class="op">)</span>,
+    is_laser_off <span class="op">=</span> <span class="fu">if_else</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">is_laser_off</span><span class="op">)</span>, <span class="cn">FALSE</span>, <span class="va">is_laser_off</span><span class="op">)</span>,
     on_row       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html">which</a></span><span class="op">(</span><span class="va">is_laser_on</span><span class="op">)</span>,
     off_row      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html">which</a></span><span class="op">(</span><span class="va">is_laser_off</span><span class="op">)</span>,
     last_val_row <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">min</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/which.html">which</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">Ca43_CPS</span><span class="op">)</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span>,
-    rn           <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/ranking.html">row_number</a></span><span class="op">(</span><span class="op">)</span>,
+    rn           <span class="op">=</span> <span class="fu">row_number</span><span class="op">(</span><span class="op">)</span>,
     <span class="co"># scan_distance is NA before the on_row, add it back</span>
-    scan_distance  <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html">if_else</a></span><span class="op">(</span>
+    scan_distance  <span class="op">=</span> <span class="fu">if_else</span><span class="op">(</span>
       <span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">scan_distance</span><span class="op">)</span>, 
       <span class="op">-</span><span class="fl">2.881</span> <span class="op">*</span> <span class="op">(</span><span class="va">on_row</span> <span class="op">-</span> <span class="va">rn</span><span class="op">)</span> ,
       <span class="va">scan_distance</span><span class="op">)</span>
   <span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="co"># Remove rows at end of each file with no data</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">rn</span> <span class="op">&lt;=</span> <span class="va">last_val_row</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">rn</span> <span class="op">&lt;=</span> <span class="va">last_val_row</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span>
     <span class="op">-</span><span class="va">is_laser_on</span>, <span class="op">-</span><span class="va">is_laser_off</span>, <span class="op">-</span><span class="va">rn</span>, <span class="op">-</span><span class="va">on_row</span>, <span class="op">-</span><span class="va">off_row</span>, <span class="op">-</span><span class="va">last_val_row</span>
   <span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">ungroup</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>file_name <span class="op">=</span> <span class="fu"><a href="../reference/clean_ids.html">clean_ids</a></span><span class="op">(</span><span class="va">file_name</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">ungroup</span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">mutate</span><span class="op">(</span>file_name <span class="op">=</span> <span class="fu"><a href="../reference/clean_ids.html">clean_ids</a></span><span class="op">(</span><span class="va">file_name</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/separate.html">separate</a></span><span class="op">(</span><span class="va">file_name</span>, sep <span class="op">=</span> <span class="st">"-"</span>, into <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"id"</span>, <span class="st">"transect"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span>, distance <span class="op">=</span> <span class="va">scan_distance</span>, <span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html">everything</a></span><span class="op">(</span><span class="op">)</span>, <span class="op">-</span><span class="va">time</span>, <span class="op">-</span><span class="va">note</span><span class="op">)</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span>, distance <span class="op">=</span> <span class="va">scan_distance</span>, <span class="fu">everything</span><span class="op">(</span><span class="op">)</span>, <span class="op">-</span><span class="va">time</span>, <span class="op">-</span><span class="va">note</span><span class="op">)</span>
 
 <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">saveRDS</a></span><span class="op">(</span><span class="va">valve_chemistry</span>, file <span class="op">=</span> <span class="va">params</span><span class="op">$</span><span class="va">outputs</span><span class="op">$</span><span class="va">chemistry</span><span class="op">)</span></code></pre></div>
 </div>
@@ -456,41 +456,41 @@
    path <span class="op">=</span> <span class="va">params</span><span class="op">$</span><span class="va">inputs</span><span class="op">$</span><span class="va">lod</span>,
    sheet <span class="op">=</span> <span class="st">"Without Stats"</span>
   <span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>
+  <span class="fu">mutate</span><span class="op">(</span>
     standard <span class="op">=</span> <span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_extract.html">str_extract</a></span><span class="op">(</span><span class="va">Comments</span>, <span class="st">"614|612"</span><span class="op">)</span>
   <span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">standard</span>, <span class="va">Date</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>
-    standard_run <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html">n</a></span><span class="op">(</span><span class="op">)</span>,
+  <span class="fu">group_by</span><span class="op">(</span><span class="va">standard</span>, <span class="va">Date</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">mutate</span><span class="op">(</span>
+    standard_run <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fu">n</span><span class="op">(</span><span class="op">)</span>,
   <span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">ungroup</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">Date</span>, <span class="op">-</span><span class="va">Time</span>, <span class="op">-</span><span class="st">"Duration(s)"</span>, <span class="op">-</span><span class="va">DateTime</span>, <span class="op">-</span><span class="va">Comments</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">Exclude</span> <span class="op">==</span> <span class="fl">0</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span>
+  <span class="fu">ungroup</span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">select</span><span class="op">(</span><span class="op">-</span><span class="va">Date</span>, <span class="op">-</span><span class="va">Time</span>, <span class="op">-</span><span class="st">"Duration(s)"</span>, <span class="op">-</span><span class="va">DateTime</span>, <span class="op">-</span><span class="va">Comments</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">Exclude</span> <span class="op">==</span> <span class="fl">0</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">select</span><span class="op">(</span>
     drawer <span class="op">=</span> <span class="va">Drawer</span>, output <span class="op">=</span> <span class="va">Output</span>, source_file <span class="op">=</span> <span class="va">`Source file`</span>, 
-    <span class="va">standard</span>, <span class="va">standard_run</span>, <span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html">matches</a></span><span class="op">(</span><span class="st">"CPS|ppm"</span><span class="op">)</span>
+    <span class="va">standard</span>, <span class="va">standard_run</span>, <span class="fu">matches</span><span class="op">(</span><span class="st">"CPS|ppm"</span><span class="op">)</span>
   <span class="op">)</span>  <span class="op">%&gt;%</span>
   <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/gather.html">gather</a></span><span class="op">(</span>
     key <span class="op">=</span> <span class="st">"key"</span>, value <span class="op">=</span> <span class="st">"value"</span>, 
     <span class="op">-</span><span class="va">drawer</span>, <span class="op">-</span><span class="va">output</span>, <span class="op">-</span><span class="va">source_file</span>, <span class="op">-</span><span class="va">standard</span>, <span class="op">-</span><span class="va">standard_run</span>,
      na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>
+  <span class="fu">mutate</span><span class="op">(</span>
     drawer       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_remove.html">str_remove</a></span><span class="op">(</span><span class="va">drawer</span>, <span class="st">"D"</span><span class="op">)</span><span class="op">)</span>,
     measure      <span class="op">=</span> <span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_replace.html">str_replace</a></span><span class="op">(</span><span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_extract.html">str_extract</a></span><span class="op">(</span><span class="va">key</span>, <span class="st">"_(Int2SE|LOD)$"</span><span class="op">)</span>, <span class="st">"_"</span>, <span class="st">""</span><span class="op">)</span>,
-    measure      <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html">if_else</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">measure</span><span class="op">)</span>, <span class="st">"raw"</span>, <span class="va">measure</span><span class="op">)</span>,
+    measure      <span class="op">=</span> <span class="fu">if_else</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">measure</span><span class="op">)</span>, <span class="st">"raw"</span>, <span class="va">measure</span><span class="op">)</span>,
     element      <span class="op">=</span> <span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_replace.html">str_replace</a></span><span class="op">(</span><span class="va">key</span>, <span class="st">"_(Int2SE|LOD)$"</span>, <span class="st">""</span><span class="op">)</span>
   <span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span>
+  <span class="fu">select</span><span class="op">(</span>
     <span class="va">drawer</span>, <span class="va">standard</span>, <span class="va">output</span>, <span class="va">source_file</span>, <span class="va">standard_run</span>, <span class="va">element</span>, <span class="va">measure</span>, <span class="va">value</span>
   <span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="co"># Just keep the lower limit of detection</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">measure</span> <span class="op">==</span> <span class="st">"LOD"</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">element</span>, <span class="va">drawer</span>, <span class="va">standard</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>
+  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">measure</span> <span class="op">==</span> <span class="st">"LOD"</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">group_by</span><span class="op">(</span><span class="va">element</span>, <span class="va">drawer</span>, <span class="va">standard</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">summarise</span><span class="op">(</span>
     lod_mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">value</span><span class="op">)</span>
   <span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">element</span>, <span class="va">drawer</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>
+  <span class="fu">group_by</span><span class="op">(</span><span class="va">element</span>, <span class="va">drawer</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">summarise</span><span class="op">(</span>
     lod <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">lod_mean</span><span class="op">)</span>
   <span class="op">)</span> 
 <span class="co">#&gt; `summarise()` regrouping output by 'element', 'drawer' (override with `.groups` argument)</span>
@@ -514,7 +514,7 @@
       <span class="fu"><a href="../reference/munge_measurements.html">munge_measurements</a></span><span class="op">(</span><span class="op">)</span>
   <span class="op">)</span> <span class="op">%&gt;%</span>
   
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind.html">bind_rows</a></span><span class="op">(</span>
+  <span class="fu">bind_rows</span><span class="op">(</span>
     <span class="co">## Drawer 7 import ####</span>
     <span class="co"># the structure of Drawer is slightly different from the others and </span>
     <span class="co"># requires special handling</span>
@@ -522,17 +522,17 @@
     <span class="fu">readxl</span><span class="fu">::</span><span class="fu"><a href="https://readxl.tidyverse.org/reference/read_excel.html">read_excel</a></span><span class="op">(</span>
       path <span class="op">=</span> <span class="va">params</span><span class="op">$</span><span class="va">inputs</span><span class="op">$</span><span class="va">meausurements</span>,
       sheet <span class="op">=</span> <span class="fl">7</span><span class="op">)</span> <span class="op">%&gt;%</span>
-      <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html">grepl</a></span><span class="op">(</span><span class="st">"^PAT"</span>, <span class="va">`...2`</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-      <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span>file_name <span class="op">=</span> <span class="va">`...2`</span>, <span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html">matches</a></span><span class="op">(</span><span class="st">"Length"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> 
-      <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">`Length from 1 to 2 (mm)`</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-      <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>
+      <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html">grepl</a></span><span class="op">(</span><span class="st">"^PAT"</span>, <span class="va">`...2`</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+      <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span>file_name <span class="op">=</span> <span class="va">`...2`</span>, <span class="fu">matches</span><span class="op">(</span><span class="st">"Length"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> 
+      <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">`Length from 1 to 2 (mm)`</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+      <span class="fu">mutate</span><span class="op">(</span>
         file_name <span class="op">=</span> <span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_remove.html">str_remove</a></span><span class="op">(</span><span class="va">file_name</span>, <span class="st">"^PAT:"</span><span class="op">)</span>,
         drawer    <span class="op">=</span> <span class="fl">7</span><span class="op">)</span> <span class="op">%&gt;%</span>
       <span class="fu"><a href="../reference/munge_measurements.html">munge_measurements</a></span><span class="op">(</span><span class="op">)</span>
   <span class="op">)</span> <span class="op">%&gt;%</span>
   
   <span class="co">## HARD CODES #####</span>
-  <span class="fu"><a href="https://tibble.tidyverse.org/reference/add_row.html">add_row</a></span><span class="op">(</span>
+  <span class="fu">add_row</span><span class="op">(</span>
     <span class="co"># Added 2018-11-10:</span>
     <span class="co"># 12-C485-2 is missing the measurement from 1 to 4 (the prismatic/periostracum </span>
     <span class="co"># transition). The bivalve datum spreadsheet notes: This shell is broken </span>
@@ -545,10 +545,10 @@
     distance  <span class="op">=</span> <span class="fl">18.275</span> <span class="op">-</span> <span class="op">(</span><span class="fl">10</span> <span class="op">*</span> <span class="fl">.02881</span><span class="op">)</span>
   <span class="op">)</span>  <span class="op">%&gt;%</span>
   
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>
+  <span class="fu">mutate</span><span class="op">(</span>
     <span class="co"># Added 2018-11-10:</span>
     <span class="co"># The units of 1 to 5 measurement for 2A6.1 are off by 10^3</span>
-    distance <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html">if_else</a></span><span class="op">(</span><span class="va">file_name</span> <span class="op">==</span> <span class="st">"2A6.1"</span> <span class="op">&amp;</span> <span class="va">to</span> <span class="op">==</span> <span class="fl">5</span>, <span class="va">distance</span><span class="op">/</span><span class="fl">1000</span>, <span class="va">distance</span><span class="op">)</span>
+    distance <span class="op">=</span> <span class="fu">if_else</span><span class="op">(</span><span class="va">file_name</span> <span class="op">==</span> <span class="st">"2A6.1"</span> <span class="op">&amp;</span> <span class="va">to</span> <span class="op">==</span> <span class="fl">5</span>, <span class="va">distance</span><span class="op">/</span><span class="fl">1000</span>, <span class="va">distance</span><span class="op">)</span>
     
     <span class="co"># Added 2018-11-10:</span>
     <span class="co"># Removed (at a later date)</span>
@@ -565,26 +565,26 @@
   <span class="co">## END HARD CODES ##</span>
   
   <span class="co"># Remove exclusions </span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="op">(</span><span class="va">file_name</span> <span class="op">%in%</span> <span class="va">exclude_files</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">distance</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>file_name <span class="op">=</span> <span class="fu"><a href="../reference/clean_ids.html">clean_ids</a></span><span class="op">(</span><span class="va">file_name</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="op">(</span><span class="va">file_name</span> <span class="op">%in%</span> <span class="va">exclude_files</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">distance</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">mutate</span><span class="op">(</span>file_name <span class="op">=</span> <span class="fu"><a href="../reference/clean_ids.html">clean_ids</a></span><span class="op">(</span><span class="va">file_name</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/separate.html">separate</a></span><span class="op">(</span><span class="va">file_name</span>, sep <span class="op">=</span> <span class="st">"-"</span>, into <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"id"</span>, <span class="st">"transect"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">drawer</span>, <span class="va">id</span>, <span class="va">transect</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">group_by</span><span class="op">(</span><span class="va">drawer</span>, <span class="va">id</span>, <span class="va">transect</span><span class="op">)</span> <span class="op">%&gt;%</span>
   
   <span class="co"># put distance in same units as chemistry data</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>distance <span class="op">=</span> <span class="va">distance</span> <span class="op">*</span> <span class="fl">100</span><span class="op">)</span> <span class="op">%&gt;%</span> 
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span>, <span class="va">from</span>, <span class="va">to</span><span class="op">)</span> <span class="op">%&gt;%</span> 
+  <span class="fu">mutate</span><span class="op">(</span>distance <span class="op">=</span> <span class="va">distance</span> <span class="op">*</span> <span class="fl">100</span><span class="op">)</span> <span class="op">%&gt;%</span> 
+  <span class="fu">arrange</span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span>, <span class="va">from</span>, <span class="va">to</span><span class="op">)</span> <span class="op">%&gt;%</span> 
   
   <span class="co"># 2018-11-11: remove cases where to == "2" and distance == 0</span>
   <span class="co"># These indicate records without a nacre measurement and interfere with the </span>
   <span class="co"># processes below</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="op">(</span><span class="va">to</span> <span class="op">==</span> <span class="st">"2"</span> <span class="op">&amp;</span> <span class="va">distance</span> <span class="op">==</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="op">(</span><span class="va">to</span> <span class="op">==</span> <span class="st">"2"</span> <span class="op">&amp;</span> <span class="va">distance</span> <span class="op">==</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
   
   <span class="co"># Create the patterns of layer transitions</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>
+  <span class="fu">mutate</span><span class="op">(</span>
     <span class="co"># NOTE: this works because all(from == "1") == TRUE; this could be generalized to a </span>
     <span class="co"># data format where from varies</span>
-    layer_transition <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/case_when.html">case_when</a></span><span class="op">(</span>
+    layer_transition <span class="op">=</span> <span class="fu">case_when</span><span class="op">(</span>
       <span class="va">to</span> <span class="op">==</span> <span class="st">"2"</span> <span class="op">~</span> <span class="st">"ipx_ncr"</span>,
       <span class="co"># Handle cases where transect does not cross nacre</span>
       <span class="va">to</span> <span class="op">==</span> <span class="st">"3"</span> <span class="op">&amp;</span>   <span class="st">"2"</span> <span class="op">%in%</span> <span class="va">to</span>  <span class="op">~</span> <span class="st">"ncr_psm"</span>,
@@ -600,10 +600,10 @@
   <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/nest.html">nest</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
   
   <span class="co"># Add a record for laser on -&gt; inner epoxy</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>data <span class="op">=</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span>
+  <span class="fu">mutate</span><span class="op">(</span>data <span class="op">=</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span>
     .x <span class="op">=</span> <span class="va">data</span>, 
     .f <span class="op">=</span> <span class="op">~</span> <span class="va">.x</span> <span class="op">%&gt;%</span>
-         <span class="fu"><a href="https://tibble.tidyverse.org/reference/add_row.html">add_row</a></span><span class="op">(</span>
+         <span class="fu">add_row</span><span class="op">(</span>
            from     <span class="op">=</span> <span class="st">"1"</span>,
            to       <span class="op">=</span> <span class="st">"1"</span>,
            distance <span class="op">=</span> <span class="fl">0</span>,
@@ -615,7 +615,7 @@
   <span class="op">)</span>
   <span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/nest.html">unnest</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">ungroup</a></span><span class="op">(</span><span class="op">)</span>
+  <span class="fu">ungroup</span><span class="op">(</span><span class="op">)</span>
 <span class="co">#&gt; New names:</span>
 <span class="co">#&gt; * `` -&gt; ...4</span>
 <span class="co">#&gt; New names:</span>
@@ -646,13 +646,13 @@
 <span class="va">valid_patterns</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"on_ipx:(ipx_ncr:ncr_psm|ipx_psm):psm_pio:pio_opx:opx_off"</span><span class="op">)</span>
 
 <span class="va">valve_measurements</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">is_layer</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>
+  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">is_layer</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">group_by</span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">summarise</span><span class="op">(</span>
     meas_pattern <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">layer_transition</span>, collapse <span class="op">=</span> <span class="st">":"</span><span class="op">)</span>,
     has_valid_pattern <span class="op">=</span> <span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html">str_detect</a></span><span class="op">(</span><span class="va">meas_pattern</span>, <span class="va">valid_patterns</span><span class="op">)</span>
   <span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="va">has_valid_pattern</span><span class="op">)</span>
+  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="va">has_valid_pattern</span><span class="op">)</span>
 <span class="co">#&gt; `summarise()` regrouping output by 'id' (override with `.groups` argument)</span>
 <span class="co">#&gt; # A tibble: 0 x 4</span>
 <span class="co">#&gt; # Groups:   id [0]</span>
@@ -712,20 +712,20 @@
 <span class="va">meas_ids</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">valve_measurements</span><span class="op">$</span><span class="va">id</span>, <span class="va">valve_measurements</span><span class="op">$</span><span class="va">transect</span><span class="op">)</span><span class="op">)</span>
 
 <span class="co">## IDs founds in chemistry data but not in measurement</span>
-<span class="fu"><a href="https://generics.r-lib.org/reference/setops.html">setdiff</a></span><span class="op">(</span><span class="va">chem_ids</span>, <span class="va">meas_ids</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/sets.html">setdiff</a></span><span class="op">(</span><span class="va">chem_ids</span>, <span class="va">meas_ids</span><span class="op">)</span>
 <span class="co">#&gt; character(0)</span>
 <span class="co">## IDs founds in measurement data but not in chemistry</span>
-<span class="fu"><a href="https://generics.r-lib.org/reference/setops.html">setdiff</a></span><span class="op">(</span><span class="va">meas_ids</span>, <span class="va">chem_ids</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/sets.html">setdiff</a></span><span class="op">(</span><span class="va">meas_ids</span>, <span class="va">chem_ids</span><span class="op">)</span>
 <span class="co">#&gt; [1] "P1592"</span>
 
 <span class="co">## IDs in mussels_wide but not in valve_chemistry</span>
-<span class="fu"><a href="https://generics.r-lib.org/reference/setops.html">setdiff</a></span><span class="op">(</span><span class="va">mussels_wide</span><span class="op">$</span><span class="va">id</span>, <span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">valve_chemistry</span><span class="op">$</span><span class="va">id</span><span class="op">)</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/sets.html">setdiff</a></span><span class="op">(</span><span class="va">mussels_wide</span><span class="op">$</span><span class="va">id</span>, <span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">valve_chemistry</span><span class="op">$</span><span class="va">id</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt; [1] "C497" "C527" "P102" "P138"</span>
 <span class="co"># C497 was excluded</span>
 <span class="co"># Not sure about the others</span>
 
 <span class="co">##  IDs in valve_chemistry but not in mussels_wide</span>
-<span class="fu"><a href="https://generics.r-lib.org/reference/setops.html">setdiff</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">valve_chemistry</span><span class="op">$</span><span class="va">id</span><span class="op">)</span>, <span class="va">mussels_wide</span><span class="op">$</span><span class="va">id</span><span class="op">)</span> 
+<span class="fu"><a href="https://rdrr.io/r/base/sets.html">setdiff</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">valve_chemistry</span><span class="op">$</span><span class="va">id</span><span class="op">)</span>, <span class="va">mussels_wide</span><span class="op">$</span><span class="va">id</span><span class="op">)</span> 
 <span class="co">#&gt; character(0)</span>
 <span class="co"># most (all?) of these are baseline IDs</span></code></pre></div>
 </div>
@@ -734,25 +734,25 @@
 <a href="#perform-join" class="anchor"></a>Perform join</h2>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">valve_data</span> <span class="op">&lt;-</span> 
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">inner_join</a></span><span class="op">(</span>
+  <span class="fu">inner_join</span><span class="op">(</span>
     <span class="va">valve_chemistry</span> <span class="op">%&gt;%</span>
-      <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span><span class="op">)</span> <span class="op">%&gt;%</span>
-      <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>obs <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html">n</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-      <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">distance</span>, <span class="op">-</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html">contains</a></span><span class="op">(</span><span class="st">"CPS"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+      <span class="fu">group_by</span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span><span class="op">)</span> <span class="op">%&gt;%</span>
+      <span class="fu">mutate</span><span class="op">(</span>obs <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fu">n</span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+      <span class="fu">select</span><span class="op">(</span><span class="op">-</span><span class="va">distance</span>, <span class="op">-</span><span class="fu">contains</span><span class="op">(</span><span class="st">"CPS"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
       <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/nest.html">nest</a></span><span class="op">(</span>.key <span class="op">=</span> <span class="st">"chemistry"</span><span class="op">)</span>,
     <span class="va">valve_chemistry</span> <span class="op">%&gt;%</span>
-      <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span><span class="op">)</span> <span class="op">%&gt;%</span>
-      <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>obs <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html">n</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-      <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span>, <span class="va">distance</span>, <span class="va">obs</span>, <span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html">contains</a></span><span class="op">(</span><span class="st">"CPS"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+      <span class="fu">group_by</span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span><span class="op">)</span> <span class="op">%&gt;%</span>
+      <span class="fu">mutate</span><span class="op">(</span>obs <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fu">n</span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+      <span class="fu">select</span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span>, <span class="va">distance</span>, <span class="va">obs</span>, <span class="fu">contains</span><span class="op">(</span><span class="st">"CPS"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
       <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/nest.html">nest</a></span><span class="op">(</span>.key <span class="op">=</span> <span class="st">"distance"</span><span class="op">)</span>,
     by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"id"</span>, <span class="st">"transect"</span><span class="op">)</span>
   <span class="op">)</span> <span class="op">%&gt;%</span>
   
   <span class="co">## Link chemistry &amp; datum measurements ####</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">inner_join</a></span><span class="op">(</span>
+  <span class="fu">inner_join</span><span class="op">(</span>
     <span class="va">valve_measurements</span> <span class="op">%&gt;%</span>
       <span class="co"># dplyr::select(-drawer) %&gt;%</span>
-      <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span><span class="op">)</span> <span class="op">%&gt;%</span>
+      <span class="fu">group_by</span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span><span class="op">)</span> <span class="op">%&gt;%</span>
       <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/nest.html">nest</a></span><span class="op">(</span>.key <span class="op">=</span> <span class="st">"measures"</span><span class="op">)</span>,
     by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"id"</span>, <span class="st">"transect"</span><span class="op">)</span>
   <span class="op">)</span>
@@ -768,12 +768,12 @@
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">valve_data</span> <span class="op">&lt;-</span> 
   <span class="va">valve_data</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>
+  <span class="fu">mutate</span><span class="op">(</span>
     drawer <span class="op">=</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map_dbl</a></span><span class="op">(</span><span class="va">measures</span>, <span class="op">~</span> <span class="va">.x</span><span class="op">$</span><span class="va">drawer</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>
   <span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span>
+  <span class="fu">left_join</span><span class="op">(</span>
     <span class="va">lod</span> <span class="op">%&gt;%</span>
-      <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">drawer</span><span class="op">)</span> <span class="op">%&gt;%</span>
+      <span class="fu">group_by</span><span class="op">(</span><span class="va">drawer</span><span class="op">)</span> <span class="op">%&gt;%</span>
       <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/nest.html">nest</a></span><span class="op">(</span>.key <span class="op">=</span> <span class="st">"lod"</span><span class="op">)</span>,
     by <span class="op">=</span> <span class="st">"drawer"</span>
   <span class="op">)</span> 
@@ -869,8 +869,8 @@
 <code class="sourceCode R"><span class="va">method_tests</span> <span class="op">&lt;-</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map2.html">map2_dfr</a></span><span class="op">(</span>
   .x <span class="op">=</span> <span class="va">test_methods</span>, 
   .y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">test_methods</span><span class="op">)</span>, 
-  .f <span class="op">=</span> <span class="op">~</span> <span class="fu"><a href="../reference/apply_ref_method.html">apply_ref_method</a></span><span class="op">(</span><span class="va">valve_data</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">lod</span><span class="op">)</span>, <span class="va">.x</span>, <span class="va">.y</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>idref_method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">idref_method</span><span class="op">)</span><span class="op">)</span>
+  .f <span class="op">=</span> <span class="op">~</span> <span class="fu"><a href="../reference/apply_ref_method.html">apply_ref_method</a></span><span class="op">(</span><span class="va">valve_data</span> <span class="op">%&gt;%</span> <span class="fu">select</span><span class="op">(</span><span class="op">-</span><span class="va">lod</span><span class="op">)</span>, <span class="va">.x</span>, <span class="va">.y</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">mutate</span><span class="op">(</span>idref_method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">idref_method</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt; Warning: `cols` is now required when using unnest().</span>
 <span class="co">#&gt; Please use `cols = c(distance)`</span>
 
@@ -1028,20 +1028,20 @@
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">valve_lengths</span> <span class="op">&lt;-</span> 
   <span class="va">valve_measurements</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span>
+  <span class="fu">group_by</span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span>
     <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html">grepl</a></span><span class="op">(</span><span class="st">"ipx_"</span>, <span class="va">layer_transition</span><span class="op">)</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span>,
     <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html">grepl</a></span><span class="op">(</span><span class="st">"opx_"</span>, <span class="va">layer_transition</span><span class="op">)</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span>
   <span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>
+  <span class="fu">summarise</span><span class="op">(</span>
     on_opx_distance <span class="op">=</span> <span class="va">distance</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html">grepl</a></span><span class="op">(</span><span class="st">"_opx"</span>, <span class="va">layer_transition</span><span class="op">)</span><span class="op">]</span>,
     on_ipx_distance <span class="op">=</span> <span class="va">distance</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html">grepl</a></span><span class="op">(</span><span class="st">"ipx_"</span>, <span class="va">layer_transition</span><span class="op">)</span><span class="op">]</span>, 
     valve_length <span class="op">=</span> <span class="va">on_opx_distance</span> <span class="op">-</span> <span class="va">on_ipx_distance</span>
   <span class="op">)</span>  <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>
+  <span class="fu">mutate</span><span class="op">(</span>
     idt   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span>, sep <span class="op">=</span> <span class="st">"_"</span><span class="op">)</span>
   <span class="op">)</span> <span class="op">%&gt;%</span> <span class="va">ungroup</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">idt</span>, <span class="va">valve_length</span><span class="op">)</span>
+  <span class="fu">select</span><span class="op">(</span><span class="va">idt</span>, <span class="va">valve_length</span><span class="op">)</span>
 <span class="co">#&gt; `summarise()` regrouping output by 'id' (override with `.groups` argument)</span></code></pre></div>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">##  Detected inner/outer edges and calculate lengths between the two ####</span>
@@ -1051,16 +1051,16 @@
 <code class="sourceCode R"><span class="co"># lengths using all methods except "A"</span>
 <span class="va">chem_valve_lengths</span> <span class="op">&lt;-</span> 
   <span class="va">method_tests</span> <span class="op">%&gt;%</span> 
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">idref_method</span> <span class="op">!=</span> <span class="st">"A"</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">idref_method</span>, <span class="va">id</span>, <span class="va">transect</span>, .drop <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>
+  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">idref_method</span> <span class="op">!=</span> <span class="st">"A"</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">group_by</span><span class="op">(</span><span class="va">idref_method</span>, <span class="va">id</span>, <span class="va">transect</span>, .drop <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">summarise</span><span class="op">(</span>
     outer_edge_rn <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">min</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/which.html">which</a></span><span class="op">(</span><span class="va">layer</span> <span class="op">==</span> <span class="st">"opx"</span><span class="op">)</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,
     inner_edge_rn <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/which.html">which</a></span><span class="op">(</span><span class="va">layer</span> <span class="op">==</span> <span class="st">"ipx"</span><span class="op">)</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
   <span class="op">)</span>  <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>
+  <span class="fu">mutate</span><span class="op">(</span>
     use_inner <span class="op">=</span> <span class="va">idref_method</span> <span class="op">%in%</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">tm</span><span class="op">)</span><span class="op">[</span><span class="op">!</span><span class="va">tm_lgl</span><span class="op">]</span>,
     use_outer <span class="op">=</span> <span class="va">idref_method</span> <span class="op">%in%</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">tm</span><span class="op">)</span><span class="op">[</span><span class="va">tm_lgl</span><span class="op">]</span>,
-    idref_grouping <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/case_when.html">case_when</a></span><span class="op">(</span>
+    idref_grouping <span class="op">=</span> <span class="fu">case_when</span><span class="op">(</span>
       <span class="va">idref_method</span> <span class="op">%in%</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"B"</span>, <span class="st">"C"</span><span class="op">)</span> <span class="op">~</span> <span class="st">"B-C"</span>,
       <span class="va">idref_method</span> <span class="op">%in%</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"D"</span>, <span class="st">"E"</span><span class="op">)</span> <span class="op">~</span> <span class="st">"D-E"</span>,
       <span class="va">idref_method</span> <span class="op">%in%</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"F"</span>, <span class="st">"G"</span><span class="op">)</span> <span class="op">~</span> <span class="st">"F-G"</span>,
@@ -1070,18 +1070,18 @@
       <span class="va">idref_method</span> <span class="op">%in%</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"N"</span>, <span class="st">"O"</span><span class="op">)</span> <span class="op">~</span> <span class="st">"N-O"</span>
     <span class="op">)</span>
   <span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">idref_grouping</span>, <span class="va">id</span>, <span class="va">transect</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>
+  <span class="fu">group_by</span><span class="op">(</span><span class="va">idref_grouping</span>, <span class="va">id</span>, <span class="va">transect</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">summarise</span><span class="op">(</span>
     inner_edge_rn <span class="op">=</span> <span class="va">inner_edge_rn</span><span class="op">[</span><span class="va">use_inner</span><span class="op">]</span>,
     outer_edge_rn <span class="op">=</span> <span class="va">outer_edge_rn</span><span class="op">[</span><span class="va">use_outer</span><span class="op">]</span>
   <span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>
+  <span class="fu">mutate</span><span class="op">(</span>
     valve_obs <span class="op">=</span> <span class="va">outer_edge_rn</span> <span class="op">-</span> <span class="va">inner_edge_rn</span>,
     auto_detect_valve_length <span class="op">=</span> <span class="va">valve_obs</span> <span class="op">*</span> <span class="fl">2.881</span>,
     idt   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span>, sep <span class="op">=</span> <span class="st">"_"</span><span class="op">)</span>
   <span class="op">)</span> <span class="op">%&gt;%</span> 
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">ungroup</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">idref_grouping</span>, <span class="va">inner_edge_rn</span>, <span class="va">outer_edge_rn</span>,
+  <span class="fu">ungroup</span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">select</span><span class="op">(</span><span class="va">idref_grouping</span>, <span class="va">inner_edge_rn</span>, <span class="va">outer_edge_rn</span>,
          <span class="va">idt</span>, <span class="va">auto_detect_valve_length</span><span class="op">)</span>
 <span class="co">#&gt; `summarise()` regrouping output by 'idref_method', 'id' (override with `.groups` argument)</span>
 <span class="co">#&gt; `summarise()` regrouping output by 'idref_grouping', 'id' (override with `.groups` argument)</span>
@@ -1089,51 +1089,51 @@
 <span class="co"># lengths using method "A"</span>
 <span class="va">chem_valve_lengths_A</span> <span class="op">&lt;-</span> 
   <span class="va">method_tests</span> <span class="op">%&gt;%</span> 
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">idref_method</span> <span class="op">==</span> <span class="st">"A"</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">idref_method</span>, <span class="va">id</span>, <span class="va">transect</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>
+  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">idref_method</span> <span class="op">==</span> <span class="st">"A"</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">group_by</span><span class="op">(</span><span class="va">idref_method</span>, <span class="va">id</span>, <span class="va">transect</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">summarise</span><span class="op">(</span>
     outer_edge_rn <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">min</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/which.html">which</a></span><span class="op">(</span><span class="va">layer</span> <span class="op">==</span> <span class="st">"opx"</span><span class="op">)</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,
     inner_edge_rn <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/which.html">which</a></span><span class="op">(</span><span class="va">layer</span> <span class="op">==</span> <span class="st">"ipx"</span><span class="op">)</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
   <span class="op">)</span> <span class="op">%&gt;%</span> 
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">ungroup</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>
+  <span class="fu">ungroup</span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">mutate</span><span class="op">(</span>
     idref_method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html">as.character</a></span><span class="op">(</span><span class="va">idref_method</span><span class="op">)</span>,
     idt   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span>, sep <span class="op">=</span> <span class="st">"_"</span><span class="op">)</span>
   <span class="op">)</span> <span class="op">%&gt;%</span> 
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span>
+  <span class="fu">select</span><span class="op">(</span>
     idref_grouping <span class="op">=</span> <span class="va">idref_method</span>, <span class="va">idt</span>, <span class="va">inner_edge_rn</span>, <span class="va">outer_edge_rn</span>
   <span class="op">)</span>
 <span class="co">#&gt; `summarise()` regrouping output by 'idref_method', 'id' (override with `.groups` argument)</span>
 
-<span class="va">chem_valve_lengths</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind.html">bind_rows</a></span><span class="op">(</span><span class="va">chem_valve_lengths</span>, <span class="va">chem_valve_lengths_A</span><span class="op">)</span></code></pre></div>
+<span class="va">chem_valve_lengths</span> <span class="op">&lt;-</span> <span class="fu">bind_rows</span><span class="op">(</span><span class="va">chem_valve_lengths</span>, <span class="va">chem_valve_lengths_A</span><span class="op">)</span></code></pre></div>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R">
 <span class="co">## Compare valve lengths measured to valve lengths auto detected ####</span>
 <span class="va">valve_length_compare</span> <span class="op">&lt;-</span> <span class="va">chem_valve_lengths</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span><span class="va">valve_lengths</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"idt"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>
+  <span class="fu">left_join</span><span class="op">(</span><span class="va">valve_lengths</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"idt"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">mutate</span><span class="op">(</span>
     difference <span class="op">=</span> <span class="va">auto_detect_valve_length</span> <span class="op">-</span> <span class="va">valve_length</span>,
     rel_diff   <span class="op">=</span> <span class="va">difference</span><span class="op">/</span><span class="va">valve_length</span>
   <span class="op">)</span>
 
 <span class="va">best_method_by_idt</span> <span class="op">&lt;-</span> 
   <span class="va">valve_length_compare</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">idref_grouping</span> <span class="op">!=</span> <span class="st">"A"</span>, <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">rel_diff</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span>
-    <span class="va">chem_valve_lengths_A</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">idt</span>, A_iedge <span class="op">=</span> <span class="va">inner_edge_rn</span><span class="op">)</span>, 
+  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">idref_grouping</span> <span class="op">!=</span> <span class="st">"A"</span>, <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">rel_diff</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">left_join</span><span class="op">(</span>
+    <span class="va">chem_valve_lengths_A</span> <span class="op">%&gt;%</span> <span class="fu">select</span><span class="op">(</span><span class="va">idt</span>, A_iedge <span class="op">=</span> <span class="va">inner_edge_rn</span><span class="op">)</span>, 
     by <span class="op">=</span> <span class="st">"idt"</span>
   <span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">idt</span>, .drop <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>
+  <span class="fu">group_by</span><span class="op">(</span><span class="va">idt</span>, .drop <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">mutate</span><span class="op">(</span>
     is_min_rel_diff   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">rel_diff</span><span class="op">)</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">min</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">rel_diff</span><span class="op">)</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,
     iedge_Adiff       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">A_iedge</span> <span class="op">-</span> <span class="va">inner_edge_rn</span><span class="op">)</span>
   <span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">is_min_rel_diff</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>
+  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">is_min_rel_diff</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">mutate</span><span class="op">(</span>
     is_min_Adiff <span class="op">=</span> <span class="va">iedge_Adiff</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">min</a></span><span class="op">(</span><span class="va">iedge_Adiff</span><span class="op">)</span>
   <span class="op">)</span> <span class="op">%&gt;%</span> 
   <span class="co"># filter(sum(is_min_Adiff) &gt; 1) %&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>
+  <span class="fu">summarise</span><span class="op">(</span>
     which_method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">is_min_Adiff</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">1</span>,
                           <span class="fu"><a href="https://rdrr.io/r/base/sample.html">sample</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">is_min_Adiff</span><span class="op">)</span>, <span class="fl">1</span><span class="op">)</span>,
                           <span class="fl">1</span><span class="op">)</span>,
@@ -1143,69 +1143,69 @@
     difference    <span class="op">=</span> <span class="va">difference</span><span class="op">[</span><span class="va">which_method</span><span class="op">]</span>,
     rel_diff      <span class="op">=</span> <span class="va">rel_diff</span><span class="op">[</span><span class="va">which_method</span><span class="op">]</span>
   <span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">which_method</span><span class="op">)</span>
+  <span class="fu">select</span><span class="op">(</span><span class="op">-</span><span class="va">which_method</span><span class="op">)</span>
 <span class="co">#&gt; `summarise()` ungrouping output (override with `.groups` argument)</span>
 
-<span class="va">valve_length_compare</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind.html">bind_rows</a></span><span class="op">(</span>
+<span class="va">valve_length_compare</span> <span class="op">&lt;-</span> <span class="fu">bind_rows</span><span class="op">(</span>
   <span class="va">valve_length_compare</span>,
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span><span class="va">best_method_by_idt</span>, idref_grouping  <span class="op">=</span> <span class="st">"best"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+  <span class="fu">mutate</span><span class="op">(</span><span class="va">best_method_by_idt</span>, idref_grouping  <span class="op">=</span> <span class="st">"best"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 </div>
 <div id="visualize-differences-between-the-manual-measurement-and-aligment-method" class="section level3">
 <h3 class="hasAnchor">
 <a href="#visualize-differences-between-the-manual-measurement-and-aligment-method" class="anchor"></a>Visualize differences between the manual measurement and aligment method</h3>
 <p>In relative terms:</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span>
-  data <span class="op">=</span> <span class="va">valve_length_compare</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">idref_grouping</span> <span class="op">!=</span> <span class="st">"A"</span><span class="op">)</span>,
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">rel_diff</span><span class="op">)</span>
+<code class="sourceCode R"><span class="fu">ggplot</span><span class="op">(</span>
+  data <span class="op">=</span> <span class="va">valve_length_compare</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">idref_grouping</span> <span class="op">!=</span> <span class="st">"A"</span><span class="op">)</span>,
+  <span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">rel_diff</span><span class="op">)</span>
 <span class="op">)</span> <span class="op">+</span> 
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_dotplot.html">geom_dotplot</a></span><span class="op">(</span>binwidth <span class="op">=</span> <span class="fl">.01</span>, dotsize <span class="op">=</span> <span class="fl">.5</span><span class="op">)</span> <span class="op">+</span>
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_grid.html">facet_grid</a></span><span class="op">(</span><span class="va">idref_grouping</span> <span class="op">~</span> <span class="va">.</span><span class="op">)</span>
+  <span class="fu">geom_dotplot</span><span class="op">(</span>binwidth <span class="op">=</span> <span class="fl">.01</span>, dotsize <span class="op">=</span> <span class="fl">.5</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu">facet_grid</span><span class="op">(</span><span class="va">idref_grouping</span> <span class="op">~</span> <span class="va">.</span><span class="op">)</span>
 <span class="co">#&gt; Warning: Removed 9 rows containing non-finite values (stat_bindot).</span></code></pre></div>
 <p><img src="preprocess_data_files/figure-html/unnamed-chunk-26-1.png" width="700"></p>
 <p>In absolute terms:</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span>
-  data <span class="op">=</span> <span class="va">valve_length_compare</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">idref_grouping</span> <span class="op">!=</span> <span class="st">"A"</span><span class="op">)</span>,
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">difference</span><span class="op">)</span>
+<code class="sourceCode R"><span class="fu">ggplot</span><span class="op">(</span>
+  data <span class="op">=</span> <span class="va">valve_length_compare</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">idref_grouping</span> <span class="op">!=</span> <span class="st">"A"</span><span class="op">)</span>,
+  <span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">difference</span><span class="op">)</span>
 <span class="op">)</span> <span class="op">+</span> 
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_dotplot.html">geom_dotplot</a></span><span class="op">(</span>binwidth <span class="op">=</span> <span class="fl">10</span>, dotsize <span class="op">=</span> <span class="fl">.25</span><span class="op">)</span> <span class="op">+</span>
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_grid.html">facet_grid</a></span><span class="op">(</span><span class="va">idref_grouping</span> <span class="op">~</span> <span class="va">.</span><span class="op">)</span>
+  <span class="fu">geom_dotplot</span><span class="op">(</span>binwidth <span class="op">=</span> <span class="fl">10</span>, dotsize <span class="op">=</span> <span class="fl">.25</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu">facet_grid</span><span class="op">(</span><span class="va">idref_grouping</span> <span class="op">~</span> <span class="va">.</span><span class="op">)</span>
 <span class="co">#&gt; Warning: Removed 9 rows containing non-finite values (stat_bindot).</span></code></pre></div>
 <p><img src="preprocess_data_files/figure-html/unnamed-chunk-27-1.png" width="700"></p>
 <div id="qc-plot-inner-edge-ca43_cps-and-pb208_cps-for-each-idtransect" class="section level4">
 <h4 class="hasAnchor">
 <a href="#qc-plot-inner-edge-ca43_cps-and-pb208_cps-for-each-idtransect" class="anchor"></a>QC: Plot inner edge Ca43_CPS and Pb208_CPS for each id/transect</h4>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">inner_edge</span> <span class="op">&lt;-</span> <span class="va">method_tests</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>idt <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span>, sep <span class="op">=</span> <span class="st">"_"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> 
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">distance</span> <span class="op">&lt;</span> <span class="fl">250</span>, <span class="va">idref_method</span> <span class="op">%in%</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"D"</span>, <span class="st">"F"</span>, <span class="st">"H"</span>, <span class="st">"J"</span>, <span class="st">"L"</span><span class="op">)</span><span class="op">)</span> 
+<code class="sourceCode R"><span class="va">inner_edge</span> <span class="op">&lt;-</span> <span class="va">method_tests</span> <span class="op">%&gt;%</span> <span class="fu">mutate</span><span class="op">(</span>idt <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span>, sep <span class="op">=</span> <span class="st">"_"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> 
+  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">distance</span> <span class="op">&lt;</span> <span class="fl">250</span>, <span class="va">idref_method</span> <span class="op">%in%</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"D"</span>, <span class="st">"F"</span>, <span class="st">"H"</span>, <span class="st">"J"</span>, <span class="st">"L"</span><span class="op">)</span><span class="op">)</span> 
 
 <span class="va">inner_edge_best</span> <span class="op">&lt;-</span> <span class="va">inner_edge</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span>
+  <span class="fu">left_join</span><span class="op">(</span>
     <span class="va">valve_length_compare</span> <span class="op">%&gt;%</span>
-      <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">idref_grouping</span> <span class="op">==</span> <span class="st">"best"</span><span class="op">)</span> <span class="op">%&gt;%</span>
+      <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">idref_grouping</span> <span class="op">==</span> <span class="st">"best"</span><span class="op">)</span> <span class="op">%&gt;%</span>
       <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">idt</span>, <span class="va">best_method</span><span class="op">)</span>,
     by <span class="op">=</span> <span class="st">"idt"</span>
   <span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html">str_detect</a></span><span class="op">(</span><span class="va">best_method</span>, <span class="fu"><a href="https://rdrr.io/r/base/character.html">as.character</a></span><span class="op">(</span><span class="va">idref_method</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>
+  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html">str_detect</a></span><span class="op">(</span><span class="va">best_method</span>, <span class="fu"><a href="https://rdrr.io/r/base/character.html">as.character</a></span><span class="op">(</span><span class="va">idref_method</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">mutate</span><span class="op">(</span>
     idref_method <span class="op">=</span> <span class="st">"best"</span>
   <span class="op">)</span>
 
-<span class="va">plotdt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind.html">bind_rows</a></span><span class="op">(</span><span class="va">inner_edge</span>, <span class="va">inner_edge_best</span><span class="op">)</span></code></pre></div>
+<span class="va">plotdt</span> <span class="op">&lt;-</span> <span class="fu">bind_rows</span><span class="op">(</span><span class="va">inner_edge</span>, <span class="va">inner_edge_best</span><span class="op">)</span></code></pre></div>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span>
+<code class="sourceCode R"><span class="fu">ggplot</span><span class="op">(</span>
   data <span class="op">=</span> <span class="va">plotdt</span> ,
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">distance</span>, y <span class="op">=</span> <span class="va">Ca43_CPS</span>, group <span class="op">=</span> <span class="va">idt</span><span class="op">)</span>
-<span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">.2</span><span class="op">)</span> <span class="op">+</span>
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_grid.html">facet_grid</a></span><span class="op">(</span><span class="va">idref_method</span> <span class="op">~</span> <span class="va">.</span><span class="op">)</span></code></pre></div>
+  <span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">distance</span>, y <span class="op">=</span> <span class="va">Ca43_CPS</span>, group <span class="op">=</span> <span class="va">idt</span><span class="op">)</span>
+<span class="op">)</span> <span class="op">+</span> <span class="fu">geom_line</span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">.2</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu">facet_grid</span><span class="op">(</span><span class="va">idref_method</span> <span class="op">~</span> <span class="va">.</span><span class="op">)</span></code></pre></div>
 <p><img src="preprocess_data_files/figure-html/unnamed-chunk-29-1.png" width="700"></p>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span>
+<code class="sourceCode R"><span class="fu">ggplot</span><span class="op">(</span>
   data <span class="op">=</span> <span class="va">plotdt</span> ,
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">distance</span>, y <span class="op">=</span> <span class="va">Pb208_CPS</span>, group <span class="op">=</span> <span class="va">idt</span><span class="op">)</span>
-<span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">.2</span><span class="op">)</span> <span class="op">+</span>
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_grid.html">facet_grid</a></span><span class="op">(</span><span class="va">idref_method</span> <span class="op">~</span> <span class="va">.</span>, scales <span class="op">=</span> <span class="st">"free_y"</span><span class="op">)</span></code></pre></div>
+  <span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">distance</span>, y <span class="op">=</span> <span class="va">Pb208_CPS</span>, group <span class="op">=</span> <span class="va">idt</span><span class="op">)</span>
+<span class="op">)</span> <span class="op">+</span> <span class="fu">geom_line</span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">.2</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu">facet_grid</span><span class="op">(</span><span class="va">idref_method</span> <span class="op">~</span> <span class="va">.</span>, scales <span class="op">=</span> <span class="st">"free_y"</span><span class="op">)</span></code></pre></div>
 <p><img src="preprocess_data_files/figure-html/unnamed-chunk-30-1.png" width="700"></p>
 </div>
 </div>
@@ -1215,15 +1215,15 @@
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">best_grouping</span> <span class="op">&lt;-</span> 
   <span class="va">valve_length_compare</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">idref_grouping</span> <span class="op">!=</span> <span class="st">"A"</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">idref_grouping</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>
+  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">idref_grouping</span> <span class="op">!=</span> <span class="st">"A"</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">group_by</span><span class="op">(</span><span class="va">idref_grouping</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">summarise</span><span class="op">(</span>
     MB  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">difference</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,
     MSE <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">difference</span><span class="op">^</span><span class="fl">2</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,
     MAD <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">difference</span><span class="op">)</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,
   <span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">MSE</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">min</a></span><span class="op">(</span><span class="va">MSE</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> 
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/pull.html">pull</a></span><span class="op">(</span><span class="va">idref_grouping</span><span class="op">)</span>
+  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">MSE</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">min</a></span><span class="op">(</span><span class="va">MSE</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> 
+  <span class="fu">pull</span><span class="op">(</span><span class="va">idref_grouping</span><span class="op">)</span>
 <span class="co">#&gt; `summarise()` ungrouping output (override with `.groups` argument)</span></code></pre></div>
 <div id="qc-check-that-for-all-idtransects-relative-difference-is-below-a-threshold" class="section level4">
 <h4 class="hasAnchor">
@@ -1241,22 +1241,22 @@ valve_length_compare %&gt;%
 <div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">distances</span> <span class="op">&lt;-</span> 
   <span class="va">method_tests</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>idt <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span>, sep <span class="op">=</span> <span class="st">"_"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">idref_method</span>  <span class="op">%in%</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"D"</span>, <span class="st">"F"</span>, <span class="st">"H"</span>, <span class="st">"J"</span>, <span class="st">"L"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span>
+  <span class="fu">mutate</span><span class="op">(</span>idt <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span>, sep <span class="op">=</span> <span class="st">"_"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">idref_method</span>  <span class="op">%in%</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"D"</span>, <span class="st">"F"</span>, <span class="st">"H"</span>, <span class="st">"J"</span>, <span class="st">"L"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">left_join</span><span class="op">(</span>
     <span class="va">valve_length_compare</span> <span class="op">%&gt;%</span> 
-      <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">idref_grouping</span> <span class="op">==</span> <span class="st">"best"</span><span class="op">)</span> <span class="op">%&gt;%</span> 
+      <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">idref_grouping</span> <span class="op">==</span> <span class="st">"best"</span><span class="op">)</span> <span class="op">%&gt;%</span> 
       <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">idt</span>, <span class="va">best_method</span><span class="op">)</span>,
     by <span class="op">=</span> <span class="st">"idt"</span>
   <span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html">str_detect</a></span><span class="op">(</span><span class="va">best_method</span>, <span class="fu"><a href="https://rdrr.io/r/base/character.html">as.character</a></span><span class="op">(</span><span class="va">idref_method</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html">str_detect</a></span><span class="op">(</span><span class="va">best_method</span>, <span class="fu"><a href="https://rdrr.io/r/base/character.html">as.character</a></span><span class="op">(</span><span class="va">idref_method</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">group_by</span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/nest.html">nest</a></span><span class="op">(</span><span class="op">)</span>
 
 <span class="va">valve_data</span> <span class="op">&lt;-</span> <span class="va">valve_data</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">distance</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span><span class="va">distances</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"id"</span>, <span class="st">"transect"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html">everything</a></span><span class="op">(</span><span class="op">)</span>, distance <span class="op">=</span> <span class="va">data</span><span class="op">)</span></code></pre></div>
+  <span class="fu">select</span><span class="op">(</span><span class="op">-</span><span class="va">distance</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">left_join</span><span class="op">(</span><span class="va">distances</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"id"</span>, <span class="st">"transect"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">select</span><span class="op">(</span><span class="fu">everything</span><span class="op">(</span><span class="op">)</span>, distance <span class="op">=</span> <span class="va">data</span><span class="op">)</span></code></pre></div>
 </div>
 </div>
 <div id="final-data-preparations" class="section level2">
@@ -1267,12 +1267,12 @@ valve_length_compare %&gt;%
 <a href="#add-information-about-annuli-availablity-within-each-idtransect" class="anchor"></a>Add information about annuli availablity within each id/transect</h3>
 <div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">valve_annual_layer_availability</span> <span class="op">&lt;-</span> <span class="va">valve_data</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span>, <span class="va">distance</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">select</span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span>, <span class="va">distance</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/nest.html">unnest</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">layer</span> <span class="op">==</span> <span class="st">"ncr"</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">annuli</span>, add <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html">n</a></span><span class="op">(</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">1</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">group_by</span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">layer</span> <span class="op">==</span> <span class="st">"ncr"</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">group_by</span><span class="op">(</span><span class="va">annuli</span>, add <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">summarise</span><span class="op">(</span>n <span class="op">=</span> <span class="fu">n</span><span class="op">(</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">1</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/spread.html">spread</a></span><span class="op">(</span>
     key <span class="op">=</span> <span class="va">annuli</span>, value <span class="op">=</span> <span class="va">n</span>, fill <span class="op">=</span> <span class="cn">FALSE</span>
   <span class="op">)</span>
@@ -1286,7 +1286,7 @@ valve_length_compare %&gt;%
 
 <span class="va">valve_data</span> <span class="op">&lt;-</span> 
   <span class="va">valve_data</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span><span class="va">valve_annual_layer_availability</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"id"</span>, <span class="st">"transect"</span><span class="op">)</span><span class="op">)</span> </code></pre></div>
+  <span class="fu">left_join</span><span class="op">(</span><span class="va">valve_annual_layer_availability</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"id"</span>, <span class="st">"transect"</span><span class="op">)</span><span class="op">)</span> </code></pre></div>
 </div>
 <div id="compute-age-estimate-from-measured-annuli" class="section level3">
 <h3 class="hasAnchor">
@@ -1294,9 +1294,9 @@ valve_length_compare %&gt;%
 <div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">n_annuli</span> <span class="op">&lt;-</span>  
   <span class="va">valve_data</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">id</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise_all.html">summarise_at</a></span><span class="op">(</span>.vars <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/vars.html">vars</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html">matches</a></span><span class="op">(</span><span class="st">"^[A-Z]$"</span><span class="op">)</span><span class="op">)</span>, .funs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">.</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">transmute</a></span><span class="op">(</span>
+  <span class="fu">group_by</span><span class="op">(</span><span class="va">id</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">summarise_at</span><span class="op">(</span>.vars <span class="op">=</span> <span class="fu">vars</span><span class="op">(</span><span class="fu">matches</span><span class="op">(</span><span class="st">"^[A-Z]$"</span><span class="op">)</span><span class="op">)</span>, .funs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">.</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">transmute</span><span class="op">(</span>
     id       <span class="op">=</span> <span class="va">id</span>,
     n_annuli <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html">rowSums</a></span><span class="op">(</span><span class="va">.</span><span class="op">[</span> , <span class="fl">2</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">ncol</a></span><span class="op">(</span><span class="va">.</span><span class="op">)</span><span class="op">]</span><span class="op">)</span>
   <span class="op">)</span></code></pre></div>
@@ -1308,16 +1308,16 @@ valve_length_compare %&gt;%
 <code class="sourceCode R"><span class="co">## Add covariates and outcome variables ####</span>
 <span class="va">mussel_info</span> <span class="op">&lt;-</span> 
   <span class="va">valve_data</span> <span class="op">%&gt;%</span> 
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">ungroup</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/distinct.html">distinct</a></span><span class="op">(</span><span class="va">id</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">ungroup</span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">distinct</span><span class="op">(</span><span class="va">id</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="co"># add river, site, and other info</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span><span class="va">mussels_wide</span>, by <span class="op">=</span> <span class="st">'id'</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>
+  <span class="fu">left_join</span><span class="op">(</span><span class="va">mussels_wide</span>, by <span class="op">=</span> <span class="st">'id'</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">mutate</span><span class="op">(</span>
     prop_weight_lost <span class="op">=</span> <span class="op">(</span><span class="va">buoyant_weight_g_1</span> <span class="op">-</span> <span class="va">buoyant_weight_g_0</span><span class="op">)</span><span class="op">/</span><span class="va">buoyant_weight_g_0</span>,
-    river <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html">if_else</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">river</span><span class="op">)</span>, <span class="st">"Baseline"</span>, <span class="va">river</span><span class="op">)</span>,
-    site  <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html">if_else</a></span><span class="op">(</span><span class="va">river</span> <span class="op">==</span> <span class="st">"Baseline"</span>, <span class="st">"Baseline"</span>, <span class="va">site</span><span class="op">)</span>,
-    species <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html">if_else</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">species</span><span class="op">)</span>,
-                      true <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/case_when.html">case_when</a></span><span class="op">(</span>
+    river <span class="op">=</span> <span class="fu">if_else</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">river</span><span class="op">)</span>, <span class="st">"Baseline"</span>, <span class="va">river</span><span class="op">)</span>,
+    site  <span class="op">=</span> <span class="fu">if_else</span><span class="op">(</span><span class="va">river</span> <span class="op">==</span> <span class="st">"Baseline"</span>, <span class="st">"Baseline"</span>, <span class="va">site</span><span class="op">)</span>,
+    species <span class="op">=</span> <span class="fu">if_else</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">species</span><span class="op">)</span>,
+                      true <span class="op">=</span> <span class="fu">case_when</span><span class="op">(</span>
                         <span class="fu"><a href="https://rdrr.io/r/base/grep.html">grepl</a></span><span class="op">(</span><span class="st">'A'</span>, <span class="va">id</span><span class="op">)</span> <span class="op">~</span> <span class="st">'A. raveneliana'</span>,
                         <span class="cn">TRUE</span>  <span class="op">~</span> <span class="st">'L. fasciola'</span><span class="op">)</span>,
                       false <span class="op">=</span> <span class="va">species</span><span class="op">)</span>,
@@ -1327,20 +1327,23 @@ valve_length_compare %&gt;%
     final_status  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">dead</span>, <span class="st">'Dead'</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">moribund</span>, <span class="st">'Moribund'</span>, <span class="st">'Alive'</span><span class="op">)</span><span class="op">)</span>,
     final_status  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">final_status</span>, ordered <span class="op">=</span> <span class="cn">TRUE</span>, 
                            levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">'Alive'</span>, <span class="st">'Moribund'</span>, <span class="st">'Dead'</span><span class="op">)</span><span class="op">)</span>,
-    site_num      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html">as.integer</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html">if_else</a></span><span class="op">(</span><span class="va">site</span> <span class="op">==</span> <span class="st">"Baseline"</span>, <span class="st">"1"</span>, <span class="fu"><a href="https://rdrr.io/r/base/substr.html">substr</a></span><span class="op">(</span><span class="va">site</span>, <span class="fl">6</span>, <span class="fl">6</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,
+    site_num      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html">as.integer</a></span><span class="op">(</span><span class="fu">if_else</span><span class="op">(</span><span class="va">site</span> <span class="op">==</span> <span class="st">"Baseline"</span>, <span class="st">"1"</span>, <span class="fu"><a href="https://rdrr.io/r/base/substr.html">substr</a></span><span class="op">(</span><span class="va">site</span>, <span class="fl">6</span>, <span class="fl">6</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,
     baseline_volume <span class="op">=</span> <span class="va">volume_0</span>,
-    baseline_weight <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html">if_else</a></span><span class="op">(</span><span class="va">species</span> <span class="op">==</span> <span class="st">"A. raveneliana"</span>,
+    baseline_width  <span class="op">=</span> <span class="va">width_mm_0</span>,
+    baseline_length <span class="op">=</span> <span class="va">length_mm_0</span>,
+    baseline_height <span class="op">=</span> <span class="va">height_mm_0</span>,
+    baseline_weight <span class="op">=</span> <span class="fu">if_else</span><span class="op">(</span><span class="va">species</span> <span class="op">==</span> <span class="st">"A. raveneliana"</span>,
                               <span class="va">buoyant_weight_g_0</span>,
                               <span class="va">dry_weight_g_0</span><span class="op">)</span> 
   <span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">site</span>, <span class="va">site_num</span>, <span class="va">river</span>, <span class="va">species</span>, <span class="va">dead</span>,
-                <span class="va">baseline_weight</span>, <span class="va">baseline_volume</span>,
+                <span class="fu">starts_with</span><span class="op">(</span><span class="st">"baseline_"</span><span class="op">)</span>,
                 <span class="va">prop_weight_lost</span>, <span class="va">moribund</span>, <span class="va">final_status</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span><span class="va">n_annuli</span>, by <span class="op">=</span> <span class="st">"id"</span><span class="op">)</span>
+  <span class="fu">left_join</span><span class="op">(</span><span class="va">n_annuli</span>, by <span class="op">=</span> <span class="st">"id"</span><span class="op">)</span>
 
 <span class="va">valve_data</span> <span class="op">&lt;-</span> 
   <span class="va">valve_data</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span><span class="va">mussel_info</span>, by <span class="op">=</span> <span class="st">"id"</span><span class="op">)</span></code></pre></div>
+  <span class="fu">left_join</span><span class="op">(</span><span class="va">mussel_info</span>, by <span class="op">=</span> <span class="st">"id"</span><span class="op">)</span></code></pre></div>
 </div>
 <div id="add-analysis-subgrouping-indicators" class="section level3">
 <h3 class="hasAnchor">
@@ -1364,23 +1367,23 @@ valve_length_compare %&gt;%
 <div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># Find the transect of an id with the longest section of annuli A</span>
 <span class="va">most_A</span> <span class="op">&lt;-</span> <span class="va">valve_data</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span>, <span class="va">distance</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">select</span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span>, <span class="va">distance</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/nest.html">unnest</a></span><span class="op">(</span>cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">distance</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span>, <span class="va">layer</span>, <span class="va">annuli</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>d <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html">n</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">layer</span> <span class="op">==</span> <span class="st">"ncr"</span>, <span class="va">annuli</span> <span class="op">==</span> <span class="st">"A"</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">id</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">d</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">max</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>
+  <span class="fu">group_by</span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span>, <span class="va">layer</span>, <span class="va">annuli</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">summarise</span><span class="op">(</span>d <span class="op">=</span> <span class="fu">n</span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">layer</span> <span class="op">==</span> <span class="st">"ncr"</span>, <span class="va">annuli</span> <span class="op">==</span> <span class="st">"A"</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">group_by</span><span class="op">(</span><span class="va">id</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">d</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">max</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">select</span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">mutate</span><span class="op">(</span>
     agrp_transect_most_A <span class="op">=</span> <span class="cn">TRUE</span>
   <span class="op">)</span>
 <span class="co">#&gt; `summarise()` regrouping output by 'id', 'transect', 'layer' (override with `.groups` argument)</span>
 
 <span class="va">valve_data</span> <span class="op">&lt;-</span> 
   <span class="va">valve_data</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">id</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>
+  <span class="fu">group_by</span><span class="op">(</span><span class="va">id</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">mutate</span><span class="op">(</span>
     agrp_any_A                  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/any.html">any</a></span><span class="op">(</span><span class="va">A</span><span class="op">)</span>,
     agrp_any_B                  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/any.html">any</a></span><span class="op">(</span><span class="va">B</span><span class="op">)</span>,
     agrp_first_transect         <span class="op">=</span> <span class="op">(</span><span class="va">transect</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">min</a></span><span class="op">(</span><span class="va">transect</span><span class="op">)</span><span class="op">)</span>,
@@ -1393,13 +1396,13 @@ valve_length_compare %&gt;%
     agrp_first_transect_with_AB <span class="op">=</span> <span class="op">(</span><span class="va">transect</span> <span class="op">==</span> <span class="va">firstA_transect</span><span class="op">)</span> <span class="op">&amp;</span>
                                   <span class="op">(</span><span class="va">transect</span> <span class="op">==</span> <span class="va">firstB_transect</span><span class="op">)</span>
   <span class="op">)</span> <span class="op">%&gt;%</span> 
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span><span class="va">most_A</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"id"</span>, <span class="st">"transect"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>
-    agrp_transect_most_A <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html">if_else</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">agrp_transect_most_A</span><span class="op">)</span>, 
+  <span class="fu">left_join</span><span class="op">(</span><span class="va">most_A</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"id"</span>, <span class="st">"transect"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">mutate</span><span class="op">(</span>
+    agrp_transect_most_A <span class="op">=</span> <span class="fu">if_else</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">agrp_transect_most_A</span><span class="op">)</span>, 
                                    <span class="cn">FALSE</span>, 
                                    <span class="va">agrp_transect_most_A</span><span class="op">)</span>
   <span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">firstA_transect</span>, <span class="op">-</span><span class="va">firstB_transect</span><span class="op">)</span></code></pre></div>
+  <span class="fu">select</span><span class="op">(</span><span class="op">-</span><span class="va">firstA_transect</span>, <span class="op">-</span><span class="va">firstB_transect</span><span class="op">)</span></code></pre></div>
 <div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">saveRDS</a></span><span class="op">(</span><span class="va">valve_data</span>, file <span class="op">=</span> <span class="va">params</span><span class="op">$</span><span class="va">outputs</span><span class="op">$</span><span class="va">valve_data</span><span class="op">)</span></code></pre></div>
 </div>
@@ -1412,18 +1415,18 @@ valve_length_compare %&gt;%
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"periodicTable"</span>, package <span class="op">=</span> <span class="st">"PeriodicTable"</span><span class="op">)</span>
 
 <span class="va">element_info</span> <span class="op">&lt;-</span> 
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span><span class="va">valve_data</span><span class="op">$</span><span class="va">chemistry</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, 
+  <span class="fu">left_join</span><span class="op">(</span><span class="va">valve_data</span><span class="op">$</span><span class="va">chemistry</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, 
             <span class="va">valve_data</span><span class="op">$</span><span class="va">distance</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, 
             by <span class="op">=</span> <span class="st">"obs"</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html">ends_with</a></span><span class="op">(</span><span class="st">"value_raw"</span><span class="op">)</span>, <span class="op">-</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html">ends_with</a></span><span class="op">(</span><span class="st">"censor"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">idt</span>, <span class="op">-</span><span class="va">idref_method</span>, <span class="op">-</span><span class="va">best_method</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">select</span><span class="op">(</span><span class="op">-</span><span class="fu">ends_with</span><span class="op">(</span><span class="st">"value_raw"</span><span class="op">)</span>, <span class="op">-</span><span class="fu">ends_with</span><span class="op">(</span><span class="st">"censor"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">select</span><span class="op">(</span><span class="op">-</span><span class="va">idt</span>, <span class="op">-</span><span class="va">idref_method</span>, <span class="op">-</span><span class="va">best_method</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="../reference/create_long_analysis_data.html">create_long_analysis_data</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/distinct.html">distinct</a></span><span class="op">(</span><span class="va">element</span><span class="op">)</span> <span class="op">%&gt;%</span>
-    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>
+  <span class="fu">distinct</span><span class="op">(</span><span class="va">element</span><span class="op">)</span> <span class="op">%&gt;%</span>
+    <span class="fu">mutate</span><span class="op">(</span>
       symb <span class="op">=</span> <span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_extract.html">str_extract</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/substr.html">substr</a></span><span class="op">(</span><span class="va">element</span>, <span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">'[A-Za-z]+'</span><span class="op">)</span>,
       element_label <span class="op">=</span> <span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_replace.html">str_replace</a></span><span class="op">(</span><span class="va">element</span>, <span class="st">'_ppm'</span>, <span class="st">''</span><span class="op">)</span>
     <span class="op">)</span> <span class="op">%&gt;%</span>
-    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span>
+    <span class="fu">left_join</span><span class="op">(</span>
       <span class="va">periodicTable</span> <span class="op">%&gt;%</span>
       <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">symb</span>, <span class="va">name</span>, <span class="va">group</span>, <span class="va">period</span>, <span class="va">type</span>, <span class="va">mass</span>, <span class="va">color</span><span class="op">)</span>,
       by <span class="op">=</span> <span class="st">'symb'</span><span class="op">)</span>
@@ -1439,18 +1442,18 @@ valve_length_compare %&gt;%
 <a href="#randomly-select-two-specimens-of-each-species-for-measuring-ca-concentrations" class="anchor"></a>Randomly select two specimens of each species for measuring Ca concentrations</h2>
 <div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">valve_data</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span>,<span class="va">species</span>, <span class="va">measures</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>
+  <span class="fu">select</span><span class="op">(</span><span class="va">id</span>, <span class="va">transect</span>,<span class="va">species</span>, <span class="va">measures</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">mutate</span><span class="op">(</span>
     drawer <span class="op">=</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map_dbl</a></span><span class="op">(</span><span class="va">measures</span>, <span class="op">~</span><span class="va">.x</span><span class="op">$</span><span class="va">drawer</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>
   <span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">measures</span>, <span class="op">-</span><span class="va">transect</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/distinct.html">distinct</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">species</span>, <span class="va">drawer</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">species</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">select</span><span class="op">(</span><span class="op">-</span><span class="va">measures</span>, <span class="op">-</span><span class="va">transect</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">distinct</span><span class="op">(</span><span class="va">id</span>, <span class="va">species</span>, <span class="va">drawer</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">group_by</span><span class="op">(</span><span class="va">species</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/nest.html">nest</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>
-    picks <span class="op">=</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">data</span>, <span class="op">~</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/sample_n.html">sample_n</a></span><span class="op">(</span><span class="va">.x</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span>
+  <span class="fu">mutate</span><span class="op">(</span>
+    picks <span class="op">=</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">data</span>, <span class="op">~</span><span class="fu">sample_n</span><span class="op">(</span><span class="va">.x</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span>
   <span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">data</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">select</span><span class="op">(</span><span class="op">-</span><span class="va">data</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/nest.html">unnest</a></span><span class="op">(</span><span class="op">)</span>
 <span class="co">#&gt; Warning: `cols` is now required when using unnest().</span>
 <span class="co">#&gt; Please use `cols = c(picks)`</span>
@@ -1458,10 +1461,10 @@ valve_length_compare %&gt;%
 <span class="co">#&gt; # Groups:   species [2]</span>
 <span class="co">#&gt;   species        id    drawer</span>
 <span class="co">#&gt;   &lt;chr&gt;          &lt;chr&gt;  &lt;dbl&gt;</span>
-<span class="co">#&gt; 1 A. raveneliana C523       3</span>
-<span class="co">#&gt; 2 A. raveneliana C470       1</span>
-<span class="co">#&gt; 3 L. fasciola    P160       6</span>
-<span class="co">#&gt; 4 L. fasciola    P104       4</span>
+<span class="co">#&gt; 1 A. raveneliana C495       2</span>
+<span class="co">#&gt; 2 A. raveneliana C473       4</span>
+<span class="co">#&gt; 3 L. fasciola    P098       4</span>
+<span class="co">#&gt; 4 L. fasciola    P152       6</span>
   
 <span class="co"># Oops! Forgot to set the random seed. The results were:</span>
 <span class="co"># A tibble: 4 x 3</span>

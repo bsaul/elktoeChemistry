@@ -1,0 +1,130 @@
+---
+title: "Health Outcomes by Element Summaries"
+author: "Bradley Saul"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Health Outcomes by Element Summaries}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+bibliography: vignettes.bib
+params: 
+   inputs: 
+     value: 
+       analysis: "../data/analysis_data.rds"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  echo    = FALSE,
+  message = FALSE
+)
+```
+
+
+```{r}
+library(elktoeChemistry)
+library(dplyr)
+library(gt)
+library(ggplot2)
+analysis_data  <- readRDS(params$inputs$analysis)
+```
+
+```{r}
+dt <-
+  analysis_data(
+    contrast = "all",
+    test_data_FUN = function(data) data,
+    elements  = "all", 
+    signals   = c("mad_10"),
+    group_by_valve = TRUE,
+    transect_opts  = list(
+      .layers    = c("ipx", "ncr", "psm", "pio", "opx"),
+      .min_n_obs = 0L
+    )
+  )
+```
+
+```{r functions}
+layer2 <- function(layer, annuli){
+   case_when(
+      layer == "ncr" & annuli == "A" ~ "ncr_new",
+      layer == "ncr" & annuli != "A" ~ "ncr_old",
+      layer %in% c("ipx", "opx")     ~ "epx",
+      TRUE ~ layer
+  )
+}
+
+```
+
+# Summary of elements by species/site/layer
+
+```{r summary0}
+specimen_summaries <- 
+  summarize_specimens(dt, modify_layer = layer2) %>%
+  filter(site != "Baseline") 
+
+adt <- 
+  specimen_summaries %>%
+  filter(species == "Arav") %>%
+  left_join(
+    dt$data[[1]] %>%
+      filter(site != "Baseline") %>%
+      distinct(id, river, dead, moribund, baseline_weight, baseline_volume, 
+               drawer, final_status, prop_weight_lost),
+    by = "id"
+  ) %>%
+  filter(!is.na(final_status)) %>%
+  mutate(
+    element =  case_when(
+      stringr::str_detect(element, "^(Zn|Cu|Mg)") ~
+        paste0(stringr::str_replace(element, "_ppm_m", "["), "]"),
+      TRUE ~ stringr::str_remove(element, "_ppm_m.*")
+    ),
+    prop_weight_lost = if_else(is.na(prop_weight_lost), -1, prop_weight_lost)
+  )
+```
+
+
+```{r}
+yy <- adt %>% 
+  filter(!is.na(baseline_weight), !is.na(baseline_volume)) 
+
+xx <- 
+  yy %>%
+  filter(!(element %in% c("Cd", "U"))) %>%
+  group_by(element, layer) %>%
+  mutate(
+    zz = residuals(lm(log(l1) ~ baseline_weight + baseline_volume + site)),
+    v = log10(l1),
+    z = (v - mean(v))/sd(v)
+  )
+
+ggplot(
+  data = xx,
+  aes(x = final_status, y = z)
+) + 
+  geom_jitter(
+    size = 0.2
+  ) + 
+  # geom_point(size = 0.2) +
+  geom_point(
+    data = xx %>%
+      group_by(element, layer, final_status) %>%
+      summarize(z = median(z))
+  ) +
+  geom_line(
+    data = xx %>%
+      group_by(element, layer, final_status) %>%
+      summarize(z = median(z)) %>%
+      ungroup(),
+    aes(x = final_status, y = z, group = layer)
+  ) +
+  # stat_smooth(method = "lm", se = TRUE) +
+  facet_grid(layer ~ element, scales = "free")
+
+```
