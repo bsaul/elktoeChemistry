@@ -90,7 +90,7 @@ adt <-
 ```
 
 
-```{r}
+```{r, fig.width = 10, fig.height=6}
 yy <- adt %>% 
   filter(!is.na(baseline_weight), !is.na(baseline_volume)) 
 
@@ -109,13 +109,16 @@ ggplot(
   aes(x = final_status, y = z)
 ) + 
   geom_jitter(
-    size = 0.2
+    size = 0.2,
+    width = 0.25,
+    color = "grey50"
   ) + 
   # geom_point(size = 0.2) +
   geom_point(
     data = xx %>%
       group_by(element, layer, final_status) %>%
-      summarize(z = median(z))
+      summarize(z = median(z)),
+    aes(color = final_status)
   ) +
   geom_line(
     data = xx %>%
