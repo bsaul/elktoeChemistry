@@ -31,7 +31,11 @@ library(elktoeChemistry)
 library(dplyr)
 library(gt)
 library(ggplot2)
+# library(geex)
+library(geepack)
+
 analysis_data  <- readRDS(params$inputs$analysis)
+# analysis_data <- readRDS("data/analysis_data.rds")
 ```
 
 ```{r}
@@ -54,11 +58,10 @@ layer2 <- function(layer, annuli){
    case_when(
       layer == "ncr" & annuli == "A" ~ "ncr_new",
       layer == "ncr" & annuli != "A" ~ "ncr_old",
-      layer %in% c("ipx", "opx")     ~ "epx",
+      # layer %in% c("ipx", "opx")     ~ "epx",
       TRUE ~ layer
   )
 }
-
 ```
 
 # Summary of elements by species/site/layer
@@ -75,7 +78,7 @@ adt <-
     dt$data[[1]] %>%
       filter(site != "Baseline") %>%
       distinct(id, river, dead, moribund, baseline_weight, baseline_volume, 
-               drawer, final_status, prop_weight_lost),
+              final_status, prop_weight_lost),
     by = "id"
   ) %>%
   filter(!is.na(final_status)) %>%
@@ -84,10 +87,10 @@ adt <-
       stringr::str_detect(element, "^(Zn|Cu|Mg)") ~
         paste0(stringr::str_replace(element, "_ppm_m", "["), "]"),
       TRUE ~ stringr::str_remove(element, "_ppm_m.*")
-    ),
-    prop_weight_lost = if_else(is.na(prop_weight_lost), -1, prop_weight_lost)
+    )
   )
 ```
+
 
 
 ```{r, fig.width = 10, fig.height=6}
@@ -129,5 +132,221 @@ ggplot(
   ) +
   # stat_smooth(method = "lm", se = TRUE) +
   facet_grid(layer ~ element, scales = "free")
+
+```
+
+## Models
+
+```{r}
+mdt <- 
+  adt %>%
+  select(river, drawer, site, layer, dead, final_status, l1, prop_weight_lost,
+         baseline_weight, baseline_volume) %>%
+  arrange(id) %>%
+  ungroup() %>%
+  left_join(
+    select(mussels_wide, id, wd = buoyant_weight_g_d),
+    by = "id"
+  ) %>%
+  group_by(id) %>%
+  group_nest() %>%
+  mutate(id = 1:n()) %>%
+  tidyr::unnest(cols = data) %>%
+  group_by(element, layer) %>%
+  mutate(
+    # id     = as.integer(as.factor(id)),
+    site   = factor(site),
+    drawer = factor(drawer),
+    layer  = factor(layer, levels = c("ipx", "ncr_new", "ncr_old", "psm", "pio", "opx"),
+                    ordered = TRUE),
+    l1s    = (l1 - mean(l1))/sd(l1)
+  ) %>%
+  ungroup() %>%
+  arrange(id)
+
+mdat <- 
+  mdt %>%
+  group_by(element) %>%
+  group_nest()
+
+summarise_gee <- function(m){
+  summary(m) %>%
+  purrr::pluck("coefficients") %>% 
+  { x <- .
+    x %>% 
+      mutate(parameter = rownames(x)) %>%
+      select(
+        estimate = Estimate,
+        std_error = Std.err,
+        p_value   = `Pr(>|W|)`,
+        everything()
+      )
+  }
+}
+
+models <-
+  mdat %>%
+  mutate(
+    m1 = purrr::map(
+      .x = data,
+      .f = ~ {
+        geeglm(
+          dead ~ log(l1):layer + site + site:layer,
+          data = .x,
+          family = binomial(link = "logit"),
+          id = id)
+      }),
+    m2 = purrr::map(
+      .x = data,
+      .f = ~ {
+        geeglm(
+          dead ~ log(l1):layer + site + site:layer,
+          data = .x %>% 
+            filter(site != "Tuck 1") %>% 
+            mutate(site = factor(site)),
+          family = binomial(link = "logit"),
+          id = id)
+      }),
+  ) %>%
+  select(element, m1, m2) 
+
+res <- 
+  models %>%
+  tidyr::pivot_longer(
+    names_to = "model",
+    cols = c(m1, m2)
+  ) %>%
+  mutate(
+    m_summary = purrr::map(value, summarise_gee)
+  ) %>%
+  select(-value) %>%
+  tidyr::unnest(cols = m_summary) 
+
+pdt <-
+  res %>% 
+  filter(grepl("l1", parameter)) %>%
+  mutate(parameter = stringr::str_replace(parameter, "log\\(l1\\):layer", "")) %>%
+  filter(!(element %in% c("Sr"))) %>%
+  group_by(model, element, parameter) %>%
+  mutate(
+    layer = factor(parameter, levels = c("ipx", "ncr_new", "ncr_old", "psm", "pio", "opx"),
+                    ordered = TRUE),
+    conf_lo   = estimate - 2*std_error,
+    conf_hi   = estimate + 2*std_error,
+    cross0    = p_value < 0.05
+  ) 
+```
+
+
+```{r model_plot, fig.height=6, fig.width=8}
+ggplot(
+  data = filter(pdt, model == "m1", std_error < 0.5),
+  aes(x = element, y = estimate, color = cross0)
+) + 
+  geom_hline(yintercept = 0) +
+  geom_point(size = 0.5) + 
+  geom_segment(
+    aes(xend = element, y = conf_lo, yend = conf_hi)) + 
+  scale_color_manual(
+    values = c("black", "red"),
+    guide = FALSE
+  ) +
+  facet_grid(layer ~ ., scale = "free") +
+  theme(
+    axis.title.x = element_blank(),
+    axis.text.x  = element_text(size = 8, angle = 45, hjust = 1) 
+  )
+``` 
+
+
+```{r}
+summary_by_site <-
+  mdt %>%
+  mutate(
+    wd = if_else(dead == 1, -baseline_weight, wd)
+  ) %>%
+  group_by(river, element, layer, site) %>%
+  summarise(
+    l1m  = exp(mean(log(l1))),
+    dead = mean(dead),
+    bw   = sum(baseline_weight),
+    lw   = sum(wd),
+    pw   = bw - lw,
+    rl   = (bw - pw)/bw
+  ) 
+```
+
+```{r}
+plot_summary <- function(layer){
+  dt <- 
+  summary_by_site %>%
+    filter(layer == !! layer)
+
+  ggplot(
+    data = dt,
+    aes(x = l1m, y = rl, color = river)
+  ) +
+  ggtitle(layer) +
+  geom_point() +
+  stat_smooth(method ="lm", se = FALSE, color = "blue") +
+  stat_smooth(
+    data = dt %>% filter(site != "Tuck 1"),
+    method ="lm", se = FALSE,
+    color = "black"
+  ) +
+  scale_x_continuous("Geometric mean of means of specimens") +
+  scale_y_continuous("Relative loss of site biomass") +
+  facet_wrap(. ~ element, ncol = 5, scales = "free") +
+  theme(
+    axis.text.y = element_text(size = 8),
+    axis.text.x = element_text(size = 8)
+  )
+}
+```
+
+```{r, fig.height = 6, fig.width=7.5}
+plot_summary("ipx")
+```
+
+```{r, fig.height = 6, fig.width=7.5}
+plot_summary("ncr_new")
+```
+
+```{r, fig.height = 6, fig.width=7.5}
+plot_summary("ncr_old")
+```
+
+```{r, fig.height = 6, fig.width=7.5}
+plot_summary("psm")
+```
+
+```{r, fig.height = 6, fig.width=7.5}
+plot_summary("pio")
+```
+
+
+```{r, fig.height = 6, fig.width=7.5}
+plot_summary("opx")
+```
+
+```{r etc}
+
+ee <- function(data, md, mw){
+  # browser()
+  psi1 <- grab_psiFUN(md, data = data)
+  psi2 <- grab_psiFUN(mw, data = data)
+  p1 <- length(coef(md))
+  p2 <- length(coef(mw))
+  d  <- all(data$dead == 1)
+
+  function(theta){
+    # print(data$id)
+    # browser()
+    c(psi1(theta[1:p1]), 
+      { if(!d) psi2(theta[(p1+1):(p1 + p2)]) else rep(0, p2) } )
+      # (!d * 1) * ( )
+      
+  }
+}
 
 ```
