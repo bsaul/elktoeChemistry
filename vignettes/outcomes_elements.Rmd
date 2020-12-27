@@ -21,22 +21,38 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   echo    = FALSE,
-  message = FALSE
+  message = FALSE,
+  warning = FALSE
 )
 ```
 
 
 ```{r}
 library(elktoeChemistry)
-library(dplyr)
+
 library(gt)
 library(ggplot2)
 # library(geex)
 library(geepack)
-
+library(lme4)
+library(quantreg)
+# library(MASS)
+library(dplyr)
 analysis_data  <- readRDS(params$inputs$analysis)
 # analysis_data <- readRDS("data/analysis_data.rds")
 ```
+
+```{r}
+site_colors <- 
+  c("LiTN 1" = "#99d8c9",
+    "LiTN 2" = "#41ae76",
+    "LiTN 3" = "#005824",
+    "Tuck 1" = "#fdae6b",
+    "Tuck 2" = "#f16913",
+    "Tuck 3" = "#8c2d04",
+    "Baseline" = "#525252")
+```
+
 
 ```{r}
 dt <-
@@ -136,6 +152,7 @@ ggplot(
 ```
 
 ## Models
+
 
 ```{r}
 mdt <- 
@@ -237,6 +254,7 @@ pdt <-
   ) 
 ```
 
+### Estimated coefficients from a logistic GEE model predicting death
 
 ```{r model_plot, fig.height=6, fig.width=8}
 ggplot(
@@ -304,6 +322,13 @@ plot_summary <- function(layer){
 }
 ```
 
+### Geometric mean of means within site by loss of biomass within site
+
+(Beware of ecological fallacy with this view!)
+
+* Black = best fit excluding Tuck 1
+* Blue= best fit
+
 ```{r, fig.height = 6, fig.width=7.5}
 plot_summary("ipx")
 ```
@@ -328,6 +353,259 @@ plot_summary("pio")
 ```{r, fig.height = 6, fig.width=7.5}
 plot_summary("opx")
 ```
+
+```{r}
+mdt2 <- 
+  mdt %>%
+  mutate(
+    wd = if_else(dead == 1, -baseline_weight, wd)
+  ) 
+```
+
+```{r}
+
+summarize_rlm <- function(m){
+  summary(m) %>%
+  purrr::pluck("coefficients") %>%
+  { x <- .
+    x %>% 
+      as.data.frame() %>%
+      mutate(parameter = rownames(x)) %>%
+      select(
+        estimate = Value,
+        std_error = `Std. Error`,
+        t   = `t value`,
+        everything()
+      )
+  }
+}
+
+
+summarize_lmer <- function(m){
+  summary(m) %>%
+  purrr::pluck("coefficients") %>%
+  { x <- .
+    x %>% 
+      as.data.frame() %>%
+      mutate(parameter = rownames(x)) %>%
+      select(
+        estimate = Estimate,
+        std_error = `Std. Error`,
+        t   = `t value`,
+        everything()
+      )
+  }
+}
+
+summarize_rq <- function(m){
+  m %>%
+  purrr::pluck("coefficients") %>%
+  {
+    x <- .
+    as.data.frame(x) %>%
+      mutate(parameter = rownames(x),
+             tau = m$tau)
+  }
+}
+
+mods <- 
+  mdt2 %>%
+  group_by(element, layer) %>%
+  group_nest() %>%
+  mutate(
+    mlm = purrr::map(
+      .x = data,
+      .f = ~ {
+        MASS::rlm(wd ~ site + log(l1),
+                  data = .x, 
+                  maxit = 100)
+      }
+    ),
+    rlm = purrr::map(
+      .x = data,
+      .f = ~ {
+        lmer(
+          wd ~ site + log(l1) + (1|site),
+          data = .x)
+      }
+    ),
+    rqm = purrr::map(
+      .x = data,
+      .f = ~ {
+        rq(
+          wd ~ log(l1) + site, tau = seq(0.2, 0.8, by = 0.1),
+          data = .x
+        )
+      }
+    ),
+    ms = purrr::map(mlm, summarize_rlm),
+    re = purrr::map(rlm, summarize_lmer),
+    rqs = purrr::map(
+      .x = rqm, 
+      .f = ~ { summary(.x) %>%  purrr::map_dfr(summarize_rq) }
+    )
+  )
+
+rq_res <- 
+  mods %>% 
+  select(element, layer, rqs) %>%
+  tidyr::unnest(cols = rqs) %>%
+  filter(parameter == "log(l1)") %>%
+  select(
+    estimate = coefficients,
+    conf_lo  = `lower bd`,
+    conf_hi = `upper bd`,
+    everything()
+  )
+
+plot_rq <- function(layer){
+  rq_res %>%
+  filter(layer == !! layer) %>%
+  ggplot(
+    aes(x = tau, y = estimate)
+  ) + 
+  ggtitle(layer) +
+  geom_hline(yintercept = 0) +
+  geom_point(size = 0.5) +
+  geom_ribbon(
+    aes(ymin = conf_lo, ymax = conf_hi),
+    alpha = 0.3
+  ) + 
+  geom_line() +
+  scale_y_continuous("Quantreg Estimated Coefficient of mean concentration") +
+  scale_x_continuous("Quantile") +
+  facet_wrap(
+    element ~ ., ncol = 5,  scales = "free"
+  )
+}
+
+```
+
+### Quantile regression estimating effect of log(l1) on weight lost
+
+```{r, fig.height = 6, fig.width=7.5}
+plot_rq("ipx")
+```
+
+```{r, fig.height = 6, fig.width=7.5}
+plot_rq("ncr_new")
+```
+
+```{r, fig.height = 6, fig.width=7.5}
+plot_rq("ncr_old")
+```
+
+```{r, fig.height = 6, fig.width=7.5}
+plot_rq("psm")
+```
+
+```{r, fig.height = 6, fig.width=7.5}
+plot_rq("pio")
+```
+
+```{r, fig.height = 6, fig.width=7.5}
+plot_rq("opx")
+```
+
+### 
+
+```{r, eval = FALSE}
+rq_by_site <- 
+ mdt2 %>%
+ group_by(element, layer) %>%
+  group_nest() %>%
+  mutate(
+   rqm = purrr::map(
+      .x = data,
+      .f = ~ {
+        rq(
+          wd ~ -1 + site + log(l1):site, tau = c(0.25, 0.5, 0.75),
+          data = .x
+        )
+      }
+    ),
+    rqs = purrr::map(
+      .x = rqm, 
+      .f = ~ { summary(.x) %>%  purrr::map_dfr(summarize_rq) }
+    )
+  )
+
+rq_res <- 
+  rq_by_site %>% 
+  select(element, layer, rqs) %>%
+  tidyr::unnest(cols = rqs) %>%
+  filter(grepl("log\\(l1\\)", parameter)) %>%
+  mutate(
+    site     = substr(parameter, 13, 18),
+  ) %>%
+  select(
+    estimate = coefficients,
+    conf_lo  = `lower bd`,
+    conf_hi = `upper bd`,
+    everything()
+  )
+
+rq_res %>%
+  filter(layer == "psm") %>%
+  ggplot(
+    aes(x = tau, y = estimate)
+  ) + geom_point() +
+  facet_wrap(element ~ ., ncol = 5, scale = "free")
+
+
+```
+
+```{r}
+plot_l1_by_wd <- function(layer){
+  ggplot(
+    data = mdt2 %>% filter(layer == !! layer),
+    aes(x = log(l1), y = wd, color = site)
+  ) + 
+  ggtitle(layer) +
+  geom_point(size = 0.5) +
+  scale_color_manual(
+    values = site_colors
+  ) +
+  scale_y_continuous(
+    "Pre to post difference in weight"
+  ) + 
+  scale_x_continuous(
+    "Log(mean in layer)"
+  ) +
+  geom_quantile(
+    method = "rq", color = "blue",
+    quantiles = c(0.5) ) + 
+  facet_wrap(~ element, ncol = 5, scales = "free")
+}
+```
+
+### Scatterplots of log(l1) by weight loss
+
+```{r, fig.height = 6, fig.width=7.5}
+plot_l1_by_wd("ipx")
+```
+
+```{r, fig.height = 6, fig.width=7.5}
+plot_l1_by_wd("ncr_new")
+```
+
+```{r, fig.height = 6, fig.width=7.5}
+plot_l1_by_wd("ncr_old")
+```
+
+```{r, fig.height = 6, fig.width=7.5}
+plot_l1_by_wd("psm")
+```
+
+```{r, fig.height = 6, fig.width=7.5}
+plot_l1_by_wd("pio")
+```
+
+```{r, fig.height = 6, fig.width=7.5}
+plot_l1_by_wd("opx")
+```
+
+
 
 ```{r etc}
 
