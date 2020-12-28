@@ -29,7 +29,6 @@ knitr::opts_chunk$set(
 
 ```{r}
 library(elktoeChemistry)
-
 library(gt)
 library(ggplot2)
 # library(geex)
@@ -200,7 +199,47 @@ summarise_gee <- function(m){
       )
   }
 }
+```
 
+```{r, eval = FALSE}
+xx <- mdat$data[[14]]
+
+xx <- xx %>% 
+  group_by(site, layer) %>%
+  mutate(
+    wd = if_else(dead == 1, -baseline_weight, wd),
+    l1_c_s = l1/exp(mean(log(l1))),
+    l1c  = l1 - mean(l1)
+    # l1_c_s = l1 - mean(l1)
+    # l1_c_s = l1_c_s - min(log(l1))
+  )
+
+ggplot(
+  xx,
+  aes(x = dead, y = log(l1))) +
+  geom_point() +
+  stat_smooth(method = "lm") + 
+  facet_grid(layer ~ site, scales = "free")
+
+
+library(qif)
+summary(geeglm(dead ~ site*layer + layer:log(l1), data = xx, id = id, family = binomial))
+summary(qif(dead ~ site + layer:log(l1), data = xx))
+summary(qif(wd ~ site + layer + layer:log(l1), data = xx))
+summary(qif(wd ~ site + layer + layer:log(l1), data = xx, corstr = "AR-1", 
+            invfun = "ginv"))
+
+xx %>%
+  ggplot(
+    aes(x = log(l1))
+  ) + geom_histogram() +
+  facet_grid(site~ layer)
+
+
+```
+
+
+```{r}
 models <-
   mdat %>%
   mutate(
