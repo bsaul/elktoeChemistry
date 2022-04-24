@@ -1,6 +1,6 @@
 # Render elktoe shells manuscript
 
-vers <- 'v032'
+vers <- 'v033'
 dir <- 'manuscript/'
 rmarkdown::render(
   input       = paste0(dir, 'elktoe_shells.Rmd'),
