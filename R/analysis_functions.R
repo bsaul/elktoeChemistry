@@ -12,7 +12,7 @@ summarize_specimens <- function(adt, modify_layer = function(layer, annuli) { la
     mutate(
       layer = modify_layer(layer, annuli)
     ) %>%
-    group_by(drawer, element, species, site, id, layer) %>%
+    group_by(drawer, element, species, river, site, id, layer) %>%
     summarise(
       lmoments = list(lmomco::pwmLC(x = value, threshold = lod[1], nmom=4, sort=TRUE)),
       n = n(),

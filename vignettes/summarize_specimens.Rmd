@@ -43,7 +43,7 @@ dt <-
 ```{r}
 
 val <- function(x){
-  sprintf("%.02g (%.03g)", mean(x, na.rm = TRUE), sd(x, na.rm = TRUE))
+  sprintf("%.01f (%.02f)", mean(x, na.rm = TRUE), sd(x, na.rm = TRUE))
 }
 
 tab <- 

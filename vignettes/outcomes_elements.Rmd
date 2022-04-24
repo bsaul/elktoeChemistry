@@ -63,7 +63,9 @@ dt <-
     group_by_valve = TRUE,
     transect_opts  = list(
       .layers    = c("ipx", "ncr", "psm", "pio", "opx"),
-      .min_n_obs = 0L
+      .min_n_obs = 5L,
+      .outer_buffer = 15,
+      .inner_buffer = 15
     )
   )
 ```
@@ -665,5 +667,171 @@ ee <- function(data, md, mw){
       
   }
 }
+
+```
+
+```{r}
+library(mediation)
+
+summarise_mediation <- function(x){
+  els <- c("d0", "d0.ci", "d0.p", "d1", "d1.ci", "d1.p",
+           "d.avg", "d.avg.ci", "d.avg.p",
+           "z.avg", "z.avg.ci", "z.avg.p",
+           "n0", "n1", "tau.coef", "tau.ci", "tau.p")
+  tibble(!!! unlist(x[els]), use.names = TRUE)
+}
+
+med_dat <- 
+  mdat %>%
+  tidyr::unnest(cols = data) %>%
+  mutate(
+    wd1   = if_else(dead == 1, -baseline_weight, wd),
+    ll1   = log(l1),
+    treat = (river == "Little Tennessee"),
+    # treat = !(site == "Tuck 1"),
+    comparison = "rivers"
+  ) %>%
+  {
+    dt <- .
+    purrr::map_dfr(
+      .x = c("Tuck 2", "Tuck 3", "LiTN 1", "LiTN 2", "LiTN 3"),
+      .f = ~ dt %>% filter(site %in% c("Tuck 1", .x)) %>%
+        mutate(
+          treat      = !(site == "Tuck 1"),
+          comparison = paste("Tuck1 v ", .x)
+        )
+    ) %>%
+    bind_rows(dt)
+  } %>%
+  group_by(comparison, element, layer) %>%
+  group_nest()
+
+medf <- function(dt, sims = 250){ 
+  model.m <- lm(ll1 ~ treat, data = dt)
+  # model.y <- lm(wd1 ~ ll1*treat, data = dt)
+  # model.y <- glm(dead ~ ll1*treat, data = dt, family = binomial)
+  model.y <- glm(dead ~ ll1 + treat, data = dt)
+  med <- mediate(model.m, model.y, treat = "treat", mediator = "ll1", 
+                 covariates = "site", 
+                 robustSE = TRUE, sims = sims, dropobs = FALSE) 
+  summary(med)
+}
+
+
+
+
+
+med_res <- 
+  med_dat %>%
+  # filter(comparison == "Tuck1 v  LiTN 3") %>%
+  mutate(
+    med = purrr::map(data, ~ medf(.x, sims = 1000)),
+  )
+
+xx <- 
+med_res %>%
+  mutate(
+    res = purrr::map(med, summarise_mediation)
+  ) %>%
+  dplyr::select(comparison, element, layer, res) %>%
+  tidyr::unnest(cols = res)
+
+View(xx)
+zz <- 
+xx %>%
+  filter(d.avg.p < .2 | d0.p < .2 | d1.p < .2) %>% 
+  distinct(comparison, element, layer) %>%
+  left_join(
+    med_dat, by = c("comparison", "element", "layer")
+  ) %>%
+  mutate(
+    med = purrr::map(data, ~ medf(.x, sims = 1000)),
+  )
+
+yy <- 
+  zz %>%
+  mutate(
+    res = purrr::map(med, summarise_mediation)
+  ) %>%
+  dplyr::select(comparison, element, layer, res) %>%
+  tidyr::unnest(cols = res)
+
+View(yy)
+```
+
+
+```{r}
+med_dat2 <-  
+  mdat %>%
+  mutate(
+    # treat = !(site == "Tuck 1"),
+    comparison = "rivers"
+  ) %>%
+  mutate(
+    data = purrr::map(
+      .x = data,
+      .f = ~.x %>%
+          dplyr::select(-l1s) %>%
+          filter(layer %in% c("ipx", "ncr_new", "ncr_old")) %>%
+          mutate(
+            treat = (river == "Little Tennessee"),
+            l1 = log(l1),
+            wd1   = if_else(dead == 1, -baseline_weight, wd)
+          ) %>%
+          tidyr::pivot_wider(
+            names_from = layer,
+            values_from = l1
+          )
+    )
+  ) %>%
+  tidyr::unnest(cols = data) %>%
+  {
+    dt <- .
+    purrr::map_dfr(
+      .x = c("Tuck 2", "Tuck 3", "LiTN 1", "LiTN 2", "LiTN 3"),
+      .f = ~ dt %>% filter(site %in% c("Tuck 1", .x)) %>%
+        mutate(
+          treat      = !(site == "Tuck 1"),
+          comparison = paste("Tuck1 v ", .x)
+        )
+    ) %>%
+    bind_rows(dt)
+  } %>%
+  group_by(comparison, element) %>%
+  group_nest()
+
+medf2 <- function(dt, sims = 250){ 
+  model.m <- lm(ncr_new ~ treat + ncr_old + ipx, data = dt)
+  # model.y <- lm(wd1 ~ ll1*treat, data = dt)
+  # model.y <- glm(dead ~ ll1*treat, data = dt, family = binomial)
+  model.y <- glm(dead ~ ncr_new + treat, data = dt)
+  med <- mediate(model.m, model.y, treat = "treat", mediator = "ncr_new", 
+                 covariates = "site", 
+                 robustSE = TRUE, sims = sims, dropobs = TRUE) 
+  summary(med)
+}
+
+
+med_res <- 
+  med_dat2 %>%
+  # filter(comparison == "Tuck1 v  LiTN 3") %>%
+  mutate(
+    med = purrr::map(data, ~ medf2(.x, sims = 1000)),
+  )
+
+xx <- 
+med_res %>%
+  mutate(
+    res = purrr::map(med, summarise_mediation)
+  ) %>%
+  dplyr::select(comparison, element, res) %>%
+  tidyr::unnest(cols = res)
+
+View(xx)
+
+ggplot(
+  xx %>% filter(comparison == "rivers"),
+  aes(x = d.avg, y = -log10(d.avg.p))) +
+  geom_point()
 
 ```

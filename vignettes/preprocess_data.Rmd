@@ -186,7 +186,9 @@ str(valve_chemistry)
 ### Post-import consistency checks
 
 ```{r}
-hold <- valve_chemistry %>% filter(!is.na(scan_distance)) %>%
+hold <- 
+  valve_chemistry %>% 
+  filter(!is.na(scan_distance)) %>%
   group_by(file_name) %>%
   mutate(
     x_time = c(0.576, diff(time)),
@@ -227,8 +229,7 @@ hold %>%
     !any_on | !any_off | n_on > 1 | n_off > 1
   ) %>%
   nrow() %>%
-  {if(. > 0) warning("not all files have on and off indicators")}
-
+  { if (. > 0) warning("not all files have on and off indicators") }
 ```
 
 ### Prepare chemistry data for merging with valve measurements
