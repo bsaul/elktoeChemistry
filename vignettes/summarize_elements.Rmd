@@ -50,16 +50,17 @@ dt <-
 ```
 
 ```{r functions}
-layer2 <- function(layer, annuli){
+layer_modifier <- function(layer, annuli){
    case_when(
       layer == "ncr" & annuli == "A" ~ "ncr_new",
       layer == "ncr" & annuli != "A" ~ "ncr_old",
-      # layer %in% c("ipx", "opx")     ~ "epx",
       TRUE ~ layer
   )
 }
+```
 
 
+```{r }
 make_summary_table_data <- function(specimen_summaries){
   specimen_summaries %>%
   group_by(element, species, site, layer) %>%
@@ -186,7 +187,7 @@ make_gt_table <- function(table_data){
 
 ```{r summary0}
 specimen_summaries <- 
-  summarize_specimens(dt, modify_layer = layer2)
+  summarize_specimens(dt, modify_layer = layer_modifier)
 ```
 
 ```{r table}
@@ -363,7 +364,7 @@ site_colors <-
     "Baseline" = "#525252")
 
 make_plot_data <- function(dt, species){
-  summarize_specimens(dt, modify_layer = layer2) %>%
+  summarize_specimens(dt, modify_layer = layer_modifier) %>%
   group_by(species, element, layer) %>%
   mutate(
     l1 = log10(l1),
@@ -482,7 +483,7 @@ ggsave(here::here("manuscript", "figures", "element_summaries_Arav.pdf"), p,
 ```{r}
 specimen_summaries <- 
   dt %>%
-  summarize_specimens(modify_layer = layer2)
+  summarize_specimens(modify_layer = layer_modifier)
 kruskal_pvalues_A <- create_pvals(specimen_summaries)
 kruskal_pvalues_B <- create_pvals(specimen_summaries,
                                   function(x) filter(x, site != "Baseline"))
@@ -519,7 +520,7 @@ plot_pvals <-
     value = if_else(value > 0.1, 1, value),
     value = log10(value),
     value = if_else(species == "Lfas", abs(value), value),
-    layer2 = as.integer(layer) + (0.5*(species == "Lfas")),
+    layer_modifier = as.integer(layer) + (0.5*(species == "Lfas")),
     grouping = case_when(
       grouping == "river" ~ "Difference between rivers?",
       grouping == "site" ~ "Difference between sites?"
@@ -534,7 +535,7 @@ plot_pvals <-
 create_pval_plot <- function(pvals){
   ggplot(
     data = pvals,
-    aes(x = layer2, y = element2, fill = value)
+    aes(x = layer_modifier, y = element2, fill = value)
   ) +
   geom_tile() +
   geom_vline(

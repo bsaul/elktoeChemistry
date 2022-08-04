@@ -1,0 +1,139 @@
+---
+title: "Examine Censoring"
+author: "Bradley Saul"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Element Summaries}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+bibliography: vignettes.bib
+params: 
+   inputs: 
+     value: 
+       analysis: "../data/analysis_data.rds"
+editor_options: 
+  chunk_output_type: console
+---
+
+In this document, we examine the proportion of observations censored
+(below the lower limit of detection)
+within each valve's layer.
+Elements with a high degree of censoring across all layers
+may be removed from further analysis.
+
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  echo    = FALSE,
+  message = FALSE
+)
+```
+
+
+```{r}
+library(elktoeChemistry)
+library(dplyr)
+library(ggplot2)
+analysis_data  <- readRDS(params$inputs$analysis)
+```
+
+Use the `analysis_data` function to observations for
+
+* all signal prefiltering methods (`signal = "all"`)
+* all specimens (`contrast = "all"`)
+* all available layers
+* group observations by layer across transects within a specimen
+(`group_by_valve = TRUE`)
+* require at least 5 observations within a layer
+(`.min_n_obs`)
+
+```{r}
+dt <-
+  analysis_data(
+    contrast = "all",
+    test_data_FUN = function(data) data, # just return the data unmodified
+    elements  = "all", 
+    signals   = "all",
+    group_by_valve = TRUE,
+    transect_opts  = list(
+      .layers    = c("ipx", "ncr", "psm", "pio", "opx"),
+      .min_n_obs = 5L
+    )
+  ) 
+```
+
+```{r functions}
+# Identify nacre wiithin the *yountest* annuli as "ncr_new"
+# and nacre in older annuli as "ncr_old"
+layer_modifier <- function(layer, annuli){
+  case_when(
+      layer == "ncr" & annuli == "A" ~ "ncr_new",
+      layer == "ncr" & annuli != "A" ~ "ncr_old",
+      TRUE ~ layer
+  ) %>%
+  factor(
+    levels = c("ipx", "ncr_new", "ncr_old", "psm", "pio", "opx"),
+    ordered =  TRUE)
+}
+```
+
+Use this package's `summarize_specimens` function to compute
+summary statistics by layer within each specimen.
+
+```{r summarize}
+specimen_summaries_by_signal <- 
+  dt %>%
+  group_nest(signal) %>%
+  mutate(
+    data = purrr::map(
+      .x = data, 
+      .f = ~summarize_specimens(.x, modify_layer = layer_modifier))
+  ) %>%
+  tidyr::unnest(cols = c("data"))
+```
+
+Examine the average `pc` (proportion censored) for each element by layer.
+
+```{r}
+avg_pc_by_signal <- 
+  specimen_summaries_by_signal %>%
+  group_by(species, signal, element, layer) %>%
+  summarize(
+    pc = mean(pc)
+  ) 
+```
+
+
+```{r}
+ggplot(
+  data = avg_pc_by_signal,
+  aes(x = signal, y = pc)
+) +
+    geom_point(size = 0.5, shape = 1) +
+  facet_grid(element ~ layer) +
+  theme(
+    strip.text.y = element_text(color = "blue", angle = 0)
+  )
+
+```
+
+GAM no good.
+
+```{r plot}
+
+specimen_summaries_by_signal %>%
+  filter(signal == "base", species == "Arav") %>%
+ggplot(
+  aes(x = site, y = pc)
+) + 
+  geom_point(size = 0.5, shape = 1) +
+  facet_grid(element ~ layer) +
+  theme(
+    strip.text.y = element_text(color = "blue", angle = 0),
+    axis.text.x = element_text(angle = 90)
+  )
+```
+

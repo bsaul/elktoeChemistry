@@ -1,0 +1,256 @@
+---
+title: "Health Outcomes"
+author: "Bradley Saul"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Health Outcomes}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+bibliography: vignettes.bib
+params: 
+   inputs: 
+     value: 
+       analysis: "../data/analysis_data.rds"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  echo    = FALSE,
+  message = FALSE,
+  warning = FALSE
+)
+```
+
+
+```{r}
+library(elktoeChemistry)
+library(geex)
+library(dplyr)
+analysis_data  <- readRDS(params$inputs$analysis)
+# analysis_data <- readRDS("data/analysis_data.rds")
+```
+
+```{r}
+site_colors <- 
+  c("LiTN 1" = "#99d8c9",
+    "LiTN 2" = "#41ae76",
+    "LiTN 3" = "#005824",
+    "Tuck 1" = "#fdae6b",
+    "Tuck 2" = "#f16913",
+    "Tuck 3" = "#8c2d04",
+    "Baseline" = "#525252")
+```
+
+
+```{r}
+dt <-
+  analysis_data(
+    contrast = "all",
+    test_data_FUN = function(data) data,
+    elements  = "all", 
+    signals   = c("mad_10"),
+    group_by_valve = TRUE,
+    transect_opts  = list(
+      .layers    = c("ipx", "ncr", "psm", "pio", "opx"),
+      .min_n_obs = 0L
+    )
+  )
+```
+
+```{r}
+adt <- 
+  dt$data[[1]] %>%
+  filter(site != "Baseline") %>%
+  distinct(id, river, site, dead, baseline_weight, baseline_volume, 
+          final_status, prop_weight_lost)
+```
+
+
+```{r}
+adt <- 
+  adt %>%
+  filter(river == "Tuckasegee") %>%
+  mutate(wl = if_else(dead == 1, -baseline_weight, 
+                       baseline_weight*prop_weight_lost)) %>%
+  select(id, site, dead, wl)
+
+adt <-
+  adt %>%
+  select(id, site) %>%
+  mutate(
+    dead = case_when(
+      site == "Tuck 1" ~ rbinom(36, 1, prob = 0.45),
+      site == "Tuck 2" ~ rbinom(36, 1, prob = 0.5),
+      site == "Tuck 3" ~ rbinom(36, 1, prob = 0.55)
+    )
+  )
+
+adt %>%
+  group_by(site) %>%
+  summarise(mean(dead))
+adt <- 
+  bind_rows(adt, adt, adt, adt) %>%
+  group_by(id) %>% mutate(id = paste(id, 1:n())) %>%
+  ungroup()
+
+tranpose_dt <- function(dt){
+  dt %>%
+  mutate(dummy = 1) %>%
+  tidyr::pivot_wider(
+    names_from = c(site),
+    names_sort = TRUE,
+    values_from = dummy,
+    values_fill = 0L
+  )
+}
+
+shuffle_site <- function(dt){
+  dt[["site"]] <- dt[["site"]][sample.int(nrow(dt), nrow(dt), replace = FALSE)]
+  dt
+}
+
+
+ee <- function(data){
+  X <- as.matrix(data[ , 3:5])
+  Y <- data[[2]]
+  
+  function(theta){
+    nX   <- ncol(X)
+    mind <- 1:nX
+    dind <- (1:(nX - 1)) + (2*nX)
+    pairM <- diag(nX)
+    pairM[(row(pairM) + 1) == col(pairM)] <- 1
+    pairM <- pairM[-nrow(pairM), ]
+    
+    XtY <- t(X) %*% Y
+
+    # browser()
+    ps    <- t(X) * ( XtY - theta[mind] )
+    vs    <- t(X) * ( (XtY - theta[mind])^2 - theta[(mind) + nX] )
+    ds    <- diff(theta[mind]) - theta[dind]
+    pvs   <- (pairM %*% theta[(mind) + nX]) - theta[dind + length(dind)]
+    smds  <- 
+      if (any(theta[dind + length(dind)] <= 0)) {
+        rep(0, length(theta[dind]))
+      } else {
+        theta[dind] / sqrt(theta[dind + length(dind)])
+      }
+    
+    smdee <- smds - theta[dind + 2*length(dind)]
+    msmd  <- 
+      sum(prod(theta[dind] > 0), prod(theta[dind] < 0)) *
+      # prod(ds > 0) *
+      min(smds)
+    
+    c(ps,
+      vs,
+      ds,
+      pvs,
+      smdee,
+      msmd - theta[length(theta)]
+    )
+  }
+}
+
+y <-
+m_estimate(
+  estFUN = ee,
+  data   = tranpose_dt(adt),
+  units  = "id",
+  compute_vcov = TRUE,
+  root_control = setup_root_control(start = c(.5, .5, .5, .25, .25, .25,
+                                              .5, .5, .5, .5, .5, .5, .5))
+)
+
+
+
+coef(y)
+ts <- coef(y)[13]/sqrt(diag(vcov(y))[13])
+
+
+res <-
+purrr::map(
+  .x = 1:100,
+  .f = ~ { 
+    m_estimate(
+        estFUN = ee,
+        data   = tranpose_dt(shuffle_site(adt)),
+        units  = "id",
+        compute_vcov = TRUE,
+        root_control = setup_root_control(start = c(.5, .5, .5, .25, .25, .25,
+                                              .5, .5, .5, .5, .5, .5, .5))
+      )
+    }
+)
+
+# d <- purrr::map_dbl(res, ~ coef(.x)[13]/sqrt(diag(vcov(.x))[13])) 
+d <- purrr::map_dbl(res, ~ coef(.x)[13]) 
+d
+mean(abs(d) >= abs(coef(y)[13]))
+
+```
+
+
+```{r}
+simulator <- function(ns, ps){
+  purrr::map2(
+    .x = ns,
+    .y = ps,
+    .f = ~ rbinom(.x, size = 1, prob = .y)
+  ) %>%
+  tibble(
+    g = 1:length(ns),
+    y = .
+  ) %>%
+  tidyr::unnest(y)
+}
+
+df <- simulator(rep(2^3, 3), 
+                c(.1, .5, .9))
+                # seq(.1, .9, by = .4))
+tsFUN <- function(dt){
+  gs <- unique(dt$g)
+  y <- dt[["y"]]
+  g <- dt[["g"]]
+  smds <- purrr::map_dbl(
+    .x = 2:length(gs),
+    .f = ~ smd::smd(x = y[g %in% gs[(.x - 1):.x]], 
+                    g = g[g %in% gs[(.x - 1):.x]],
+                    gref = 2L)$estimate
+  )
+  
+  sum(prod(smds > 0), prod(smds < 0)) * min(smds)
+  
+}
+
+ra <- randomizr::declare_ra(N = nrow(df), m_each = table(df$g))
+ri <- ri2::conduct_ri(
+  test_function = tsFUN,
+  assignment = "g",
+  declaration = ra,
+  data = df
+)
+
+ri 
+
+rd <- adt %>% select(g = site, y = wl)
+
+ra <- randomizr::declare_ra(N = nrow(rd), m_each = table(rd$g))
+ri <- ri2::conduct_ri(
+  test_function = tsFUN,
+  assignment = "g",
+  declaration = ra,
+  data = rd,
+  sims = 2000,
+  # ,
+   p = "lower"
+)
+ri
+
+    
+```

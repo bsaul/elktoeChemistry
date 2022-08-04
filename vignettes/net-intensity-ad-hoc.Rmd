@@ -1,0 +1,169 @@
+---
+title: "Ad Hoc Analysis of Net Intensity Data"
+author: "Bradley Saul"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Net Intensity}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+bibliography: vignettes.bib
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r load-data, echo = FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+xldt <- readxl::read_excel(
+  path = "extdata/Data/Mussel Shell Edge Net Intensities.xlsx"
+)
+
+```
+
+
+```{r}
+
+dt <- 
+  xldt %>%
+  select(
+      drawer = Drawer
+    , sample = Sample
+    , duration = `Duration (s)`
+    , width = starts_with("Width")
+    , ends_with("_mean")
+  ) %>%
+  mutate(
+    id = stringr::str_extract(sample, "^[A|C|P]\\d{1,3}"),
+    transect = stringr::str_extract(sample, "(?<=\\.)[\\d]"),
+    layer = stringr::str_extract(sample, "[n|p]"),
+  ) %>%
+  pivot_longer(
+    cols = ends_with("_mean"),
+    names_to = "element",
+    values_to = "value"
+  ) %>%
+  mutate(
+    element = stringr::str_replace(element, "_CPS_mean", "")
+  )
+```
+
+```{r}
+vdt <- 
+  dt %>%
+  group_by(element, layer, id) %>%
+  summarise(
+    # TODO: should probably weight by duration
+    value = mean(value)
+  ) 
+```
+
+```{r}
+valve_data <- 
+  readRDS("data/valve_data.rds") %>%
+  select(id, species, river, site, site_num, dead, moribund) %>%
+  distinct()
+```
+
+```{r}
+pdt <- 
+  vdt %>%
+  left_join(valve_data, by = "id") %>%
+  filter( site != "Baseline", species == "A. raveneliana")
+
+pdt2 <-
+  pdt %>%
+  group_by(element, layer) %>%
+  mutate(value = (value - mean(value))/sd(value))
+
+pv <- 
+  pdt %>%
+  group_by(element, layer) %>%
+  summarise(p = kruskal.test(value, site)$p.value)
+
+x <- 
+  pdt2 %>%
+  group_by(river, element, site, layer) %>%
+  summarise(value = median(value))
+
+ggplot(data = x, aes(x = site, y = value, group = river)) +
+   geom_point(size = 0.25) +
+   geom_line(size = 0.1) + 
+   facet_grid(element ~ layer, scales = "free") +
+  theme(
+    axis.text.y = element_blank(),
+    axis.text.x = element_text(angle = 270),
+    strip.text.y = element_text(angle = 0)
+  )
+```
+
+
+```{r}
+z <- 
+  pdt %>%
+  ungroup() %>%
+  filter(layer == "p", element != "TotalBeam", species == "A. raveneliana", site != "Baseline") %>%
+  select(id, element, value) %>%
+  pivot_wider(id_cols = "id", names_from = "element", values_from = "value")
+z
+pr <- prcomp(z[, -1], center = TRUE, scale = TRUE)
+temp   <- hclust(dist(pr$x), method = "ward.D")
+mojema <- mean(temp$height) + 3.75 * sd(temp$height)
+g      <- length(temp$height[temp$height>mojema]) + 1
+if(g == 1){
+  return(1)
+}
+# rect.hclust(temp, k = g)
+cutree(temp, k=g)
+biplot(pr)
+
+mdt <- 
+  z %>%
+  dplyr::select(id) %>%
+  distinct() %>%
+  mutate(
+    PC1 = pr$x[ , 1], 
+    PC2 = pr$x[ , 2],
+    clust = cutree(temp, k=g)
+  ) %>%
+  left_join(pdt %>% ungroup %>% dplyr::select(id, river, site, dead) %>% distinct(), by = "id")
+
+ggplot(
+  data = mdt,
+  aes(x = PC1, y = PC2, color = dead)
+) + geom_point()
+
+glm(
+  dead ~ PC1 + PC2, data = mdt, family = binomial()
+) %>% summary()
+
+```
+
+```{r}
+library(mediation)
+meddt <- pdt %>%
+  ungroup() %>%
+  filter(layer == "p", site != "Baseline", species == "A. raveneliana") %>%
+  # filter(element == "Mn55") %>%
+  filter(element == "Pb208") %>%
+  mutate(dead = if_else(is.na(dead), 1, dead)) %>%
+  mutate(
+    value = log(value),
+    PC1 = mdt$PC1
+  )
+
+mfit <- lm(value ~ river, data = meddt)
+ofit <- glm(moribund ~ value + river, data = meddt, family = binomial())
+medf <- mediate(
+  model.m = mfit,
+  model.y = ofit,
+  treat = "river",
+  mediator = "value",
+  # control.value = "Tuck 1",
+  # treat.value =  "LiTN 3",
+  robustSE = TRUE,
+  sims = 100)
+summary(medf)
+```

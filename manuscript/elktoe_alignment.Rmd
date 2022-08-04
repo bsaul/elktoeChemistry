@@ -1,0 +1,98 @@
+---
+title: Coupling LA-ICP-MS with high-resolution imagery for biological
+author:
+- Bradley C. Saul^[NoviSci, Inc, Durham, NC]
+- Nathan R. Miller^[Department of Geological Sciences, University of Texas, Austin, TX, 78712-1692]
+- Heather Gunn^[Department of Geological Sciences, University of Texas, Austin, TX, 78712-1692]
+- Michael Walter^[Department of Marine, Earth and Atmospheric Sciences, North Carolina State University, Raleigh, NC, 27695-8208]
+- Scott Salger^[School of Sciences, Barton College, Wilson,  NC, 27893]
+- Mike Gangloff^[Department of Biology, Appalachian State  University, Boone, NC, 28608]
+- Jay F. Levine^[Department of Marine, Earth and Atmospheric Sciences, North Carolina State University, Raleigh, NC, 27695-8208]
+bibliography: elktoe.bib
+toc: false
+output: 
+  bookdown::pdf_document2:
+    number_sections: true
+  bookdown::word_document2: default
+header-includes:   
+- \usepackage{amsmath, setspace, caption, longtable}
+- \usepackage{multirow}
+- \graphicspath{ {figures/} } 
+abstract: >
+  \noindent 
+keywords: TODO
+---
+
+\doublespacing
+
+```{r, echo = FALSE, message=FALSE}
+library(elktoeChemistry)
+library(gt)
+```
+
+# Introduction 
+
+Laser ablation inductively coupled plasma mass spectrometry (LA-ICP-MS) is a popular method of obtaining high-resolution elemental data from biological samples [@pozebon2014review; @pozebon2017recent]. In many applications, the laser is targeted to specific, known regions of interest wherein samples are obtained. In some applications, however, the laser crosses multiple biological or anatomical features. The chemical data then must be aligned to these features order to make comparisons [@marillo2020construction]. 
+
+As an example, we conducted a completely randomized experiment by assigning eighty-two of the federally endangered freshwater bivalve *A. raveneliana* along with an equal number of hatchery-raised Wavy-Rayed Lampmussel (*Lampsilis fasciola*) to sites within two rivers. A goal of our study was to assess whether and how valve chemistry may be associated with sites and health outcomes of the animals and also if valve chemistry changed during the experiment. 
+
+Bivalve shells consist of three distinct anatomic layers: the inner nacre; the prismatic layer; and the outer, exposed periostracum [@checa2000a-new-model]. Bivalve shells are also similar to tree rings, archiving some aspects of their environmental history, and have been used as bioindicators of pollution [@markich2002freshwater; @brown2005freshwater; @shoults2014resolution; @wilson2018freshwater]. For each specimen in our study, one or more laser trajectories were drawn perpendicular to annular growth rings in a "step-scanning" approach [@shoults2014resolution], moving from the inner to the outer shell, beginning and ending in epoxy. A transect's data thus contains observations from one or more layers and one or more annuli. 
+
+In order to compare, for example, elemental concentrations in new nacral growth to older nacral growth, we needed resolve both the nacral observations and identify annuli within the nacre. To do that, a trained analyst (Mike W.) registered anatomical features along high-resolution images of the laser transects. Distances between each feature were then measured. In this paper, we compare methods for aligning the elemental data to these registration points. We also demonstrate just how important alignment is.
+
+* both contain error
+* distances measured with error
+* identification of "laser on" point was done by hand
+
+
+
+
+
+      
+
+
+
+# Materials and methods
+
+## Study Specimens
+
+Eighty-two *A. raveneliana* specimens were collected from a single location in the Tuckasegee river. Ten were randomly selected and sacrificed for baseline comparisons, and the remaining 72 were randomly assigned and relocated in cages to six experimental sites, three each in the Tuckasegee and Little Tennessee Rivers (see appendix for site locations). The same number of young adult *L. faciola* specimens, obtained from the NC Wildlife Resources' Marian hatchery, were randomly assigned to a separate cages at the six sites. The plastic mesh cages were anchored in the bottom substrate. All animals were individually identified with randomly selected numeric identification tags glued to the shells. Weight and other metrics were obtained before and after deployment in the cages. After the experiment, a small (approximately 0.5 inch) section of the right valve from each animal was removed and embedded in epoxy for laser ablation analyses.
+
+Four specimens were removed from analysis due to anomalies in their valve anatomy or in the laser transects.
+
+## LA-ICP-MS
+
+Since the study was initiated to identify factors potentially contributing to the decline of the Elktoe populations, our analysis focused on the sections of shell that biomineralized during the period of the sentinel experiment. Parallel transects from the outer margins of valves, away from the umbo were targeted for analysis. For thicker valves we also analyzed additional offset scans to evaluate reproducibility and include older growth in the prismatic layers. In most cases, the entire preserved growth history was recorded by making multiple offset traverses (Figure \@ref(fig:alignment)). We used a 25$\mu$m round aperture moving at 5$\mu$m/sec. The quadrupole sampling period (0.5762 s) enabled a moving compositional average for the 20 surveyed analytes every 2.88 $\mu$m (8.7 readings per 25$\mu$m footprint). For valve cross-sectional thicknesses on the order of 1 mm, transects included roughly 350 measurements. The laser trajectories were drawn perpendicular to annular growth rings in a "step-scanning" approach [@shoults2014resolution], moving from the inner to the outer shell, beginning and ending in epoxy. Scans varied depending on location, in terms of residing solely with the outer prismatic layer and periostracum, or being compound scans initiating in the nacreous layer. 
+
+Each transect resulted in a chemical time-series for each analyte (concentration vs. distance; a matrix of about 7000 concentration measurements per mm). For data reduction^[Nathan/Heather - can you explain what this means?] we assumed a stoichiometric CaCO3 composition of 39.547 wt\% Ca in nacreous tissue and 40.0432 wt\% Ca in other tissue and did not adjust for mineralogy (aragonite vs. calcite){>>Include EPMA work done to evaluate Ca concentrations of the nacreous and prismatic layers.  The nacreous layer compositions would need a slight correction for the difference in Ca concentration (used as the internal standard).<<}. We used USGS MACS-3 (synthetic aragonite) as the primary calibration standard, and analyzed NIST 614 (trace elements at ~1 ppm) and NIST 612 (trace elements at ~35 ppm). For drift compensation, each hour of data collection on unknowns was bracketed by analyses of each standard (in duplicate). We surveyed the shells for twenty industrial metals and bio-metals: Mg, Ca, Cr, Mn, Fe, Co, Ni, Cu, Zn, As, Se, Kr (for Se interference correction if detected), Sr, Mo, Cd, Sn, Ba, Hg, Pb and U. Analyses were conducted at the University of Texas at Austin using an ESI New Wave Research NWR193 excimer laser coupled to an Agilent 7500ce ICP-MS. 
+
+## Anatomical Alignment
+
+Review of high resolution cross section images and annotation of the initial shell/epoxy boundary, annuli, nacre/prismatic layer boundary and terminal shell/epoxy boundary were made using Adobe Illustrator (Adobe Inc, San Jose CA). Annuli were identified as any linear growth feature which could be traced from its origin in the umbo to its emergence through the prismatic and periostracum layers. Non-continuous linear features along the transect were not annotated and assumed to be "false annuli" caused by environmental disturbances [@veinott1996identification]. 
+
+To align anatomical features with chemistry data, several algorithms were used to first identify a reference point such as the epoxy/nacre boundary in the chemistry data. These methods included detecting changes in mean, variance [@killick2014changepoint; @killick2016changepoint] or the extrema [@borchers2018pracma] of Ca43_CPS, Pb208_CPS, or the ratio of the two (Figure \@ref(fig:alignment)). The difference of the distance between the detected reference point and the distance between the valves edges measured from high resolution scans was then computed. For each valve, the method that minimized this distance was then used to locate anatomical locations in the chemical data. The project website includes the code and complete details of the alignment steps.
+
+```{r alignment, echo = FALSE, fig.cap= "TODO"}
+knitr::include_graphics(here::here("manuscript", "figures", "figure_alignment.pdf"))
+```
+
+## Chemical data pre-processing and de-noising
+
+Valves were grouped into seven batches for LA-ICP-MS processing. During each batch process, the lower limit of detection (LOD) was assessed multiple times using the standards noted above. Concentration values were left-censored based on the mean LOD within a batch for each element. For analysis, parts-per-million (ppm) values were rescaled to $\text{mol/Ca mmol}$ where $\text{Ca mmol}$ was based on Ca\% of ~39.54\% for nacral observations and 40.078\% for all other layers. Chemical signals were denoised by a rolling median absolute deviation filter with a bandwidth of ten observations.
+
+# Results
+
+# Discussion
+
+Data and code for this project are available from the project's github repository [github.com/bsaul/elktoeChemistry](https://github.com/bsaul/elktoeChemistry).
+
+# Funding
+
+This work was supported by funds provided by the North Carolina Department of Transportation [NCDOT Project 2013-2012-37]; and the US Fish and Wildlife Service [F18AC00237].
+
+# Acknowledgment
+
+The authors thank [TODO]
+
+
+# References
