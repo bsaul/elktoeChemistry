@@ -12,20 +12,56 @@ editor_options:
   chunk_output_type: console
 ---
 
+This document does a preliminary, ad-hoc analysis of the data in
+`"extdata/Data/Mussel Shell Edge Net Intensities.xlsx"`,
+which contains:
 
-```{r load-data, echo = FALSE}
+* net intensity values (not concentration);
+* these values have been summarized by mean and standard deviation
+within nacre and periostracum 
+within valve/transect;
+* the nacre and periostracum layers were *not* identified 
+using the automatic process described in the alignment document.
+
+```{r, message = FALSE}
 library(dplyr)
 library(tidyr)
 library(ggplot2)
-xldt <- readxl::read_excel(
-  path = "extdata/Data/Mussel Shell Edge Net Intensities.xlsx"
-)
+library(grid)
+library(gridExtra)
+library(gt)
+```
 
+## Load data
+
+```{r load-data, message=FALSE}
+xldt <- readxl::read_excel(
+  path = here::here("extdata/Data/Mussel Shell Edge Net Intensities.xlsx")
+)
 ```
 
 
-```{r}
+*TODO*: resolve questions about data
 
+* The `sample` column has inconsistencies.
+I (BS) understand the common pattern to be "`{valve_id}.{transect_id}{n|p}`.
+But, for example, `A3.1na`, `A5.1p_1` and `P111.1P` do not conform to this pattern.
+* I ignored these inconsistences for now, 
+and assume they are meant to conform to the common pattern.
+
+Bring in the `valve_data`, which contains information on sites and outcomes.
+
+```{r}
+valve_data <- 
+  readRDS(here::here("data/valve_data.rds")) %>%
+  select(id, species, river, site, site_num, dead, moribund) %>%
+  distinct()
+```
+
+## Prepare data for analysis
+
+```{r}
+# Extract the mean value and reshape the data to make it easier to analyze.
 dt <- 
   xldt %>%
   select(
@@ -35,135 +71,332 @@ dt <-
     , width = starts_with("Width")
     , ends_with("_mean")
   ) %>%
+  # HARDCODES
   mutate(
-    id = stringr::str_extract(sample, "^[A|C|P]\\d{1,3}"),
-    transect = stringr::str_extract(sample, "(?<=\\.)[\\d]"),
-    layer = stringr::str_extract(sample, "[n|p]"),
+    sample = case_when(
+        sample == "P111.1P" ~ "P111.1p"
+      , TRUE ~ sample
+    )
+  ) %>%
+  filter(
+    # Don't know what layer this is
+    !(sample %in% c("P164.2")) 
+  ) %>%
+  mutate(
+      id = stringr::str_extract(sample, "^[A|C|P]\\d{1,3}")
+    , transect = stringr::str_extract(sample, "(?<=\\.)[\\d]")
+    , layer = tolower(stringr::str_extract(sample, "[n|p]"))
   ) %>%
   pivot_longer(
-    cols = ends_with("_mean"),
-    names_to = "element",
-    values_to = "value"
+      cols = ends_with("_mean")
+    , names_to = "element"
+    , values_to = "value"
   ) %>%
   mutate(
     element = stringr::str_replace(element, "_CPS_mean", "")
-  )
-```
-
-```{r}
-vdt <- 
-  dt %>%
-  group_by(element, layer, id) %>%
-  summarise(
-    # TODO: should probably weight by duration
-    value = mean(value)
-  ) 
-```
-
-```{r}
-valve_data <- 
-  readRDS("data/valve_data.rds") %>%
-  select(id, species, river, site, site_num, dead, moribund) %>%
-  distinct()
-```
-
-```{r}
-pdt <- 
-  vdt %>%
-  left_join(valve_data, by = "id") %>%
-  filter( site != "Baseline", species == "A. raveneliana")
-
-pdt2 <-
-  pdt %>%
-  group_by(element, layer) %>%
-  mutate(value = (value - mean(value))/sd(value))
-
-pv <- 
-  pdt %>%
-  group_by(element, layer) %>%
-  summarise(p = kruskal.test(value, site)$p.value)
-
-x <- 
-  pdt2 %>%
-  group_by(river, element, site, layer) %>%
-  summarise(value = median(value))
-
-ggplot(data = x, aes(x = site, y = value, group = river)) +
-   geom_point(size = 0.25) +
-   geom_line(size = 0.1) + 
-   facet_grid(element ~ layer, scales = "free") +
-  theme(
-    axis.text.y = element_blank(),
-    axis.text.x = element_text(angle = 270),
-    strip.text.y = element_text(angle = 0)
-  )
-```
-
-
-```{r}
-z <- 
-  pdt %>%
-  ungroup() %>%
-  filter(layer == "p", element != "TotalBeam", species == "A. raveneliana", site != "Baseline") %>%
-  select(id, element, value) %>%
-  pivot_wider(id_cols = "id", names_from = "element", values_from = "value")
-z
-pr <- prcomp(z[, -1], center = TRUE, scale = TRUE)
-temp   <- hclust(dist(pr$x), method = "ward.D")
-mojema <- mean(temp$height) + 3.75 * sd(temp$height)
-g      <- length(temp$height[temp$height>mojema]) + 1
-if(g == 1){
-  return(1)
-}
-# rect.hclust(temp, k = g)
-cutree(temp, k=g)
-biplot(pr)
-
-mdt <- 
-  z %>%
-  dplyr::select(id) %>%
-  distinct() %>%
-  mutate(
-    PC1 = pr$x[ , 1], 
-    PC2 = pr$x[ , 2],
-    clust = cutree(temp, k=g)
   ) %>%
-  left_join(pdt %>% ungroup %>% dplyr::select(id, river, site, dead) %>% distinct(), by = "id")
+  left_join(valve_data, by = "id")
+```
 
-ggplot(
-  data = mdt,
-  aes(x = PC1, y = PC2, color = dead)
-) + geom_point()
+## Test for differences in net intensity per element
 
-glm(
-  dead ~ PC1 + PC2, data = mdt, family = binomial()
-) %>% summary()
+* Remove baseline specimens
+* Average intensities (mean) across transects within valves
+* Remove `TotalBeam`
 
+```{r}
+tdt <-
+  dt %>%
+  filter(site != "Baseline", element != "TotalBeam") %>%
+  group_by(species, river, site, element, id, layer) %>%
+    summarise(
+      # TODO: weight by duration (?)
+      value = mean(value),
+      .groups = "drop"
+  )  %>%
+  group_by(species, element, layer)
+
+make_pvalue_table <- function(x){
+  x %>%
+   tidyr::pivot_wider(
+    names_from = c(species, layer),
+    values_from = p
+  ) %>%
+  ungroup() %>%
+  gt() %>%
+  cols_label(
+    `A. raveneliana_n` = "nacre",
+    `A. raveneliana_p` = "perio",
+    `L. fasciola_n` = "nacre",
+    `L. fasciola_p` = "perio"
+  ) %>%
+  fmt_number(
+    columns = matches("_p|_n"),
+    decimals = 4,
+  ) %>%
+  tab_spanner(
+    label = "A. raveneliana",
+    columns = c("A. raveneliana_n", "A. raveneliana_p")
+  ) %>%
+  tab_spanner(
+    label = "L. fasciola",
+    columns = c("L. fasciola_n", "L. fasciola_p")
+  )
+}
+```
+
+### among all sites, within species/layer
+
+The values in the table are p-values from a 
+[Kruskal-Wallis test](https://en.wikipedia.org/wiki/Kruskal%E2%80%93Wallis_one-way_analysis_of_variance),
+a rank-based ANOVA-like test.
+
+```{r, message = FALSE}
+tdt %>%
+  summarise(
+    p = kruskal.test(value ~ site)$p.value
+  , .groups = "drop"
+  ) %>%
+  make_pvalue_table()
+```
+
+### between Tuck 1 and other sites, within species/layer
+
+The values in the table are p-values from a 
+[Kruskal-Wallis test](https://en.wikipedia.org/wiki/Kruskal%E2%80%93Wallis_one-way_analysis_of_variance),
+a rank-based ANOVA-like test.
+
+```{r}
+tdt %>%
+  summarise(
+    p = kruskal.test(value ~ (site == "Tuck 1"))$p.value
+  , .groups = "drop"
+  ) %>%
+  make_pvalue_table()
+```
+
+## Plots of intensities per element
+
+
+* lines connect `median` values of each site.
+
+```{r element_intensities}
+make_element_plot <- function(x, element = NULL){
+  
+  if (is.null(element)) {
+    x <- x
+  } else {
+    x <- x %>% filter(element == !! element)
+  }
+  
+  ggplot(
+    data = x, 
+    aes(x = site, y = value, group = river)
+  ) +
+   geom_point(size = 0.25) +
+   geom_line(
+     data = x  %>% 
+      group_by(species, river, site, layer, element) %>%
+      summarise(
+        value = median(value),
+        .groups = "drop"),
+
+     size = 0.1) 
+}
+```
+
+
+```{r element_plot_data}
+element_plot_data <-
+  dt %>%
+  group_by(species, river, site, element, id, layer) %>%
+      summarise(
+        # TODO: weight by duration (?)
+        # Take mean across transects within a valve
+        value = mean(value),
+        .groups = "drop"
+  )  %>%
+  filter( site != "Baseline" ) %>%
+  mutate(
+    site = factor(
+      site, 
+      levels = c("Tuck 1", "Tuck 2", "Tuck 3", 
+                 "LiTN 1", "LiTN 2", "LiTN 3"))
+  )
 ```
 
 ```{r}
-library(mediation)
-meddt <- pdt %>%
-  ungroup() %>%
-  filter(layer == "p", site != "Baseline", species == "A. raveneliana") %>%
-  # filter(element == "Mn55") %>%
-  filter(element == "Pb208") %>%
-  mutate(dead = if_else(is.na(dead), 1, dead)) %>%
-  mutate(
-    value = log(value),
-    PC1 = mdt$PC1
+make_single_element_plot <- function(element){
+  f <- function(species, element){
+  element_plot_data %>%
+  filter(species == !! species) %>%
+  make_element_plot(element = element) +
+    facet_grid(layer ~ ., scales = "free") +
+    ggtitle(paste(species, "-", element)) + 
+    theme(
+      axis.text.y = element_blank(),
+      axis.text.x = element_text(angle = 0),
+      strip.text.y = element_text(angle = 0),
+      axis.title.x = element_blank(), 
+      axis.title.y = element_blank()
+    )
+  }
+  grid.arrange(
+    f("A. raveneliana", element),
+    f("L. fasciola", element),
+    nrow = 1
   )
-
-mfit <- lm(value ~ river, data = meddt)
-ofit <- glm(moribund ~ value + river, data = meddt, family = binomial())
-medf <- mediate(
-  model.m = mfit,
-  model.y = ofit,
-  treat = "river",
-  mediator = "value",
-  # control.value = "Tuck 1",
-  # treat.value =  "LiTN 3",
-  robustSE = TRUE,
-  sims = 100)
-summary(medf)
+}
 ```
+
+
+```{r, results='asis', fig.width=8, fig.height=4}
+elements <- dt %>%
+  distinct(element) %>% 
+  filter(element != "TotalBeam") %>%
+  pull() %>%
+  sort()
+
+for(element in elements){
+  
+  cat("\n")
+  cat("###", element, "\n")
+  
+  make_single_element_plot(element)
+  cat("\n")
+
+}
+```
+
+## Principle Components
+
+
+```{r}
+do_princ <- function(dt) {
+
+  fdt <-
+    dt %>%
+    distinct(id, site, river)
+  
+  dt %>%
+    select(id, element, value) %>%
+    pivot_wider(
+        id_cols = "id"
+      , names_from = "element"
+      , values_from = "value")  %>%
+    .[, -1] %>%
+    as.matrix() %>%
+    prcomp(center = TRUE, scale = TRUE) -> 
+  pr
+  
+  temp   <- hclust(dist(pr$x), method = "ward.D")
+  mojema <- mean(temp$height) + 3.75 * sd(temp$height)
+  g      <- length(temp$height[temp$height>mojema]) + 1
+  if(g == 1){
+    return(1)
+  }
+  
+  list(  dt = fdt %>% mutate(PC1 = pr$x[, 1], PC2 = pr$x[, 2])
+       , clust = cutree(temp, k=g))
+}
+```
+
+### Periostracum in A. rav, excluding Baseline specimens
+
+```{r, fig.height=4, fig.width=5}
+element_plot_data %>%
+  ungroup() %>%
+  filter(
+      layer == "p"
+    , element != "TotalBeam"
+    , species == "A. raveneliana"
+    , site != "Baseline"
+  )  %>%
+  do_princ() %>%
+  .[["dt"]] %>%
+  ggplot(
+    aes(x = PC1, y = PC2, color = site)
+  ) + geom_point()
+```
+
+### Nacre in A. rav, excluding Baseline specimens
+
+```{r, fig.height=4, fig.width=5}
+element_plot_data %>%
+  ungroup() %>%
+  filter(
+      layer == "n"
+    , element != "TotalBeam"
+    , species == "A. raveneliana"
+    , site != "Baseline"
+  )  %>%
+  do_princ() %>%
+  .[["dt"]] %>%
+  ggplot(
+    aes(x = PC1, y = PC2, color = site)
+  ) + geom_point()
+```
+
+
+
+
+<!-- ```{r} -->
+<!-- library(mediation) -->
+
+<!-- meddt <-  -->
+<!--   dt %>% -->
+<!--   filter(site != "Baseline", element != "TotalBeam") %>% -->
+<!--   group_by(species, river, site, dead, moribund, element, id, layer) %>% -->
+<!--     summarise( -->
+<!--       # TODO: weight by duration (?) -->
+<!--       value = mean(value), -->
+<!--       .groups = "drop" -->
+<!--   ) %>% -->
+<!--   mutate( -->
+<!--     dead = if_else(is.na(dead), 1, dead) -->
+<!--   ) -->
+
+<!-- do_mediation <- function(dt, .trtv = "LiTN 3"){ -->
+<!--   mfit <- lm(value ~ site, data = dt) -->
+<!--   ofit <- glm(dead ~ value + site, data = dt, family = binomial()) -->
+
+<!--   mediate( -->
+<!--    model.m = mfit, -->
+<!--    model.y = ofit, -->
+<!--    treat = "site", -->
+<!--    mediator = "value", -->
+<!--    control.value = "Tuck 1",  -->
+<!--    treat.value =  .trtv,  -->
+<!--    robustSE = TRUE, -->
+<!--    sims = 100) -->
+
+
+<!-- } -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- medres <-  -->
+<!-- meddt %>% -->
+<!--   filter(species == "A. raveneliana") %>% -->
+<!--   group_by( -->
+<!--     species, element, layer -->
+<!--   ) %>% -->
+<!--   tidyr::nest() %>% -->
+<!--   mutate( -->
+<!--     medi = purrr::map(data, .f = ~ do_mediation(dt = .x) %>% summary() %>% tidy()) -->
+<!--   ) -->
+
+<!-- medres %>% -->
+<!--   ungroup() %>% -->
+<!--   dplyr::select(element, layer, medi) %>% -->
+<!--   tidyr::unnest(cols = c(medi)) %>% -->
+<!--   filter(term %in% c("acme_0", "acme_1")) %>%View() -->
+
+<!--   # meddt %>% -->
+<!--   # filter(species == "A. raveneliana", layer == "p", element == "Pb208") %>% -->
+<!--   # do_mediation() %>% -->
+<!--   # summary() %>% -->
+<!--   # tidy() -->
+
+
+<!-- ``` -->

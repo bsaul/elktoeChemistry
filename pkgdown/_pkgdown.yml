@@ -27,4 +27,6 @@ navbar:
         href: articles/diversity.html
       - text: Summarize elements
         href: articles/summarize_elements.html
+      - text: Net-intensity analysis 
+        href: articles/net-intensity-ad-hoc.html
   
