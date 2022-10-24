@@ -15,6 +15,9 @@
       devShells.default =  pkgs.mkShell {
         nativeBuildInputs = [ pkgs.bashInteractive ];
         buildInputs = [
+          pkgs.cmake
+          pkgs.openssl
+          pkgs.openssl.dev
           pkgs.R
         ];
       }; 
