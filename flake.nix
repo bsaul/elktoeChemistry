@@ -13,12 +13,26 @@
       pkgs = nixpkgs.legacyPackages.${system};
     in {
       devShells.default =  pkgs.mkShell {
-        nativeBuildInputs = [ pkgs.bashInteractive ];
+        nativeBuildInputs = [ 
+
+        ];
         buildInputs = [
-          pkgs.cmake
-          pkgs.openssl
+          # pkgs.cmake
+          pkgs.bashInteractive
+          pkgs.harfbuzz
+          pkgs.harfbuzz.dev
+          pkgs.fribidi
+          pkgs.fribidi.devdoc
+          pkgs.freetype.dev
           pkgs.openssl.dev
+          pkgs.libxml2.dev
+          pkgs.util-linux 
+
           pkgs.R
+          pkgs.rPackages.renv
+          pkgs.rPackages.languageserver
+          # pkgs.rPackages.devtools
+          # pkgs.rPackages.open
         ];
       }; 
 
