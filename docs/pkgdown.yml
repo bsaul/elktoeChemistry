@@ -1,11 +1,18 @@
-pandoc: 2.9.1.1
-pkgdown: 1.6.1
+pandoc: 2.17.1.1
+pkgdown: 1.5.0
 pkgdown_sha: ~
 articles:
+  alignment: alignment.html
   diversity: diversity.html
   map_study_area: map_study_area.html
+  net-intensity-ad-hoc: net-intensity-ad-hoc.html
+  outcomes: outcomes.html
+  outcomes_elements: outcomes_elements.html
   prepare_analysis_data: prepare_analysis_data.html
   preprocess_data: preprocess_data.html
+  review_element_detection: review_element_detection.html
   summarize_elements: summarize_elements.html
-last_built: 2020-12-19T00:29Z
+  summarize_specimens: summarize_specimens.html
+  valve_measurements: valve_measurements.html
+last_built: 2022-11-05T00:58Z
 

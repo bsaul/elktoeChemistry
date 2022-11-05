@@ -16,7 +16,6 @@ editor_options:
 chunk_output_type: console
 ---
 
-
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
@@ -28,31 +27,35 @@ knitr::opts_chunk$set(
 ```
 
 ```{r packages}
-devtools::load_all()
-# library(elktoeChemistry)
+# devtools::load_all()
+library(elktoeChemistry)
 library(dplyr)
 library(ggplot2)
 library(ggbeeswarm)
+analysis_data  <- readRDS(params$inputs$analysis)
 ```
 
 ```{r}
 dt <- analysis_data(
-    contrast = "all",
-    test_data_FUN = function(data) data,
-    elements  = "As_ppm_m75",
-    signals   = c("mad_10"),
-    group_by_valve = TRUE,
+     contrast = "all",
+     test_data_FUN = function(data) data,
+     elements  = "As_ppm_m75",
+     signals   = c("mad_10"),
+     group_by_valve = TRUE,
     transect_opts  = list(
-      .layers    = c("ipx", "ncr", "psm", "pio", "opx"),
-      .min_n_obs = 0L
-    )
-  )
+       .layers    = c("ipx", "ncr", "psm", "pio", "opx"),
+       .min_n_obs = 0L
+     )
+   )
 ```
 
 
+ 
 ## Layer Distance within each valve/transect
 
-```{r}
+
+
+```{r fart}
 d_by_layer <-
  dt$data[[1]] %>%
  group_by(id, transect, layer) %>%
@@ -61,6 +64,7 @@ d_by_layer <-
   layer = factor(layer, levels = c("ipx", "ncr", "psm", "pio", "opx"), order = TRUE)
  )
 ```
+
 
 ```{r distance_by_layer_table}
 d_by_layer %>%
@@ -118,5 +122,3 @@ ggplot(
   scales = "free"
  )
 ```
-
-

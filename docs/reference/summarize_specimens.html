@@ -6,8 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Shifts the distance variable in a chemistry dataset to a new 0 point based
-on .zero_function — shift_distance • elktoeChemistry</title>
+<title>Summarize specimens — summarize_specimens • elktoeChemistry</title>
 
 
 <!-- jquery -->
@@ -40,10 +39,8 @@ on .zero_function — shift_distance • elktoeChemistry</title>
 
 
 
-<meta property="og:title" content="Shifts the distance variable in a chemistry dataset to a new 0 point based
-on .zero_function — shift_distance" />
-<meta property="og:description" content="Shifts the distance variable in a chemistry dataset to a new 0 point based
-on .zero_function" />
+<meta property="og:title" content="Summarize specimens — summarize_specimens" />
+<meta property="og:description" content="Summarize specimens" />
 
 
 
@@ -139,34 +136,29 @@ on .zero_function" />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Shifts the distance variable in a chemistry dataset to a new 0 point based
-on .zero_function</h1>
+    <h1>Summarize specimens</h1>
     
-    <div class="hidden name"><code>shift_distance.Rd</code></div>
+    <div class="hidden name"><code>summarize_specimens.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Shifts the distance variable in a chemistry dataset to a new 0 point based
-on .zero_function</p>
+    <p>Summarize specimens</p>
     </div>
 
-    <pre class="usage"><span class='fu'>shift_distance</span>(<span class='no'>.chem_data</span>, <span class='kw'>.zero_function</span> <span class='kw'>=</span> <span class='no'>identity</span>, <span class='no'>.zf_args</span>)</pre>
+    <pre class="usage"><span class='fu'>summarize_specimens</span>(<span class='no'>adt</span>, <span class='kw'>modify_layer</span> <span class='kw'>=</span> <span class='kw'>function</span>(<span class='no'>layer</span>, <span class='no'>annuli</span>) {
+    <span class='no'>layer</span>
+})</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>.chem_data</th>
-      <td><p>chemistry dataset for a single id_transect</p></td>
+      <th>adt</th>
+      <td><p>result from <code>analysis_data()</code></p></td>
     </tr>
     <tr>
-      <th>.zero_function</th>
-      <td><p>a function that shifts the distance function. Defaults to
-<code>identity</code>. <code>x</code> must be first argument, where <code>x</code> is <code>.chem_data</code></p></td>
-    </tr>
-    <tr>
-      <th>.zf_args</th>
-      <td><p>arguments passed to <code>.zero_function</code></p></td>
+      <th>modify_layer</th>
+      <td><p>a function to modify the definition of the layer variable</p></td>
     </tr>
     </table>
 
