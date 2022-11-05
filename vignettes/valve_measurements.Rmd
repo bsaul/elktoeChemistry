@@ -1,0 +1,122 @@
+---
+title: "Valve Measurements"
+author: "Bradley Saul"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Valve Measurements}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+bibliography: vignettes.bib
+params:
+   inputs:
+     value:
+       analysis: "../data/analysis_data.rds"
+editor_options:
+chunk_output_type: console
+---
+
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  echo    = FALSE,
+  message = FALSE,
+  warning = FALSE
+)
+```
+
+```{r packages}
+devtools::load_all()
+# library(elktoeChemistry)
+library(dplyr)
+library(ggplot2)
+library(ggbeeswarm)
+```
+
+```{r}
+dt <- analysis_data(
+    contrast = "all",
+    test_data_FUN = function(data) data,
+    elements  = "As_ppm_m75",
+    signals   = c("mad_10"),
+    group_by_valve = TRUE,
+    transect_opts  = list(
+      .layers    = c("ipx", "ncr", "psm", "pio", "opx"),
+      .min_n_obs = 0L
+    )
+  )
+```
+
+
+## Layer Distance within each valve/transect
+
+```{r}
+d_by_layer <-
+ dt$data[[1]] %>%
+ group_by(id, transect, layer) %>%
+ summarize(d = max(distance) - min(distance)) %>%
+ mutate(
+  layer = factor(layer, levels = c("ipx", "ncr", "psm", "pio", "opx"), order = TRUE)
+ )
+```
+
+```{r distance_by_layer_table}
+d_by_layer %>%
+  group_by(layer) %>%
+  summarize(
+    mean = mean(d),
+    sd   = sd(d),
+    median = median(d)
+  )
+```
+
+```{r distance_by_layer}
+ggplot(
+  data = d_by_layer,
+  aes(x = layer, y = d)
+) + 
+ geom_quasirandom() + 
+ facet_grid(
+  layer ~ .,
+  scales = "free"
+ )
+```
+
+## Layer Distances within each valve/transect (in most recent annuli)
+
+```{r}
+d_by_annuli <-
+ dt$data[[1]] %>%
+ filter(annuli == "A") %>%
+ group_by(id, transect, layer, annuli) %>%
+ summarize(d = max(distance) - min(distance)) %>%
+ mutate(
+  layer = factor(layer, levels = c("ipx", "ncr", "psm", "pio", "opx"), order = TRUE)
+ )
+```
+
+```{r distance_by_annuli_table}
+d_by_annuli %>%
+  group_by(layer, annuli) %>%
+  summarize(
+    mean = mean(d),
+    sd   = sd(d),
+    median = median(d)
+  )
+```
+
+```{r distance_by_annuli}
+ggplot(
+  data = d_by_annuli,
+  aes(x = layer, y = d)
+) + 
+ geom_quasirandom() + 
+ facet_grid(
+  layer ~ .,
+  scales = "free"
+ )
+```
+
+
